@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-#Ver 0.4.1 edited at 2013-07-19-12:43
+#Ver 0.5 edited at 2013-07-25-14:23
 #Changes: some bugs in the cursor class
+#Changes: mouse press events, small change in __init__
 
 #items needed in replay scene
 #grids of map
@@ -9,7 +10,7 @@
 
 from PyQt4 import QtGui, QtCore
 from basic import *
-import qrc_resources
+
 TRAP_TRIGGERED = 8
 
 
@@ -26,13 +27,13 @@ LABEL_LEFT_MARGIN = 20
 def GetPos(mapX, mapY):
     return QtCore.QPointF(mapX*UNIT_WIDTH, mapY*UNIT_HEIGHT)
 
-class Ui_MapUnit(QtGui.QGraphicsItem):
+class Ui_MapUnit(QtGui.QGraphicsObject):
     "the unit of the map. Generalized."
-    def __init__(self, x, y, terrain, parent = None):
+    def __init__(self, x, y, mapGrid, parent = None):
         QtGui.QGraphicsItem.__init__(self, parent)
         self.mapX = x
         self.mapY = y
-        self.terrain = terrain
+        self.terrain = mapGrid.kind
         #load pixmap
         self.selected = False
         self.coverColor = None
@@ -65,16 +66,21 @@ class Ui_MapUnit(QtGui.QGraphicsItem):
         painter.drawRect(QtCore.QRect(0, 0, UNIT_WIDTH, UNIT_HEIGHT))
         #for test
 
+    def mousePressEvent(self, event):
+        self.mapGridSelected.emit(self.mapX, self.mapY)
 
-class Ui_SoldierUnit(QtGui.QGraphicsItem):
+    mapGridSelected = QtCore.pyqtSignal(int, int)
+
+
+class Ui_SoldierUnit(QtGui.QGraphicsObject):
     "the unit of the soldiers. Generalized."
-    #def __init__(self, units):
-    def __init__(self, x, y, soldiertype, idNum, parent = None):
+    def __init__(self, idNum, side, unit, parent = None):
         QtGui.QGraphicsItem.__init__(self, parent)
-        self.mapX = x
-        self.mapY = y
-        self.type = soldiertype
+        self.mapX = unit.position[0]
+        self.mapY = unit.position[1]
+        self.type = unit.kind
         self.idNum = idNum
+        self.side = side
         self.selected = False
 
     def SetMapPos(self, x, y):
@@ -96,9 +102,15 @@ class Ui_SoldierUnit(QtGui.QGraphicsItem):
                      WARRIOR:"warrior.png",
                      WIZARD:"wizard.png",
                      HERO_1:"hero1.png"}
-        image = QtGui.QImage(":/%s" %imageRoute[self.type])
+        fileRoute = "SoldierImage\\"
+        image = QtGui.QImage(fileRoute+imageRoute[self.type])
         painter.setCompositionMode(painter.CompositionMode_Multiply)
         painter.drawImage(QtCore.QRectF(0, 0, UNIT_WIDTH, UNIT_HEIGHT), image)
+
+    def mousePressEvent(self, event):
+        self.soldierSelected.emit(self.idNum)
+
+    soldierSelected = QtCore.pyqtSignal(int)
 
     #slots for creating animation
     def FadeOut(self, time):
@@ -107,14 +119,13 @@ class Ui_SoldierUnit(QtGui.QGraphicsItem):
     #def Flicker(self, frame):
 
 
-class Ui_GridLabel(QtGui.QGraphicsItem):
+class Ui_GridLabel(QtGui.QGraphicsObject):
     "used to show info on map grids"
-    def __init__(self, text, mapX, mapY, side, parent = None):
+    def __init__(self, text, mapX, mapY, parent = None):
         QtGui.QGraphicsItem.__init__(self, parent)
         self.text = text
         self.mapX = mapX
         self.mapY = mapY
-        self.side = side
 
     def boundingRect(self):
         return QtCore.QRectF(LABEL_LEFT_MARGIN-PEN_WIDTH, 0-LABEL_HEIGHT-PEN_WIDTH,
@@ -130,7 +141,7 @@ class Ui_GridLabel(QtGui.QGraphicsItem):
         
 
 class Ui_GridCursor(QtGui.QGraphicsItem):
-    def __init__(self, timeId):
+    def __init__(self, timeId = -1):
         QtGui.QGraphicsItem.__init__(self)
 
         self.isFixed = False #show whether the cursor should stop frickering
@@ -164,5 +175,8 @@ class Ui_GridCursor(QtGui.QGraphicsItem):
                          QtCore.QPointF((1-RMARGIN)*UNIT_WIDTH, (1-RLINE)*UNIT_HEIGHT))
         painter.drawLine(QtCore.QPointF((1-RMARGIN)*UNIT_WIDTH, (1-RMARGIN)*UNIT_HEIGHT),
                          QtCore.QPointF((1-RLINE)*UNIT_WIDTH, (1-RMARGIN)*UNIT_HEIGHT))
+
+    #def mousePressEvent(self, event):
+        #event.ignore()
 
 

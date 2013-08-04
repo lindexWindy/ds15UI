@@ -26,7 +26,7 @@ units = [u(1, (0, 0)), u(2, (0, 1)), u(3, (0, 2)),
 units2 = [[u(1, (0, 0)), u(2, (0, 1)), u(3, (0, 2))],
           [u(3, (3, 3)), u(2, (3, 2)), u(1, (3, 1))]]
 iniInfo = Begin_Info(maps, units2)
-begInfo = Round_Begin_Info(1, ((1, 1)), units2)
+begInfo = Round_Begin_Info(1, ((1, 1)), units2, None)
 
 route = ((0, 1), (0, 2), (1, 2), (2, 2))
 def fun():
