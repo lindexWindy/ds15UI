@@ -189,9 +189,6 @@ if __name__=="__main__":
     scene = QtGui.QGraphicsScene()
     view = Ui_2DReplayWidget(scene)
     view.setBackgroundBrush(QtGui.QColor(255, 255, 255))
-    view.Initialize(iniInfo, begInfo)
-    view.setWindowTitle("Replay")
     view.show()
-    view.MovingAnimation(1, route)#for test
     sys.exit(app.exec_())
     
