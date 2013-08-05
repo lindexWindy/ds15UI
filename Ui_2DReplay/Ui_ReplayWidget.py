@@ -77,8 +77,9 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         if (state!=None):
             self.animState = state
         selfId = self.data.roundInfo[self.nowRound].idNum
-        targetId = self.data.roundInfo[self.nowRound].cmdChanges.target
         move = self.data.roundInfo[self.nowRound].cmdChanges
+        if (move.order!=0):
+            targetId = self.data.roundInfo[self.nowRound].cmdChanges.target
         if (self.animState==0):
             self.MovingAnimation(selfId, move.route)
             self.animState = AFTER_MOVING

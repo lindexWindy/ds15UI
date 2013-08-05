@@ -186,6 +186,12 @@ class Ui_ReplayView(QtGui.QGraphicsView):
 
 
 
+def ConvertTo1D(iniUnits):
+    units = []
+    for row in iniUnits:
+        units.extend(row)
+    return units
+
 class UiD_BeginChanges:
     def __init__(self, beginInfo, cmd, endInfo, maps):
         self.templeRenew = None#
@@ -197,10 +203,8 @@ class UiD_EndChanges:
         self.order = cmd.order
         if (cmd.order==1):
             target = self.target = cmd.target[0]*len(endInfo.base[0])+cmd.target[1]
-            begUnits = begInfo.base[0]
-            begUnits.extend(begInfo.base[1])
-            endUnits = endInfo.base[0]
-            endUnits.extend(endInfo.base[1])
+            begUnits = ConvertTo1D(begInfo.base)
+            endUnits = ConvertTo1D(endInfo.base)
             self.damage = (endUnits[idNum].life-begUnits[idNum].life,
                            endUnits[target].life-begUnits[target].life) #(self, enemy)
             self.note = ["", ""]
@@ -218,11 +222,11 @@ class UiD_EndChanges:
 class UiD_RoundInfo:
     "info of every round"
     def __init__(self, begInfo, cmd, endInfo, maps):
+        #print len(begInfo.base[0])#for test
         self.begChanges = UiD_BeginChanges(begInfo, cmd, endInfo, maps)
         self.cmdChanges = UiD_EndChanges(begInfo, cmd, endInfo, maps)
         self.begUnits = None #if it is none, there's no changes in the unit info
-        self.endUnits = endInfo.base[0]
-        self.endUnits.extend(endInfo.base[1])
+        self.endUnits = ConvertTo1D(endInfo.base)
         self.idNum = begInfo.id[0]*len(endInfo.base[0])+begInfo.id[1]
         self.score = endInfo.score
 
@@ -231,11 +235,10 @@ class UiD_BattleData:
     def __init__(self, iniInfo, begInfo):
         self.map = iniInfo.map
         self.side0SoldierNum = len(iniInfo.base[0])
-        self.iniUnits = iniInfo.base[0]
-        self.iniUnits.extend(iniInfo.base[1])
+        self.iniUnits = ConvertTo1D(iniInfo.base)
         self.roundInfo = []
         self.nextRoundInfo = begInfo #temporary stores the round_begin_info
-        self.result = None#
+        self.result = None #result
 
     #def GetRoundIniData(self, roundNum):
     #def GetRoundCmdData(self, roundNum):

@@ -68,7 +68,10 @@ def available_spots(map_list, unit_list, source_num, prev = None):
 def GetRoute(maps, units, idnum, end):
     route = []
     last = []
+    #print "soulu"#for test
     try:
+        #print idnum#for test
+        print len(units[0]), len(units[1])#for test
         field = available_spots(maps, units, idnum, last)
         ind = field.index(end)
         start = units[idnum[0]][idnum[1]].position
