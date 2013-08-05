@@ -56,7 +56,7 @@ class Ui_2DReplayWidget(Ui_ReplayView):
     def UpdateEndData(self, cmd, endInfo):
         if (self.data.nextRoundInfo==None):
             pass#raise error
-        rInfo = UiD_RoundInfo(self.data.nextRoundInfo, cmd, endInfo)
+        rInfo = UiD_RoundInfo(self.data.nextRoundInfo, cmd, endInfo, self.data.map)
         self.data.roundInfo.append(rInfo)
         self.data.nextRoundInfo = None
         self.latestStatus = self.END_FLAG

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-#Ver 0.6.3 edited at 2013-07-23-19:54
+#Ver 0.7 edited at 2013-08-05-17:11
 #Changes: type of data changed
 #Changes: change the two-dimen array into a one-dimen one(OK)
 #Changes: initialization
+#Changes: road searching
 #need to change: make the cursor fixed when playing
 
 #scene, view of replay
@@ -190,13 +191,13 @@ class Ui_ReplayView(QtGui.QGraphicsView):
 
 
 class UiD_BeginChanges:
-    def __init__(self, beginInfo, cmd, endInfo):
+    def __init__(self, beginInfo, cmd, endInfo, maps):
         self.templeRenew = None#
 
 class UiD_EndChanges:
-    def __init__(self, begInfo, cmd, endInfo):
-        self.idNum = idNum = begInfo.id[0]*len(endInfo.base[0])+begInfo.id[1]
-        self.route = fun()#
+    def __init__(self, begInfo, cmd, endInfo, maps):
+        self.idNum = idNum = begInfo.id[0]*len(begInfo.base[0])+begInfo.id[1]
+        self.route = GetRoute(maps, begInfo.base, begInfo.id, cmd.move)
         self.order = cmd.order
         if (cmd.order==1):
             target = self.target = cmd.target[0]*len(endInfo.base[0])+cmd.target[1]
@@ -220,9 +221,9 @@ class UiD_EndChanges:
 
 class UiD_RoundInfo:
     "info of every round"
-    def __init__(self, begInfo, cmd, endInfo):
-        self.begChanges = UiD_BeginChanges(begInfo, cmd, endInfo)
-        self.cmdChanges = UiD_EndChanges(begInfo, cmd, endInfo)
+    def __init__(self, begInfo, cmd, endInfo, maps):
+        self.begChanges = UiD_BeginChanges(begInfo, cmd, endInfo, maps)
+        self.cmdChanges = UiD_EndChanges(begInfo, cmd, endInfo, maps)
         self.begUnits = None #if it is none, there's no changes in the unit info
         self.endUnits = endInfo.base[0]
         self.endUnits.extend(endInfo.base[1])
