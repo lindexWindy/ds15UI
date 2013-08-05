@@ -24,7 +24,6 @@ class Ui_ReplayView(QtGui.QGraphicsView):
         self.sizeY = 0
         #ini of items
         self.cursor = None
-        self.timerId = self.startTimer(500)#frickering period
         #ini of the cursor
         self.movTimeline = QtCore.QTimeLine()
         self.atkTimeline = QtCore.QTimeLine()
@@ -63,7 +62,7 @@ class Ui_ReplayView(QtGui.QGraphicsView):
             self.soldierAlive.append(True)
         self.SetSoldiers(units)
         #initialization of soldier units
-        self.cursor = Ui_GridCursor(self.timerId)
+        self.cursor = Ui_GridCursor()
         scene.addItem(self.cursor)
         self.setMouseTracking(True)#for test
         #initialization of the cursor
@@ -177,10 +176,6 @@ class Ui_ReplayView(QtGui.QGraphicsView):
         if (units):
             self.SetSoldiers(units)#?
 
-    #cursor
-    def timerEvent(self, event):
-        if (self.cursor!=None and event.timerId()==self.cursor.timerId):
-            self.cursor.setOpacity(1-self.cursor.opacity()) #make the cursor fricker
     def mouseMoveEvent(self, event):
         #bug: not the scene position!
         #bug: need to restrict the cursor in the scene!

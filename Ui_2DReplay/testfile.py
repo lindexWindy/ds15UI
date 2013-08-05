@@ -11,6 +11,8 @@ if __name__=="__main__":
     view.setBackgroundBrush(QtGui.QColor(0, 0, 0))
     view.Initialize(iniInfo, begInfo0)
     view.UpdateEndData(cmd0, endInfo0)#bug
-    view.GoToRound(0, 1)
+    view.UpdateBeginData(begInfo1)
+    view.UpdateEndData(cmd1, endInfo1)
+    view.GoToRound(1, 0)
     view.show()
     sys.exit(app.exec_())

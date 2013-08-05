@@ -140,12 +140,12 @@ class Ui_GridLabel(QtGui.QGraphicsObject):
         painter.drawText(QtCore.QPointF(LABEL_LEFT_MARGIN, 0), self.text)
         
 
-class Ui_GridCursor(QtGui.QGraphicsItem):
-    def __init__(self, timeId = -1):
+class Ui_GridCursor(QtGui.QGraphicsObject):
+    def __init__(self):
         QtGui.QGraphicsItem.__init__(self)
 
         self.isFixed = False #show whether the cursor should stop frickering
-        self.timerId = timeId #the period of frickering
+        self.timerId = self.startTimer(500)#frickering period
 
     def boundingRect(self):
         return QtCore.QRectF(0-PEN_WIDTH, 0-PEN_WIDTH,
@@ -178,5 +178,9 @@ class Ui_GridCursor(QtGui.QGraphicsItem):
 
     #def mousePressEvent(self, event):
         #event.ignore()
+    #cursor
+    def timerEvent(self, event):
+        if (event.timerId()==self.timerId):
+            self.setOpacity(1-self.opacity()) #make the cursor fricker
 
 
