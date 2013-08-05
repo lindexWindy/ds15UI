@@ -1,62 +1,62 @@
-# -*- coding: cp936 -*-
+# -*- coding: utf-8 -*-
 '''
-	ÕâÊÇÃûÎªshortestµÄpythonÄ£¿é£¬Ìá¹©ÁËÓÃÓÚ½â¾ö¡°¶ÓÊ½15¡±
-	Âß¼­²¿·ÖËùĞèÒªµÄ¿ÉÒÔµ½´ïÇøÓò¼ÆËãµÄº¯Êı¡£Ê¹ÓÃµÄÊÇÆÓËØµÄ
-	DijkstraËã·¨¡£
+	è¿™æ˜¯åä¸ºshortestçš„pythonæ¨¡å—ï¼Œæä¾›äº†ç”¨äºè§£å†³â€œé˜Ÿå¼15â€
+	é€»è¾‘éƒ¨åˆ†æ‰€éœ€è¦çš„å¯ä»¥åˆ°è¾¾åŒºåŸŸè®¡ç®—çš„å‡½æ•°ã€‚ä½¿ç”¨çš„æ˜¯æœ´ç´ çš„
+	Dijkstraç®—æ³•ã€‚
 '''
 import basic
 from field_shelve import read_from, write_to # For testing
 
 def available_spots(map_list, unit_list, source_num, prev = None):
-    '''¸Ãº¯ÊıÓÃÓÚ¼ÆËãµ±Ç°µØÍ¼ÏÂÄ³µ¥Î»µÄ»î¶¯·¶Î§¡£
-    ´«Èë²ÎÁ¿map_list£¬Îª»ù±¾µØÍ¼µ¥ÔªµÄ¶şÎ¬Êı×é´¢´æÁËµØÍ¼µÄÈ«²¿ĞÅÏ¢¡£
-    unit_listÊÇµ¥Î»ĞÅÏ¢ÁĞ±í¡£
-    source_numÊÇÒ»¸öÔª×é£¬Îª(side_num, object_num)¡£
-    ĞÎ²ÎprevµÄÓÃ·¨¼ûREADME¡£
-    ·µ»ØÒ»¸öÁĞ±í£¬°üº¬ËùÓĞ¿Éµ½´ïµÄµã£¬Ë³ĞòÊÇÓÉ½ü¼°Ô¶¡£'''
-    #¼ÆËãµ¥Î»×èµ²µÄÎ»ÖÃ
+    '''è¯¥å‡½æ•°ç”¨äºè®¡ç®—å½“å‰åœ°å›¾ä¸‹æŸå•ä½çš„æ´»åŠ¨èŒƒå›´ã€‚
+    ä¼ å…¥å‚é‡map_listï¼Œä¸ºåŸºæœ¬åœ°å›¾å•å…ƒçš„äºŒç»´æ•°ç»„å‚¨å­˜äº†åœ°å›¾çš„å…¨éƒ¨ä¿¡æ¯ã€‚
+    unit_listæ˜¯å•ä½ä¿¡æ¯åˆ—è¡¨ã€‚
+    source_numæ˜¯ä¸€ä¸ªå…ƒç»„ï¼Œä¸º(side_num, object_num)ã€‚
+    å½¢å‚prevçš„ç”¨æ³•è§READMEã€‚
+    è¿”å›ä¸€ä¸ªåˆ—è¡¨ï¼ŒåŒ…å«æ‰€æœ‰å¯åˆ°è¾¾çš„ç‚¹ï¼Œé¡ºåºæ˜¯ç”±è¿‘åŠè¿œã€‚'''
+    #è®¡ç®—å•ä½é˜»æŒ¡çš„ä½ç½®
     u_block = [unit_list[i][j].position \
                for i in range(2) for j in range(len(unit_list[i]))]        
-    d_spots = [] # ËùÓĞÒÑ¾­È·¶¨¿Éµ½ÇÒËÉ³ÚÍê±ÏµÄµã
-    s_unit = unit_list[source_num[0]][source_num[1]] # Ä¿±êµ¥Î»
-    s_position = s_unit.position # Ô´µã×ø±ê
-    a_spots = [s_position] # ËùÓĞ±»ËÉ³Ú¹ı£¬Î´È·¶¨¿Éµ½µÄµã
-    a_weight = [0]         # µãÖĞµÄÈ¨Öµ
+    d_spots = [] # æ‰€æœ‰å·²ç»ç¡®å®šå¯åˆ°ä¸”æ¾å¼›å®Œæ¯•çš„ç‚¹
+    s_unit = unit_list[source_num[0]][source_num[1]] # ç›®æ ‡å•ä½
+    s_position = s_unit.position # æºç‚¹åæ ‡
+    a_spots = [s_position] # æ‰€æœ‰è¢«æ¾å¼›è¿‡ï¼Œæœªç¡®å®šå¯åˆ°çš„ç‚¹
+    a_weight = [0]         # ç‚¹ä¸­çš„æƒå€¼
     row = len(map_list)
     column = len(map_list[0])
     prev_a = [0]
-    d_index = -1 # ĞÂÔö¿É´ïµãÔÚd_spotsÖĞµÄĞòºÅ£¬ÓÃÓÚ¼ÆËãprev
+    d_index = -1 # æ–°å¢å¯è¾¾ç‚¹åœ¨d_spotsä¸­çš„åºå·ï¼Œç”¨äºè®¡ç®—prev
     while True:
         if a_weight == []:
             break
-        min_weight = min(a_weight) # Çóa_weightÖĞ×îĞ¡Öµ
-        if min_weight > s_unit.move_range: # µ½´ï¼«ÏŞ
+        min_weight = min(a_weight) # æ±‚a_weightä¸­æœ€å°å€¼
+        if min_weight > s_unit.move_range: # åˆ°è¾¾æé™
             break
         d_index += 1
-        s = a_weight.index(min_weight) # È¡µÃÆäĞòºÅ
-        # ËÉ³Ú²Ù×÷
+        s = a_weight.index(min_weight) # å–å¾—å…¶åºå·
+        # æ¾å¼›æ“ä½œ
         p_modify = ((1, 0), (-1, 0), (0, 1), (0, -1))
         for i in range(4):
-            # ¿ÉÒÔËÉ³ÚµÄËÄ¸ö·½Ïòµã
+            # å¯ä»¥æ¾å¼›çš„å››ä¸ªæ–¹å‘ç‚¹
             p = (p_modify[i][0] + a_spots[s][0], p_modify[i][1] + a_spots[s][1])
             if p[0] < 0 or p[1] < 0 or p[0] >= row or p[1] >= column:
                 continue    
-            if not (p in u_block or p in d_spots): # ËÉ³ÚµãµÄÌõ¼ş
-                lf = map_list[p[0]][p[1]].type # ËÉ³ÚµãµÄµØĞÎ 
-                move_cost = basic.FIELD_EFFECT[lf][0] # ¸ÃµãµÄÌåÁ¦ÏûºÄ
-                if p in a_spots: # ¸üĞÂ
-                    p_id = a_spots.index(p) # ËÉ³ÚµãÔÚa_spotsÀïµÄindex
+            if not (p in u_block or p in d_spots): # æ¾å¼›ç‚¹çš„æ¡ä»¶
+                lf = map_list[p[0]][p[1]].type # æ¾å¼›ç‚¹çš„åœ°å½¢ 
+                move_cost = basic.FIELD_EFFECT[lf][0] # è¯¥ç‚¹çš„ä½“åŠ›æ¶ˆè€—
+                if p in a_spots: # æ›´æ–°
+                    p_id = a_spots.index(p) # æ¾å¼›ç‚¹åœ¨a_spotsé‡Œçš„index
                     if move_cost + a_weight[s] < a_weight[p_id]:
                         a_weight[p_id] = move_cost + a_weight[s]
                         if a_weight[p_id] <= s_unit.move_range:
                             prev_a[p_id] = d_index
-                else: 			#ĞÂ¼ÓÈë
+                else: 			#æ–°åŠ å…¥
                     lf = map_list[p[0]][p[1]].type
                     a_spots.append(p)
                     a_weight.append(a_weight[s] + move_cost)
                     if a_weight[s] + move_cost <= s_unit.move_range:
                         prev_a.append(d_index)
-        # ËÉ³Ú½áÊøºó£¬½« s ´ÓaĞòÁĞÉ¾³ı£¬ ½«Ëü¼ÓÈëµ½dĞòÁĞÖĞ
+        # æ¾å¼›ç»“æŸåï¼Œå°† s ä»aåºåˆ—åˆ é™¤ï¼Œ å°†å®ƒåŠ å…¥åˆ°dåºåˆ—ä¸­
         d_spots.append(a_spots[s]) 
         if not prev == None:      
             prev.append(prev_a[s])
