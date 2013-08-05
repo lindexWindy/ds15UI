@@ -8,8 +8,9 @@
 
 #scene, view of replay
 
-from Ui_Units import *
 import sys, math
+from shortest import GetRoute
+from Ui_Units import *
 
 
 class Ui_ReplayView(QtGui.QGraphicsView):

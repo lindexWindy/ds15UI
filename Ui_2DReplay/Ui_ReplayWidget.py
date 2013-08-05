@@ -127,7 +127,7 @@ class Ui_2DReplayWidget(Ui_ReplayView):
     def GoToRound(self, r = None, flag = None):
         "stop the animation and set the round state"
         if (flag!=None):
-            self.status = flaga
+            self.status = flag
         if (r!=None):
             self.nowRound = r
         self.ShowStatus()
