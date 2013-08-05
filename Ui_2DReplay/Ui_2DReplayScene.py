@@ -32,6 +32,9 @@ class Ui_ReplayView(QtGui.QGraphicsView):
         #ini of the animation
     def Initialize(self, maps, units, side0 = 0):
         scene = self.scene()
+        for item in scene.items():
+            scene.removeItem(item)
+        #initialize
         self.sizeX = len(maps)*UNIT_WIDTH
         self.sizeY = len(maps[0])*UNIT_HEIGHT
         self.mapItem = []
