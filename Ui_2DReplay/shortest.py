@@ -5,7 +5,7 @@
 	Dijkstra算法。
 '''
 import basic
-from field_shelve import read_from, write_to # For testing
+#from field_shelve import read_from, write_to # For testing
 
 def available_spots(map_list, unit_list, source_num, prev = None):
     '''该函数用于计算当前地图下某单位的活动范围。
@@ -85,14 +85,21 @@ def GetRoute(maps, units, idnum, end):
         pass #raise error
     #possibility: 1. invalid pos 2. invalid idnum
 
-def main():
-    (map_list, unit_list) = read_from()
-    prev = []
-    print available_spots(map_list, unit_list, (1, 0), prev)
-    print prev
-    raw_input("print anything to continue")
+#def main():
+#    (map_list, unit_list) = read_from()
+#    prev = []
+#    print available_spots(map_list, unit_list, (1, 0), prev)
+#    print prev
+#    raw_input("print anything to continue")
 
+#if __name__ == '__main__':
+#    main()
+
+from testdata import *
 if __name__ == '__main__':
-    main()
+    last = []
+    field = available_spots(maps, units1, (0, 1), last)
+    print field
+    print last
 
 
