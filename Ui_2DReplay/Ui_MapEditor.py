@@ -5,7 +5,25 @@
 #need to change: terrain 'gear'
 #
 
-from Ui_ReplayScene import *
+from Ui_2DReplayScene import *
+
+
+class Ui_NewMapUnit(Ui_MapUnit):
+    def __init__(self, x, y, mapGrid, parent = None):
+        Ui_MapUnit.__init__(self, x, y, mapGrid, parent)
+    def mousePressEvent(self, event):
+        self.selected = not self.selected
+
+class Ui_NewSoldierUnit(Ui_GridUnit):
+    def __init__(self, usableGrid, ind = 0, parent = None):
+        Ui_GridUnit.__init__(self,
+                             usableGrid[ind][0], usableGrid[ind][1], parent)
+        self.usableGrid = usab;eGrid
+        usableGrid.pop(ind)
+    #def mouseDragEvent(self, event):
+        
+#units of map editor
+
 
 
 class Ui_MapEditor(Ui_ReplayView):
@@ -27,9 +45,18 @@ class Ui_MapEditor(Ui_ReplayView):
             self.newMap.append(newColumn)
         #create a new map(default terrain: PLAIN)
         Ui_ReplayView.Initialize(self, self.newMap, [])
+        #bug: old map unit used here!!
+        #solution : add a parameter about the class
 
-    #def ChangeTerrain(self, terrain):
+    def ChangeTerrain(self, terrain):
+        "change the terrain of selected map grids"
+        for i in range(len(self.newMap)):
+            for j in range(len(self.newMap[i])):
+                if (self.mapItem[i][j].selected):
+                    self.mapItem[i][j].terrain = terrain
+                    self.newMap[i][j] = Map_Basic(terrain)
+                    self.mapItem[i][j].selected = False
 
     #def AddUnits(self, side, position):
 
-    #def Clear = Initialize
+    #need a clear function to clear the selected state?
