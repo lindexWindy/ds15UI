@@ -27,16 +27,37 @@ LABEL_LEFT_MARGIN = 20
 def GetPos(mapX, mapY):
     return QtCore.QPointF(mapX*UNIT_WIDTH, mapY*UNIT_HEIGHT)
 
-class Ui_MapUnit(QtGui.QGraphicsObject):
-    "the unit of the map. Generalized."
-    def __init__(self, x, y, mapGrid, parent = None):
-        QtGui.QGraphicsItem.__init__(self, parent)
+class Ui_GridUnit(QtGui.QGraphicsObject):
+    "the superclass of all grid units"
+    def __init__(self, x = 0, y = 0, parent = None):
+        QtGui.QGraphicsObject.__init__(self, parent)
         self.mapX = x
         self.mapY = y
+        self.selected = False#no need
+
+    def SetMapPos(self, x, y):
+        self.mapX = x
+        self.mapY = y
+    def GetPos(self):
+        return GetPos(self.mapX, self.mapY)
+
+    def boundingRect(self):
+        return QtCore.QRectF(0-PEN_WIDTH, 0-PEN_WIDTH,
+                             UNIT_WIDTH+PEN_WIDTH, UNIT_HEIGHT+PEN_WIDTH)
+        #regard the upleft corner as origin
+
+    def paint(self, painter, option):
+        pass#
+
+
+class Ui_MapUnit(Ui_GridUnit):
+    "the unit of the map."
+    def __init__(self, x, y, mapGrid, parent = None):
+        Ui_GridUnit.__init__(self, x, y, parent)
         self.terrain = mapGrid.kind
+        #
         #load pixmap
-        self.selected = False
-        self.coverColor = None
+        #self.coverColor = None
 
     #def GetImage(self, painter, image):
     def GetPainter(self, painter):
@@ -55,11 +76,6 @@ class Ui_MapUnit(QtGui.QGraphicsObject):
         painter.setBrush(brush)
         #for test
 
-    def boundingRect(self):
-        return QtCore.QRectF(0-PEN_WIDTH, 0-PEN_WIDTH,
-                             UNIT_WIDTH+PEN_WIDTH, UNIT_HEIGHT+PEN_WIDTH)
-        #regard the upleft corner as origin
-
     def paint(self, painter, option, widget):
         #draw pixmap
         self.GetPainter(painter)
@@ -72,22 +88,13 @@ class Ui_MapUnit(QtGui.QGraphicsObject):
     mapGridSelected = QtCore.pyqtSignal(int, int)
 
 
-class Ui_SoldierUnit(QtGui.QGraphicsObject):
-    "the unit of the soldiers. Generalized."
+class Ui_SoldierUnit(Ui_GridUnit):
+    "the unit of the soldiers."
     def __init__(self, idNum, side, unit, parent = None):
-        QtGui.QGraphicsItem.__init__(self, parent)
-        self.mapX = unit.position[0]
-        self.mapY = unit.position[1]
-        self.type = unit.kind
+        Ui_GridUnit.__init__(self, unit.position[0], unit.position[1], parent)
+        self.type = unit.kind#?
         self.idNum = idNum
         self.side = side
-        self.selected = False
-
-    def SetMapPos(self, x, y):
-        self.mapX = x
-        self.mapY = y
-    def GetPos(self):
-        return GetPos(self.mapX, self.mapY)
 
     def boundingRect(self):
         return QtCore.QRectF(0-PEN_WIDTH, 0-PEN_WIDTH,
@@ -140,11 +147,11 @@ class Ui_GridLabel(QtGui.QGraphicsObject):
         painter.drawText(QtCore.QPointF(LABEL_LEFT_MARGIN, 0), self.text)
         
 
-class Ui_GridCursor(QtGui.QGraphicsObject):
+class Ui_GridCursor(Ui_GridUnit):
     def __init__(self):
-        QtGui.QGraphicsItem.__init__(self)
+        Ui_GridUnit.__init__(self)
 
-        self.isFixed = False #show whether the cursor should stop frickering
+        #self.isFixed = False #show whether the cursor should stop frickering
         self.timerId = self.startTimer(500)#frickering period
 
     def boundingRect(self):
@@ -178,9 +185,9 @@ class Ui_GridCursor(QtGui.QGraphicsObject):
 
     #def mousePressEvent(self, event):
         #event.ignore()
-    #cursor
     def timerEvent(self, event):
         if (event.timerId()==self.timerId):
             self.setOpacity(1-self.opacity()) #make the cursor fricker
+    #mouse cursor
 
 
