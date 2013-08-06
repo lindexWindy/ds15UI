@@ -14,6 +14,10 @@ if __name__=="__main__":
     view.UpdateBeginData(begInfo1)
     view.UpdateEndData(cmd1, endInfo1)
     view.GoToRound(1, 0)
+    cursor = Ui_TargetCursor()
+    scene.addItem(cursor)
+    cursor.setPos(QtCore.QPointF(0, 0))
+    
     #view.ShowMoveAnimation()#bug
     view.show()
     sys.exit(app.exec_())

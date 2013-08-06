@@ -62,7 +62,7 @@ class Ui_ReplayView(QtGui.QGraphicsView):
             self.soldierAlive.append(True)
         self.SetSoldiers(units)
         #initialization of soldier units
-        self.cursor = Ui_GridCursor()
+        self.cursor = Ui_MouseCursor()
         scene.addItem(self.cursor)
         self.setMouseTracking(True)#for test
         #initialization of the cursor

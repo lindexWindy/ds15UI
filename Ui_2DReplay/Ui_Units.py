@@ -26,6 +26,11 @@ LABEL_LEFT_MARGIN = 20
 
 def GetPos(mapX, mapY):
     return QtCore.QPointF(mapX*UNIT_WIDTH, mapY*UNIT_HEIGHT)
+def GetGrid(corX, corY):
+    x = int(corX/UNIT_WIDTH)
+    y = int(corY/UNIT_HEIGHT)
+    return x, y
+
 
 class Ui_GridUnit(QtGui.QGraphicsObject):
     "the superclass of all grid units"
@@ -48,6 +53,8 @@ class Ui_GridUnit(QtGui.QGraphicsObject):
 
     def paint(self, painter, option):
         pass#
+
+
 
 
 class Ui_MapUnit(Ui_GridUnit):
@@ -126,13 +133,11 @@ class Ui_SoldierUnit(Ui_GridUnit):
     #def Flicker(self, frame):
 
 
-class Ui_GridLabel(QtGui.QGraphicsObject):
+class Ui_GridLabel(Ui_GridUnit):
     "used to show info on map grids"
     def __init__(self, text, mapX, mapY, parent = None):
-        QtGui.QGraphicsItem.__init__(self, parent)
+        Ui_GridUnit.__init__(self, mapX, mapY, parent)
         self.text = text
-        self.mapX = mapX
-        self.mapY = mapY
 
     def boundingRect(self):
         return QtCore.QRectF(LABEL_LEFT_MARGIN-PEN_WIDTH, 0-LABEL_HEIGHT-PEN_WIDTH,
@@ -147,16 +152,11 @@ class Ui_GridLabel(QtGui.QGraphicsObject):
         painter.drawText(QtCore.QPointF(LABEL_LEFT_MARGIN, 0), self.text)
         
 
+
+
 class Ui_GridCursor(Ui_GridUnit):
     def __init__(self):
         Ui_GridUnit.__init__(self)
-
-        #self.isFixed = False #show whether the cursor should stop frickering
-        self.timerId = self.startTimer(500)#frickering period
-
-    def boundingRect(self):
-        return QtCore.QRectF(0-PEN_WIDTH, 0-PEN_WIDTH,
-                             UNIT_WIDTH+PEN_WIDTH, UNIT_HEIGHT+PEN_WIDTH)
 
     def paint(self, painter, option, widget):
         pen = QtGui.QPen()
@@ -185,9 +185,48 @@ class Ui_GridCursor(Ui_GridUnit):
 
     #def mousePressEvent(self, event):
         #event.ignore()
+    #grid cursor
+    
+
+class Ui_MouseCursor(Ui_GridCursor):
+    "the cursor moving along with mouse"
+    def __init__(self):
+        Ui_GridCursor.__init__(self)
+
+        #self.isFixed = False #show whether the cursor should stop frickering
+        self.timerId = self.startTimer(500)#frickering period
     def timerEvent(self, event):
         if (event.timerId()==self.timerId):
             self.setOpacity(1-self.opacity()) #make the cursor fricker
     #mouse cursor
+
+
+class Ui_TargetCursor(Ui_GridUnit):
+    "the cursor used to point out the target"
+    def __init__(self):
+        Ui_GridUnit.__init__(self)
+
+    def paint(self, painter, option, widget):
+        pen = QtGui.QPen()
+        pen.setWidth(5)
+        pen.setCapStyle(QtCore.Qt.FlatCap)
+        painter.setPen(pen)
+
+        RMARGIN = 0.05 #rate of margin
+        RLINE = 0.4 #rate of line
+        painter.drawLine(QtCore.QPointF(RMARGIN*UNIT_WIDTH, RMARGIN*UNIT_HEIGHT),
+                         QtCore.QPointF((1-RMARGIN)*UNIT_WIDTH, RMARGIN*UNIT_HEIGHT))
+        painter.drawLine(QtCore.QPointF((1-RMARGIN)*UNIT_WIDTH, RMARGIN*UNIT_HEIGHT),
+                         QtCore.QPointF((1-RMARGIN)*UNIT_WIDTH, (1-RMARGIN)*UNIT_HEIGHT))
+        painter.drawLine(QtCore.QPointF(RMARGIN*UNIT_WIDTH, (1-RMARGIN)*UNIT_HEIGHT),
+                         QtCore.QPointF((1-RMARGIN)*UNIT_WIDTH, (1-RMARGIN)*UNIT_HEIGHT))
+        painter.drawLine(QtCore.QPointF(RMARGIN*UNIT_WIDTH, RMARGIN*UNIT_HEIGHT),
+                         QtCore.QPointF(RMARGIN*UNIT_WIDTH, (1-RMARGIN)*UNIT_HEIGHT))
+        painter.drawLine(QtCore.QPointF(RMARGIN*UNIT_WIDTH, RMARGIN*UNIT_HEIGHT),
+                         QtCore.QPointF((1-RMARGIN)*UNIT_WIDTH, (1-RMARGIN)*UNIT_HEIGHT))
+        painter.drawLine(QtCore.QPointF((1-RMARGIN)*UNIT_WIDTH, RMARGIN*UNIT_HEIGHT),
+                         QtCore.QPointF(RMARGIN*UNIT_WIDTH, (1-RMARGIN)*UNIT_HEIGHT))
+
+#class Ui_KeyboardCursor(Ui_GridUnit):
 
 
