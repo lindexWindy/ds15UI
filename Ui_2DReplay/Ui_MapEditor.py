@@ -39,12 +39,20 @@ class Ui_NewSoldierUnit(Ui_GridUnit):
 
 
 class Ui_MapEditor(Ui_ReplayView):
+    "display widget in map editor. \
+    data: \
+    newMap : Map \
+    iniUnits : array of Units"
     def __init__(self, scene, parent = None):
         Ui_ReplayView.__init__(self, scene, parent)
         self.newMap = []
+        self.usableGrid = []
+        self.iniUnits = [[], []]
 
     def Initialize(self, x = 0, y = 0):
-        "create a new map(default terrain: PLAIN)"
+        "Initialize(int x = 0, int y = 0) -> void \
+        create a new map(default terrain: PLAIN). \
+        x and y is the size of the map. "
         self.newMap = []
         i = 0
         j = 0
@@ -63,7 +71,8 @@ class Ui_MapEditor(Ui_ReplayView):
         self.iniUnits = [[], []]
 
     def ChangeTerrain(self, terrain):
-        "change the terrain of selected map grids"
+        "ChangeTerrain(enum TERRAIN terrain) -> void \
+        change the terrain of selected map grids "
         for i in range(len(self.newMap)):
             for j in range(len(self.newMap[i])):
                 if (self.mapItem[i][j].selected):
@@ -71,7 +80,12 @@ class Ui_MapEditor(Ui_ReplayView):
                     self.newMap[i][j] = Map_Basic(terrain)
                     self.mapItem[i][j].selected = False
 
-    def AddUnits(self, side, position = None):
+    def AddUnit(self, side, position = None):
+        "AddUnit(enum(0, 1) side, Coord. position = None) -> Coord. newPos \
+        add a new unit to a certain side returning the position it will placed at. \
+        position indicates where the new unit should be set. \
+        if it is None, a valid and random position will be distributed. \
+        error will be raised if the position is invalid."
         if (position==None):
             if (self.usableGrid):
                 ind = 0
@@ -89,6 +103,9 @@ class Ui_MapEditor(Ui_ReplayView):
         self.iniUnits[side].append(newUnit)
         return self.usableGrid[ind]
     def DelUnit(self, side):
+        "DelUnit(enum(0, 1) side) -> Coord. pos \
+        delete the last unit of a certain side returning the position it was placed at. \
+        error will be raised if no units is in this side."
         if (self.iniUnits[side]):
             delUnit = self.iniUnits[side][-1]
             pos = (delUnit.mapX, delUnit.mapY)
@@ -99,12 +116,16 @@ class Ui_MapEditor(Ui_ReplayView):
             pass#raise error
 
     def EditMapMode(self):
+        "EditMapMode() -> void \
+        set the widget in the map-editing mode."
         if (not Ui_NewMapUnit.acceptEvent):
             Ui_NewMapUnit.acceptEvent = True
             for side in (0, 1):
                 for unit in self.iniUnits[side]:
                     self.scene().removeItem(unit)
     def EditUnitMode(self):
+        "EditUnitMode() -> void \
+        set the widget in the unit-placing mode."
         if (Ui_NewMapUnit.acceptEvent):
             Ui_NewMapUnit.acceptEvent = False
             for side in (0, 1):
