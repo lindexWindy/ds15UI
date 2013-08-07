@@ -31,7 +31,13 @@ class Ui_ReplayView(QtGui.QGraphicsView):
         self.animation = QtGui.QGraphicsItemAnimation()
         self.label = Ui_GridLabel("", 0, 0)
         #ini of the animation
-    def Initialize(self, maps, units, side0 = 0):
+    def Initialize(self, maps, units, side0 = 0,
+                   MapUnit = Ui_MapUnit, SoldierUnit = Ui_SoldierUnit, Cursor = Ui_MouseCursor):
+        if (not (issubclass(Ui_MapUnit, MapUnit)
+                 and issubclass(Ui_SoldierUnit, SoldierUnit)
+                 and issubclass(Ui_GridUnit, Cursor))):
+            print "error"#raise error
+        #check the type
         scene = self.scene()
         for item in scene.items():
             scene.removeItem(item)
@@ -42,7 +48,7 @@ class Ui_ReplayView(QtGui.QGraphicsView):
         for i in range(len(maps)):
             newColumn = []
             for j in range(len(maps[i])):
-                newMapUnit = Ui_MapUnit(i, j, maps[i][j])
+                newMapUnit = MapUnit(i, j, maps[i][j])
                 scene.addItem(newMapUnit)
                 newColumn.append(newMapUnit)
             self.mapItem.append(newColumn)
@@ -56,13 +62,13 @@ class Ui_ReplayView(QtGui.QGraphicsView):
             side = 0
             if (i>=side0):
                 side = 1
-            newSoldierUnit = Ui_SoldierUnit(i, side, units[i])
+            newSoldierUnit = SoldierUnit(i, side, units[i])
             scene.addItem(newSoldierUnit)
             self.soldierItem.append(newSoldierUnit)
             self.soldierAlive.append(True)
         self.SetSoldiers(units)
         #initialization of soldier units
-        self.cursor = Ui_MouseCursor()
+        self.cursor = Cursor()
         scene.addItem(self.cursor)
         self.setMouseTracking(True)#for test
         #initialization of the cursor
@@ -254,10 +260,9 @@ if __name__=="__main__":
     scene = QtGui.QGraphicsScene()
     view = Ui_ReplayView(scene)
     view.setBackgroundBrush(QtGui.QColor(255, 255, 255))
-    view.Initialize(maps, units, 3)
     view.setWindowTitle("Replay")
     view.show()
-    view.MovingAnimation(1, route)#for test
+    #view.MovingAnimation(1, route)#for test
     #view.TerminateAnimation(units)#for test
     #view.AttackingAnimation(0, 3, -20, "Blocked")#for test
     #view.DiedAnimation(0)#for test
