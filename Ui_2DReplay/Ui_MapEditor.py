@@ -12,16 +12,27 @@ class Ui_NewMapUnit(Ui_MapUnit):
     def __init__(self, x, y, mapGrid, parent = None):
         Ui_MapUnit.__init__(self, x, y, mapGrid, parent)
     def mousePressEvent(self, event):
-        self.selected = not self.selected
+        if (self.acceptEvent):
+            self.selected = not self.selected
+    acceptEvent = True
 
 class Ui_NewSoldierUnit(Ui_GridUnit):
-    def __init__(self, usableGrid, ind = 0, parent = None):
-        Ui_GridUnit.__init__(self,
-                             usableGrid[ind][0], usableGrid[ind][1], parent)
-        self.usableGrid = usableGrid
-        usableGrid.pop(ind)
+    def __init__(self, pos, side, order, parent = None):
+        Ui_GridUnit.__init__(self, pos[0], pos[1], parent)
+        self.side = side
+        self.order = order
     #def paint(self, painter, option):
-    #def mouseDragEvent(self, event):
+    def mousePressEvent(self, event):
+        data = QtCore.QByteArray()
+        stream = QtCore.QDataStream(data, QtCore.QIODevice.WriteOnly)
+        stream<<self.side<<self.order
+        mimedata = QtCore.QMimeData()
+        mimedata.setData("&side,&order", data)
+
+        #self.drag = QtGui.QDrag()
+        self.drag = QtGui.QDrag(self)
+        self.drag.setMimeData(mimedata)
+        self.drag.start(QtCore.Qt.MoveAction)
         
 #units of map editor
 
@@ -71,7 +82,9 @@ class Ui_MapEditor(Ui_ReplayView):
                 ind = self.usableGrid.index(position)
             else:
                 pass#raise error
-        newUnit = Ui_NewMapUnit(self.usableGrid, ind)
+        newUnit = Ui_NewSoldierUnit(self.usableGrid[ind],
+                                    side, len(self.iniUnits[side]))
+        usableGrid.pop(ind)
         newUnit.setPos(newUnit.GetPos())
         self.iniUnits[side].append(newUnit)
         return self.usableGrid[ind]
@@ -85,4 +98,60 @@ class Ui_MapEditor(Ui_ReplayView):
         else:
             pass#raise error
 
+    def EditMapMode(self):
+        if (not Ui_NewMapUnit.acceptEvent):
+            Ui_NewMapUnit.acceptEvent = True
+            for side in (0, 1):
+                for unit in self.iniUnits[side]:
+                    self.scene().removeItem(unit)
+    def EditUnitMode(self):
+        if (Ui_NewMapUnit.acceptEvent):
+            Ui_NewMapUnit.acceptEvent = False
+            for side in (0, 1):
+                for unit in self.iniUnits[side]:
+                    self.scene().addItem(unit)
+    #function to change the mode
+    #too yellow too violent
+
     #need a clear function to clear the selected state?
+
+    def dragEnterEvent(self, event):
+        if (event.mimeData().hasFormat("&side,&order")):
+            event.accept()
+        else:
+            event.ignore()
+    def dragMoveEvent(self, event):
+        if (event.mimeData().hasFormat("&side,&order")):
+            data = event.mimeData().data("&side,&order")
+            stream = QtCore.QDataStream(data, QtCore.QIODevice.ReadOnly)
+            side, order = 0, 0
+            stream>>side>>order
+            pos = GetGrid(event.scenePos().x(), event.scenePos().y())
+            
+            if (pos==(self.iniUnits[side][order].mapX, self.iniUnits[side][order].mapY)
+                or pos in self.usableGrid):
+                self.setCursor(QtCore.Qt.CloseHandCursor)
+            else:
+                self.setCursor(QtCore.Qt.ForbiddenCursor)
+        else:
+            pass
+    def dropEvent(self, event):
+        if (event.mimeData().hasFormat("&side,&order")):
+            data = event.mimeData().data("&side,&order")
+            stream = QtCore.QDataStream(data, QtCore.QIODevice.ReadOnly)
+            side, order = 0, 0
+            stream>>side>>order
+            pos = GetGrid(event.scenePos().x(), event.scenePos().y())
+            unit = self.iniUnits[side][order]
+
+            self.setCursor(QtCore.Qt.ArrowCursor)
+            if (pos in self.usableGrid):
+                self.usableGrid.append((unit.mapX, unitMapY))
+                unit.setMapPos(pos)
+                unit.setPos(unit.GetPos())
+                self.usableGrid.remove(pos)
+            else:
+                event.ignore()
+        else:
+            event.ignore()
+    #drag and drop of units
