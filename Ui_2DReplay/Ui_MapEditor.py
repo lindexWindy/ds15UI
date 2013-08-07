@@ -18,8 +18,9 @@ class Ui_NewSoldierUnit(Ui_GridUnit):
     def __init__(self, usableGrid, ind = 0, parent = None):
         Ui_GridUnit.__init__(self,
                              usableGrid[ind][0], usableGrid[ind][1], parent)
-        self.usableGrid = usab;eGrid
+        self.usableGrid = usableGrid
         usableGrid.pop(ind)
+    #def paint(self, painter, option):
     #def mouseDragEvent(self, event):
         
 #units of map editor
@@ -36,17 +37,19 @@ class Ui_MapEditor(Ui_ReplayView):
         self.newMap = []
         i = 0
         j = 0
+        self.usableGrid = []
         while (i<x):
             i += 1
             newColumn = []
             while (j<y):
                 j += 1
                 newColumn.append(Map_Basic(PLAIN))
+                self.usableGrid.append((x, y))
             self.newMap.append(newColumn)
         #create a new map(default terrain: PLAIN)
-        Ui_ReplayView.Initialize(self, self.newMap, [])
-        #bug: old map unit used here!!
-        #solution : add a parameter about the class
+        Ui_ReplayView.Initialize(self, self.newMap, [], 0,
+                                 Ui_NewMapUnit)
+        self.iniUnits = [[], []]
 
     def ChangeTerrain(self, terrain):
         "change the terrain of selected map grids"
@@ -57,6 +60,29 @@ class Ui_MapEditor(Ui_ReplayView):
                     self.newMap[i][j] = Map_Basic(terrain)
                     self.mapItem[i][j].selected = False
 
-    #def AddUnits(self, side, position):
+    def AddUnits(self, side, position = None):
+        if (position==None):
+            if (self.usableGrid):
+                ind = 0
+            else:
+                pass#raise error
+        else:
+            if (position in self.usableGrid):
+                ind = self.usableGrid.index(position)
+            else:
+                pass#raise error
+        newUnit = Ui_NewMapUnit(self.usableGrid, ind)
+        newUnit.setPos(newUnit.GetPos())
+        self.iniUnits[side].append(newUnit)
+        return self.usableGrid[ind]
+    def DelUnit(self, side):
+        if (self.iniUnits[side]):
+            delUnit = self.iniUnits[side][-1]
+            pos = (delUnit.mapX, delUnit.mapY)
+            self.iniUnits[side].pop(-1)
+            self.usableGrid.append(pos)
+            return pos
+        else:
+            pass#raise error
 
     #need a clear function to clear the selected state?
