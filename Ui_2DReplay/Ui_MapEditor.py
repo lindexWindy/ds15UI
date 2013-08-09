@@ -59,15 +59,18 @@ class Ui_MapEditor(Ui_ReplayView):
         self.usableGrid = []
         while (i<x):
             i += 1
+            j = 0
             newColumn = []
             while (j<y):
                 j += 1
                 newColumn.append(Map_Basic(PLAIN))
-                self.usableGrid.append((x, y))
+                self.usableGrid.append((i, j))
             self.newMap.append(newColumn)
+            print newColumn#for test
         #create a new map(default terrain: PLAIN)
         Ui_ReplayView.Initialize(self, self.newMap, [], 0,
                                  Ui_NewMapUnit)
+        print self.newMap#for test
         self.iniUnits = [[], []]
 
     def ChangeTerrain(self, terrain):

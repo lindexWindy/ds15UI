@@ -33,9 +33,9 @@ class Ui_ReplayView(QtGui.QGraphicsView):
         #ini of the animation
     def Initialize(self, maps, units, side0 = 0,
                    MapUnit = Ui_MapUnit, SoldierUnit = Ui_SoldierUnit, Cursor = Ui_MouseCursor):
-        if (not (issubclass(Ui_MapUnit, MapUnit)
-                 and issubclass(Ui_SoldierUnit, SoldierUnit)
-                 and issubclass(Ui_GridUnit, Cursor))):
+        if (not (issubclass(MapUnit, Ui_MapUnit)
+                 and issubclass(SoldierUnit, Ui_SoldierUnit)
+                 and issubclass(Cursor, Ui_GridUnit))):
             print "error"#raise error
         #check the type
         scene = self.scene()
@@ -56,6 +56,7 @@ class Ui_ReplayView(QtGui.QGraphicsView):
             for j in range(len(maps[i])):
                 self.mapItem[i][j].setPos(GetPos(i, j))
         #initialization of map units
+        print len(self.mapItem), len(self.mapItem[0]), "dsf"#for test
         self.soldierItem = []
         self.soldierAlive = []
         for i in range(len(units)):
