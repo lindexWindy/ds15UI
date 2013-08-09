@@ -21,16 +21,19 @@ class Ui_NewSoldierUnit(Ui_GridUnit):
         Ui_GridUnit.__init__(self, pos[0], pos[1], parent)
         self.side = side
         self.order = order
-    #def paint(self, painter, option):
+        self.setAcceptDrops(True)
+    def paint(self, painter, option, widget):
+        painter.drawRect(10, 10, 50, 50)#for test
     def mousePressEvent(self, event):
         data = QtCore.QByteArray()
         stream = QtCore.QDataStream(data, QtCore.QIODevice.WriteOnly)
-        stream<<self.side<<self.order
+        stream<<QtCore.QPoint(self.side, self.order)
         mimedata = QtCore.QMimeData()
         mimedata.setData("&side,&order", data)
 
         #self.drag = QtGui.QDrag()
-        self.drag = QtGui.QDrag(self)
+        self.drag = QtGui.QDrag(self.window())
+        print self.drag
         self.drag.setMimeData(mimedata)
         self.drag.start(QtCore.Qt.MoveAction)
         
@@ -55,7 +58,6 @@ class Ui_MapEditor(Ui_ReplayView):
         x and y is the size of the map. "
         self.newMap = []
         i = 0
-        j = 0
         self.usableGrid = []
         while (i<x):
             i += 1
@@ -66,11 +68,8 @@ class Ui_MapEditor(Ui_ReplayView):
                 newColumn.append(Map_Basic(PLAIN))
                 self.usableGrid.append((i, j))
             self.newMap.append(newColumn)
-            print newColumn#for test
-        #create a new map(default terrain: PLAIN)
         Ui_ReplayView.Initialize(self, self.newMap, [], 0,
                                  Ui_NewMapUnit)
-        print self.newMap#for test
         self.iniUnits = [[], []]
 
     def ChangeTerrain(self, terrain):
@@ -101,18 +100,20 @@ class Ui_MapEditor(Ui_ReplayView):
                 pass#raise error
         newUnit = Ui_NewSoldierUnit(self.usableGrid[ind],
                                     side, len(self.iniUnits[side]))
-        usableGrid.pop(ind)
+        self.usableGrid.pop(ind)
         newUnit.setPos(newUnit.GetPos())
+        self.scene().addItem(newUnit)
         self.iniUnits[side].append(newUnit)
+        print newUnit#for test
         return self.usableGrid[ind]
     def DelUnit(self, side):
         "DelUnit(enum(0, 1) side) -> Coord. pos \
         delete the last unit of a certain side returning the position it was placed at. \
         error will be raised if no units is in this side."
         if (self.iniUnits[side]):
-            delUnit = self.iniUnits[side][-1]
+            delUnit = self.iniUnits[side].pop(-1)
+            self.scene().removeItem(delUnit)
             pos = (delUnit.mapX, delUnit.mapY)
-            self.iniUnits[side].pop(-1)
             self.usableGrid.append(pos)
             return pos
         else:
@@ -148,8 +149,9 @@ class Ui_MapEditor(Ui_ReplayView):
         if (event.mimeData().hasFormat("&side,&order")):
             data = event.mimeData().data("&side,&order")
             stream = QtCore.QDataStream(data, QtCore.QIODevice.ReadOnly)
-            side, order = 0, 0
-            stream>>side>>order
+            point = 0
+            stream>>point
+            side, order = point.x(), point.y()
             pos = GetGrid(event.scenePos().x(), event.scenePos().y())
             
             if (pos==(self.iniUnits[side][order].mapX, self.iniUnits[side][order].mapY)

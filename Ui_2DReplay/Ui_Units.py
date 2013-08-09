@@ -51,7 +51,7 @@ class Ui_GridUnit(QtGui.QGraphicsObject):
                              UNIT_WIDTH+PEN_WIDTH, UNIT_HEIGHT+PEN_WIDTH)
         #regard the upleft corner as origin
 
-    def paint(self, painter, option):
+    def paint(self, painter, option, widget):
         pass#
 
 

@@ -189,7 +189,6 @@ class Ui_ReplayView(QtGui.QGraphicsView):
         x = int(event.x()/UNIT_WIDTH)
         y = int(event.y()/UNIT_HEIGHT)
         self.cursor.setPos(GetPos(x, y))
-        print x, y#for test
 
 
 
