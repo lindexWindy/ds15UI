@@ -51,6 +51,7 @@ class Ui_MapEditor(Ui_ReplayView):
         self.newMap = []
         self.usableGrid = []
         self.iniUnits = [[], []]
+        self.startTimer(2000)#for test
 
     def Initialize(self, x = 0, y = 0):
         "Initialize(int x = 0, int y = 0) -> void \
@@ -81,6 +82,7 @@ class Ui_MapEditor(Ui_ReplayView):
                     self.mapItem[i][j].terrain = terrain
                     self.newMap[i][j] = Map_Basic(terrain)
                     self.mapItem[i][j].selected = False
+        self.scene().update()
 
     def AddUnit(self, side, position = None):
         "AddUnit(enum(0, 1) side, Coord. position = None) -> Coord. newPos \
@@ -104,7 +106,7 @@ class Ui_MapEditor(Ui_ReplayView):
         newUnit.setPos(newUnit.GetPos())
         self.scene().addItem(newUnit)
         self.iniUnits[side].append(newUnit)
-        print newUnit#for test
+        #self.scene().update()
         return self.usableGrid[ind]
     def DelUnit(self, side):
         "DelUnit(enum(0, 1) side) -> Coord. pos \
@@ -115,6 +117,7 @@ class Ui_MapEditor(Ui_ReplayView):
             self.scene().removeItem(delUnit)
             pos = (delUnit.mapX, delUnit.mapY)
             self.usableGrid.append(pos)
+            #self.scene().update()
             return pos
         else:
             pass#raise error
@@ -139,6 +142,9 @@ class Ui_MapEditor(Ui_ReplayView):
     #too yellow too violent
 
     #need a clear function to clear the selected state?
+
+    def timerEvent(self, event):
+        self.ChangeTerrain(3)
 
     def dragEnterEvent(self, event):
         if (event.mimeData().hasFormat("&side,&order")):
