@@ -1,8 +1,8 @@
 #
-#ver 0.1 edited at 2013-08-05-10:57 
+#ver 0.1 edited at 2013-08-12-08:27 
 #map editor
-#Changes: init func
-#need to change: terrain 'gear'
+#Changes: completed
+#need to change: terrain 'gear', drag-and-drop operation
 #
 
 from Ui_2DReplayScene import *
@@ -61,14 +61,14 @@ class Ui_MapEditor(Ui_ReplayView):
         i = 0
         self.usableGrid = []
         while (i<x):
-            i += 1
             j = 0
             newColumn = []
             while (j<y):
-                j += 1
                 newColumn.append(Map_Basic(PLAIN))
                 self.usableGrid.append((i, j))
+                j += 1
             self.newMap.append(newColumn)
+            i += 1
         Ui_ReplayView.Initialize(self, self.newMap, [], 0,
                                  Ui_NewMapUnit)
         self.iniUnits = [[], []]
@@ -142,9 +142,6 @@ class Ui_MapEditor(Ui_ReplayView):
     #too yellow too violent
 
     #need a clear function to clear the selected state?
-
-    def timerEvent(self, event):
-        self.ChangeTerrain(3)
 
     def dragEnterEvent(self, event):
         if (event.mimeData().hasFormat("&side,&order")):
