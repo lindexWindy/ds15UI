@@ -11,6 +11,7 @@
 import sys, math
 from shortest import GetRoute
 from Ui_Units import *
+from Ui_Error import Ui_Error
 
 
 class Ui_ReplayView(QtGui.QGraphicsView):

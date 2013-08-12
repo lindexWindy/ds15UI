@@ -2,7 +2,7 @@
 
 #
 #error module
-#ver 0 edited at 2013-08-12-08:27
+#ver 1.0 edited at 2013-08-12-22:47
 #
 
 import exceptions

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 #ver 0.1 edited at 2013-08-12-08:27 
 #map editor
@@ -51,7 +52,6 @@ class Ui_MapEditor(Ui_ReplayView):
         self.newMap = []
         self.usableGrid = []
         self.iniUnits = [[], []]
-        self.startTimer(2000)#for test
 
     def Initialize(self, x = 0, y = 0):
         "Initialize(int x = 0, int y = 0) -> void \
@@ -94,12 +94,16 @@ class Ui_MapEditor(Ui_ReplayView):
             if (self.usableGrid):
                 ind = 0
             else:
-                pass#raise error
+                raise Ui_Error, ("AddUnitError_0",
+                                 ("class Ui_MapEditor", "func AddUnit"),
+                                 "无合法的格点。")
         else:
             if (position in self.usableGrid):
                 ind = self.usableGrid.index(position)
             else:
-                pass#raise error
+                raise Ui_Error, ("AddUnitError_1",
+                                 ("class Ui_MapEditor", "func AddUnit"),
+                                 "所选格点不合法，或已有单位存在。")
         newUnit = Ui_NewSoldierUnit(self.usableGrid[ind],
                                     side, len(self.iniUnits[side]))
         self.usableGrid.pop(ind)
@@ -120,7 +124,9 @@ class Ui_MapEditor(Ui_ReplayView):
             #self.scene().update()
             return pos
         else:
-            pass#raise error
+            raise Ui_Error, ("DelUnitError",
+                             ("class Ui_MapEditor", "func DelUnit"),
+                             "无可删除的单位。")
 
     def EditMapMode(self):
         "EditMapMode() -> void \
