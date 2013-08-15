@@ -72,7 +72,7 @@ class Ui_ReplayView(QtGui.QGraphicsView):
         #initialization of soldier units
         self.cursor = Cursor()
         scene.addItem(self.cursor)
-        self.setMouseTracking(True)#for test
+        #self.setMouseTracking(True)#for test
         #initialization of the cursor
 
     def SetSoldiers(self, units):

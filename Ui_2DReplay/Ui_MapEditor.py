@@ -8,12 +8,13 @@
 
 from Ui_2DReplayScene import *
 
-
 class Ui_NewMapUnit(Ui_MapUnit):
     def __init__(self, x, y, mapGrid, parent = None):
         Ui_MapUnit.__init__(self, x, y, mapGrid, parent)
     def mousePressEvent(self, event):
         if (self.acceptEvent):
+            print "yes"#for test
+            print self.mapX, self.mapY#for test
             self.selected = not self.selected
     acceptEvent = True
 
@@ -32,11 +33,11 @@ class Ui_NewSoldierUnit(Ui_GridUnit):
         mimedata = QtCore.QMimeData()
         mimedata.setData("&side,&order", data)
 
-        #self.drag = QtGui.QDrag()
-        self.drag = QtGui.QDrag(self.window())
-        print self.drag
-        self.drag.setMimeData(mimedata)
-        self.drag.start(QtCore.Qt.MoveAction)
+        drag = QtGui.QDrag(event.widget())
+        print self.mapX, self.mapY#for test
+        print event.pos()#for test
+        drag.setMimeData(mimedata)
+        drag.exec_()
         
 #units of map editor
 
@@ -52,6 +53,7 @@ class Ui_MapEditor(Ui_ReplayView):
         self.newMap = []
         self.usableGrid = []
         self.iniUnits = [[], []]
+        self.setAcceptDrops(True)
 
     def Initialize(self, x = 0, y = 0):
         "Initialize(int x = 0, int y = 0) -> void \
@@ -106,12 +108,12 @@ class Ui_MapEditor(Ui_ReplayView):
                                  "所选格点不合法，或已有单位存在。")
         newUnit = Ui_NewSoldierUnit(self.usableGrid[ind],
                                     side, len(self.iniUnits[side]))
-        self.usableGrid.pop(ind)
+        nowpos = self.usableGrid.pop(ind)
         newUnit.setPos(newUnit.GetPos())
         self.scene().addItem(newUnit)
         self.iniUnits[side].append(newUnit)
         #self.scene().update()
-        return self.usableGrid[ind]
+        return nowpos
     def DelUnit(self, side):
         "DelUnit(enum(0, 1) side) -> Coord. pos \
         delete the last unit of a certain side returning the position it was placed at. \
@@ -149,42 +151,49 @@ class Ui_MapEditor(Ui_ReplayView):
 
     #need a clear function to clear the selected state?
 
-    def dragEnterEvent(self, event):
-        if (event.mimeData().hasFormat("&side,&order")):
-            event.accept()
-        else:
-            event.ignore()
+    #def dragEnterEvent(self, event):
+        #if (event.mimeData().hasFormat("&side,&order")):
+            #event.accept()
+        #else:
+            #event.ignore()
     def dragMoveEvent(self, event):
         if (event.mimeData().hasFormat("&side,&order")):
             data = event.mimeData().data("&side,&order")
             stream = QtCore.QDataStream(data, QtCore.QIODevice.ReadOnly)
-            point = 0
+            point = QtCore.QPoint()
             stream>>point
             side, order = point.x(), point.y()
-            pos = GetGrid(event.scenePos().x(), event.scenePos().y())
+            scenePos = self.mapToScene(event.pos())
+            pos = GetGrid(scenePos.x(), scenePos.y())
+            print "lllllll"#for test
             
             if (pos==(self.iniUnits[side][order].mapX, self.iniUnits[side][order].mapY)
                 or pos in self.usableGrid):
-                self.setCursor(QtCore.Qt.CloseHandCursor)
+                pass
+                #self.setCursor(QtCore.Qt.CloseHandCursor)
             else:
                 self.setCursor(QtCore.Qt.ForbiddenCursor)
         else:
             pass
     def dropEvent(self, event):
+        print "fkjasdf"#for test
         if (event.mimeData().hasFormat("&side,&order")):
             data = event.mimeData().data("&side,&order")
             stream = QtCore.QDataStream(data, QtCore.QIODevice.ReadOnly)
-            side, order = 0, 0
-            stream>>side>>order
-            pos = GetGrid(event.scenePos().x(), event.scenePos().y())
+            point = QtCore.QPoint()
+            stream>>point
+            side, order = point.x(), point.y()
+            scenePos = self.mapToScene(event.pos())
+            pos = GetGrid(scenePos.x(), scenePos.y())
             unit = self.iniUnits[side][order]
 
             self.setCursor(QtCore.Qt.ArrowCursor)
             if (pos in self.usableGrid):
-                self.usableGrid.append((unit.mapX, unitMapY))
-                unit.setMapPos(pos)
+                self.usableGrid.append((unit.mapX, unit.mapY))
+                unit.SetMapPos(pos[0], pos[1])
                 unit.setPos(unit.GetPos())
                 self.usableGrid.remove(pos)
+                event.accept()
             else:
                 event.ignore()
         else:
