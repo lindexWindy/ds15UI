@@ -102,7 +102,7 @@ class AiThread(QThread):
 
         winner = sio._recvs(self.conn)
          #做一些界面的赢家展示替代print
-        print 'Player ',winner,' win!'
+        self.emit(SIGNAL("gameWinner"),winner)
         self.conn.close()
 
 
@@ -244,6 +244,7 @@ class ai_debugger(QMainWindow):
                      self.infoWidget, SLOT("newUnitInfo"))
         self.connect(self.replayWindow.replayWidget, SIGNAL("mapGridSelected"),
                      self.infoWidget, SLOT("newMapInfo"))
+        self.connect(self.replayWindow, SIGNAL("goToRound(int, int)"), self.on_goToRound)
         self.connect(self.pltThread, SIGNAL("finished()"), self.pltThread,
                      SLOT("deleteLater()"))
         #进度条到主界面的通信
@@ -254,6 +255,8 @@ class ai_debugger(QMainWindow):
         self.connect(self.pltThread, SIGNAL("firstRecv"), self.on_firstRecv)
         self.connect(self.pltThread, SIGNAL("rbRecv"), self.on_rbRecv)
         self.connect(self.pltThread, SIGNAL("reRecv"), self.on_reRecv)
+        self.connect(self.pltThread, SIGNAL("gameWinner"), self.on_gameWinner)
+
         self.updateUi()
         self.setWindowTitle("DS15_AIDebugger")
 
@@ -312,6 +315,8 @@ class ai_debugger(QMainWindow):
         #开始这个线程开始交互
         self.pltThread.initialize(self.loaded_ai,self.loaded_map)
         self.pltThread.start()
+        #清空游戏回放数据
+        self.replayWindow.replayWidget.data = None
         self.started = True
 
         self.updateUi()
@@ -364,7 +369,7 @@ class ai_debugger(QMainWindow):
 
     def on_firstRecv(self, mapInfo, frInfo, aiInfo):
         self.replayWindow.updateIni(basic.Begin_Info(mapinfo, base), frInfo)
-        #这个base...要怎么给...平台组貌似没有给aivsai的base接口和hero接口???
+        #base还没给出来
         self.infoWidget.beginRoundInfo(frInfo)
         #这个aiInfo是什么...
 
@@ -376,6 +381,19 @@ class ai_debugger(QMainWindow):
         self.replayWindow.updateEnd(rCommand, reInfo)
         self.infoWidget.endRoundInfo(rCommand, reInfo)
 
+    #进度条跳转回合信息同步
+    def on_goToRound(self, round_, status):
+        roundInfo = self.replayWindow.replayWidget.data.roundInfo[round_]
+        #没写完
+        if status == 0:
+            self.infoWidget.beginRoundInfo()
+        else:
+            self.infoWidget.endRoundInfo()
+
+    #胜利展示
+    def on_gameWinner(self, winner):
+        QMessageBox.infomation(self, "Game Winner", "player %s win the game" %winner)
+        
     def setRunMode(self):
         pass
 

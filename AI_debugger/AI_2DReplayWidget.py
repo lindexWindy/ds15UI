@@ -247,7 +247,7 @@ class AiReplayWidget(QWidget):
     def setNowRound(self, a, b):
         self.replayWidget.GoToRound(a,b)
         #信息展示的处理还没有做.在gotoround后同步游戏信息展示，
-        #详情见汇报
+        self.emit(SIGNAL("goToRound(int, int)"), a, b)
         self.updateUI()
 
     #validate nowInfo的输入
