@@ -6,7 +6,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from functools import partial
-#from Ui_2DReplay.Ui_ReplayWidget import *
+from Ui_2DReplay.Ui_ReplayWidget import *
 
 class CtrlSlider(QWidget):
     XMARGIN = 12.0

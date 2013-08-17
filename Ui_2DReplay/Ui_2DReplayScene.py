@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #Ver 0.6.3 edited at 2013-07-23-19:54
 #Changes: type of data changed
@@ -37,7 +38,7 @@ endInfo = Round_End_Info(units2, None, (0, 0), -1)
 #data for test
 
 
-class Ui_ReplayView(QtGui.QGraphicsView):
+class Ui_2DReplayView(QtGui.QGraphicsView):
     "the replay graphic view"
     def __init__(self, scene, parent = None):
         QtGui.QGraphicsView.__init__(self, scene, parent)
@@ -78,7 +79,7 @@ class Ui_ReplayView(QtGui.QGraphicsView):
             side = 0
             if (i>=side0):
                 side = 1
-            newSoldierUnit = Ui_SoldierUnit(i, side, units[i])
+            newSoldierUnit = Ui_SoldierUnit(side, units[i])
             scene.addItem(newSoldierUnit)
             self.soldierItem.append(newSoldierUnit)
             self.soldierAlive.append(True)
@@ -278,7 +279,7 @@ class UiD_BattleData:
 if __name__=="__main__":
     app = QtGui.QApplication(sys.argv)
     scene = QtGui.QGraphicsScene()
-    view = Ui_ReplayView(scene)
+    view = Ui_2DReplayView(scene)
     view.setBackgroundBrush(QtGui.QColor(255, 255, 255))
     view.Initialize(maps, units, 3)
     view.setWindowTitle("Replay")

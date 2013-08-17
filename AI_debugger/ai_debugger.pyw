@@ -8,7 +8,8 @@ import qrc_resource
 from info_widget import *
 #from Ai_Thread import *
 from AI_2DReplayWidget import *
-import socket,cPickle,sio,time,basic
+import socket,cPickle,time,basic
+import sio
 
 DEBUG_MODE = 1
 DEFAULT_SCILENT_AI = ""#默认的ai路径,待设置
@@ -340,7 +341,7 @@ class ai_debugger(QMainWindow):
         dir = QDir.toNativeSeparators(r"./FileAI")
         fname = unicode(QFileDialog.getOpenFileName(self,
                                                     "load AI File", dir,
-                                                    "AI files (%s)" % "*.exe"))
+                                                    "AI files (%s)" % "*.py"))
         if len(self.loaded_ai) < 2 and fname:
             self.loaded_ai.append(fname)
             self.infoWidget.infoWidget_Game.setAiFileinfo(self.loaded_ai)

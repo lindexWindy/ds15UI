@@ -68,14 +68,20 @@ class Ui_MapUnit(QtGui.QGraphicsItem):
 
 class Ui_SoldierUnit(QtGui.QGraphicsItem):
     "the unit of the soldiers. Generalized."
-    #def __init__(self, units):
-    def __init__(self, x, y, soldiertype, idNum, parent = None):
+    def __init__(self, side, unit, parent = None):
         QtGui.QGraphicsItem.__init__(self, parent)
-        self.mapX = x
-        self.mapY = y
-        self.type = soldiertype
-        self.idNum = idNum
-        self.selected = False
+        self.side = side
+        self.mapX = unit.position[0]
+        self.mapY = unit.position[1]
+        self.type = unit.type
+        
+#    def __init__(self, x, y, soldiertype, idNum, parent = None):
+ #       QtGui.QGraphicsItem.__init__(self, parent)
+  #      self.mapX = x
+   #     self.mapY = y
+    #    self.type = soldiertype
+     #   self.idNum = idNum
+      #  self.selected = False
 
     def SetMapPos(self, x, y):
         self.mapX = x
@@ -109,12 +115,12 @@ class Ui_SoldierUnit(QtGui.QGraphicsItem):
 
 class Ui_GridLabel(QtGui.QGraphicsItem):
     "used to show info on map grids"
-    def __init__(self, text, mapX, mapY, side, parent = None):
+    def __init__(self, text, mapX, mapY, parent = None):
         QtGui.QGraphicsItem.__init__(self, parent)
         self.text = text
         self.mapX = mapX
         self.mapY = mapY
-        self.side = side
+ #       self.side = side
 
     def boundingRect(self):
         return QtCore.QRectF(LABEL_LEFT_MARGIN-PEN_WIDTH, 0-LABEL_HEIGHT-PEN_WIDTH,

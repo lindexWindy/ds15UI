@@ -9,9 +9,27 @@
 
 from Ui_2DReplayScene import *
 
+BEGIN_FLAG = 0
+END_FLAG = 1
+    #flags showing the round state(at the beginning or the end)
+BEGIN_STATE = 0
+AFTER_MOVING = 1
+AFTER_TERRAIN_CHANGE = 2
+AFTER_ATTACK = 3
+AFTER_FIGHTING_BACK = 4
+PAUSE_STATE = 5
+END_STATE = 6
 
 
 class Ui_2DReplayWidget(Ui_2DReplayView):
+  
+    #flags showing the state of the animation
+    moveAnimEnd = QtCore.pyqtSignal(int)
+    begAnimEnd = QtCore.pyqtSignal(int)
+    #signals of animation
+  #  unitSelected = QtCore.pyqtSignal(Map_Basic)
+#    mapGridSelected = QtCore.pyqtSignal(Base_Unit)
+    #signals for info display
     def __init__(self, scene, parent = None):
         Ui_2DReplayView.__init__(self, scene, parent)
         self.data = None
@@ -105,21 +123,4 @@ class Ui_2DReplayWidget(Ui_2DReplayView):
         #self.ShowMoveAnimation(PAUSE_STATE)#no need
         self.ShowStatus()
 
-    BEGIN_FLAG = 0
-    END_FLAG = 1
-    #flags showing the round state(at the beginning or the end)
-    BEGIN_STATE = 0
-    AFTER_MOVING = 1
-    AFTER_TERRAIN_CHANGE = 2
-    AFTER_ATTACK = 3
-    AFTER_FIGHTING_BACK = 4
-    PAUSE_STATE = 5
-    END_STATE = 6
-    #flags showing the state of the animation
-    moveAnimEnd = QtCore.pyqtSignal(int)
-    begAnimEnd = QtCore.pyqtSignal(int)
-    #signals of animation
-  #  unitSelected = QtCore.pyqtSignal(Map_Basic)
-#    mapGridSelected = QtCore.pyqtSignal(Base_Unit)
-    #signals for info display
     
