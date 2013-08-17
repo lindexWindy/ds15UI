@@ -9,9 +9,13 @@ from Ui_2DReplaySceneNew import *
 class Ui_NewMapUnit(Ui_MapUnit):
     def __init__(self, x, y, mapGrid, parent = None):
         Ui_MapUnit.__init__(self, x, y, mapGrid, parent)
+    
     def MousePressEvent(self, info):
         if (self.acceptEvent and self.isEnabled()):
             self.selected = not self.selected
+            return True
+        else:
+            return False
     def DragStopEvent(self, args):
         return True
     acceptEvent = True
@@ -21,12 +25,22 @@ class Ui_NewSoldierUnit(Ui_GridUnit):
         Ui_GridUnit.__init__(self, pos[0], pos[1], parent)
         self.side = side
         self.order = order
-        self.setAcceptDrops(True)
     def paint(self, painter, option, widget):
         painter.drawRect(10, 10, 50, 50)#for test
+
+    def DragStartEvent(self, info):
+        return self
     def DragStopEvent(self, args):
-        #change the cursor
+        dragUnit, info = args
+        info.eventAccept = False
+        self.setCursor(QtCore.Qt.ForbiddenCursor)
         return True
+    def DragComplete(self, info):
+        if (info.eventAccept):
+            self.SetMapPos(info.nowPos[0], info.nowPos[1])
+        else:
+            self.setPos(self.GetPos())
+            
         
 #units of map editor
 

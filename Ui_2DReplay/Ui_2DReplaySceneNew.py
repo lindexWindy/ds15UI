@@ -19,6 +19,7 @@ class Ui_MouseInfo:
             self.isValid = False
         self.eventType = event.type()
         self.eventButton = event.buttons()
+        self.eventAccept = True
 
 
 
@@ -53,7 +54,8 @@ class Ui_View(QtGui.QGraphicsView):
             if ((item.mapX, item.mapY)==pos):
                 newHash.append(item)
             else:
-                self.unitMap[(item.mapX, item.mapY)].append(item)
+                item.hashIndex = (item.mapX, item.mapY)
+                self.unitMap[item.hashIndex].append(item)
         self.unitMap[pos] = newHash
     #if bug appears, consider the z value
 
@@ -75,18 +77,14 @@ class Ui_View(QtGui.QGraphicsView):
                 return result
 
     def mousePressEvent(self, event):
-        print "MousePressEvent called"#for test
         self.MouseEvent(event)
     def mouseReleaseEvent(self, event):
-        print "MouseReleaseEvent called"#for test
         self.MouseEvent(event)
     def mouseMoveEvent(self, event):
-        print "MouseMoveEvent called"#for test
         self.MouseEvent(event)
     #transformer
     
     def MouseEvent(self, event):
-        print "MouseEvent called"#for test
         info = Ui_MouseInfo(self, event)
         self.nowPos = info.nowPos
         if (info.eventType==QtCore.QEvent.MouseButtonPress and
@@ -95,19 +93,21 @@ class Ui_View(QtGui.QGraphicsView):
             #handles the mouse press event
             self.dragUnit = self.RaiseEvent(info.nowPos, self.DRAG_START_EVENT, info)
             #starts a drag
-        elif (info.eventType==QtCore.QEvent.MouseButtonRelease and
-              (info.eventButton & QtCore.Qt.LeftButton)):
+        elif (info.eventType==QtCore.QEvent.MouseButtonRelease):
             if (self.dragUnit!=None):
                 if (self.unitMap[info.nowPos]==[] or
                     self.RaiseEvent(info.nowPos, self.DRAG_STOP_EVENT, (self.dragUnit, info))):
+                    print info.eventAccept#for test
                     self.dragUnit.DragComplete(info)
+                    self.UpdateHash(self.dragUnit.hashIndex)
                 else:
-                    pass#drag fails
+                    self.dragUnit.DragFail(info)
+                    raise IndexError#for test
             self.dragUnit = None
             #handles the drop event
         elif (info.eventType==QtCore.QEvent.MouseMove):
             if (self.dragUnit!=None):
-                dragUnit.setPos(info.nowCoor)#handles the drag-move event
+                self.dragUnit.setPos(info.nowCoor)#handles the drag-move event
                 self.RaiseEvent(info.nowPos, self.DRAG_STOP_EVENT, (self.dragUnit, info))
             else:
                 if (info.initPos!=info.nowPos):
