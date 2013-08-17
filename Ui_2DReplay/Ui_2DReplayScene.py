@@ -65,7 +65,8 @@ class Ui_ReplayView(QtGui.QGraphicsView):
             side = 0
             if (i>=side0):
                 side = 1
-            newSoldierUnit = SoldierUnit(i, side, units[i])
+                newSoldierUnit = SoldierUnit(i, side, units[i])
+
             scene.addItem(newSoldierUnit)
             self.soldierItem.append(newSoldierUnit)
             self.soldierAlive.append(True)

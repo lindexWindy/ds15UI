@@ -9,6 +9,16 @@
 
 from Ui_2DReplayScene import *
 
+BEGIN_FLAG = 0
+END_FLAG = 1
+    #flags showing the round state(at the beginning or the end)
+BEGIN_STATE = 0
+AFTER_MOVING = 1
+AFTER_TERRAIN_CHANGE = 2
+AFTER_ATTACK = 3
+AFTER_FIGHTING_BACK = 4
+PAUSE_STATE = 5
+END_STATE = 6
 
 class Ui_2DReplayWidget(Ui_ReplayView):
     def __init__(self, scene, parent = None):
@@ -192,4 +202,6 @@ if __name__=="__main__":
     view.setBackgroundBrush(QtGui.QColor(255, 255, 255))
     view.show()
     sys.exit(app.exec_())
+
+
     

@@ -16,15 +16,13 @@ class CtrlSlider(QWidget):
         super(CtrlSlider, self).__init__(parent)
 
         self.pausePoint = []
-        self.nowRound = 2
-        self.totalRound = 2
+        self.nowRound = 0
+        self.totalRound = 0
         self.nowStatus = 0
         self.totalStatus = 0
         self.setFocusPolicy(Qt.NoFocus)
         self.setSizePolicy(QSizePolicy(QSizePolicy.MinimumExpanding,
                                        QSizePolicy.Fixed))
-        #default continues play mode ,enable pausePoint
-        self.playMode = 0
 
     def sizeHint(self):
         return self.minimumSizeHint()
@@ -48,7 +46,7 @@ class CtrlSlider(QWidget):
         
     #暂停点功能以后再说
     def addPausePoint(self, round_):
-        if not round_ in self.pausePoint and not self.playMode:
+        if not round_ in self.pausePoint:
             self.pausePoint.append(round_)
             self.update()
 
@@ -86,8 +84,8 @@ class CtrlSlider(QWidget):
             self.totalStatus = 1
             self.nowStatus = 1
         else:
+            #当前回合和总回合一起前移，播放最新的状态
             self.totalRound += 1
-        #要不要加当前回合呢...想清楚
             self.nowRound += 1
         self.emit(SIGNAL("totalChanged()"))
         self.update()
@@ -102,7 +100,7 @@ class CtrlSlider(QWidget):
             value = 0
         else:
             value = ((self.nowRound-1) * 2 + self.nowStatus) / float((self.totalRound-1) * 2 + self.totalStatus)
-            painter = QPainter(self)
+        painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setRenderHint(QPainter.TextAntialiasing)
         painter.setPen(self.palette().color(QPalette.Mid))
@@ -159,25 +157,25 @@ class CtrlSlider(QWidget):
         painter.setBrush(Qt.darkYellow)
         painter.drawPolygon(QPolygonF(triangle))
 
-class AI_2DReplayWidget(QWidget):
+class AiReplayWidget(QWidget):
     def __init__(self, scene, parent = None):
         QWidget.__init__(self, parent)
 
         self.NowEqualTotal = True
-        self.playMode = 0#默认连续播放模式0, 逐回合暂停模式为1
+        self.playMode = 1#默认连续播放模式0, 逐回合暂停模式为1
         self.isPaused = False
-      #  self.TotalStatus = 0#默认在回合开始
+
         self.replayWidget = Ui_2DReplayWidget(scene, parent)
-        #self.replayWidget = QLabel()
+     #   self.replayWidget = QLabel()
         self.ctrlSlider = CtrlSlider()
         self.totalLabel = QLabel("total round:")
         self.nowLabel = QLabel("now round:")
         self.totalInfo = QLCDNumber()
-        self.totalInfo.display(2)
+        self.totalInfo.display(0)
         self.totalInfo.setSegmentStyle(QLCDNumber.Flat)
         self.totalStatusInfo = QLabel("At begin")
         self.nowInfo = QLineEdit("")
-        self.nowInfo.setText("2")
+        self.nowInfo.setText("0")
         self.nowStatusInfo = QLabel("At begin")
         self.nextRoundButton = QPushButton("Next Round")
         self.pauseButton = QPushButton("Pause")
@@ -226,14 +224,14 @@ class AI_2DReplayWidget(QWidget):
         self.NowEqualTotal = (self.ctrlSlider.nowRound == self.ctrlSlider.totalRound
                               and self.ctrlSlider.nowStatus == self.ctrlSlider.totalStatus)
         #在不同模式里en/disable按钮,
-        enable = True if self.playMode == 1 else False
+        enable = True if self.playMode == 0 else False
         self.nextRoundButton.setEnabled(enable and self.ctrlSlider.totalStatus)
         enable = not enable and self.NowEqualTotal
         self.pauseButton.setEnabled(enable and self.ctrlSlider.totalStatus)
 
-        modetext = "Continuous" if self.playMode == 0 else "Discontinuous"
+        modetext = "Continuous" if self.playMode == 1 else "Discontinuous"
         self.playModeLabel.setText(modetext)
-        if self.playMode == 1:
+        if self.playMode == 0:
             pausetext = ""
         elif self.isPaused:
             pausetext = "Paused"
@@ -241,14 +239,15 @@ class AI_2DReplayWidget(QWidget):
             pausetext = "Runing"
         self.pauseLabel.setText(pausetext)
 
-    #被外部调用.
+    #被外部调用,设置播放模式为连续或者不连续
     def setPlayMode(self, mode):
         self.playMode = mode
-        self.ctrlSlider.playMode = mode#与暂停点有关...暂时不管
         self.updateUI()
 
     def setNowRound(self, a, b):
         self.replayWidget.GoToRound(a,b)
+        #信息展示的处理还没有做.在gotoround后同步游戏信息展示，
+        self.emit(SIGNAL("goToRound(int, int)"), a, b)
         self.updateUI()
 
     #validate nowInfo的输入
@@ -258,7 +257,7 @@ class AI_2DReplayWidget(QWidget):
             self.nowInfo.setText(QString.number(self.ctrlSlider.nowRound))
             self.nowInfo.selectAll()
             self.nowInfo.setFocus()
-        elif 0 < int(now) <= self.ctrlSlider.totalRound:
+        elif now.isdigit() and 0 < int(now) <= self.ctrlSlider.totalRound:
             self.ctrlSlider.changeNowRound(int(now),0)                #修改nowlineedit默认跳转到该回合开始阶段
         else:
             self.nowInfo.setText(QString.number(self.ctrlSlider.nowRound))
@@ -277,16 +276,30 @@ class AI_2DReplayWidget(QWidget):
             self.isPaused = True
         else:
             self.emit(SIGNAL("nonpauseRound()"))
-            self.isPaused = False
+            self.isPaused = False                  
         self.updateUI()
 
-    #在从平台获得信息时,从外部调用
+    #下面三个方法在从平台获得信息时,从外部调用，
+    #包装了回放界面的UpdateBeginInfo，UpdateEndInfo这些函数
+    def updateIni(self, ini_info, beginfo):
+        self.replayWidget.Initialize(ini_info, beginfo)
+        self.changeTotalRound()
+        self.updateUI()
+
+
     def updateBeg(self, beginfo):
+        #获得平台新的信息时自动跳回最新回合.
+        if not self.NowEqualTotal:
+            self.ctrlSlider.changeNowRound(self.ctrlSlider.totalRound,
+                                           self.ctrlSlider.totalStatus)
         self.replayWidget.UpdateBeginData(beginfo)
         self.changeTotalRound()
         self.updateUI()
 
     def updateEnd(self, cmd, endinfo):
+        if not self.NowEqualTotal:
+            self.ctrlSlider.changeNowRound(self.ctrlSlider.totalRound,
+                                           self.ctrlSlider.totalStatus)
         self.replayWidget.UpdateEndData(cmd, endinfo)
         self.changeTotalRound()
         self.updateUI()
@@ -296,6 +309,6 @@ if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)
     scene = QGraphicsScene()
-    form = AI_2DReplayWidget(scene)
+    form = AiReplayWidget(scene)
     form.show()
     app.exec_()
