@@ -48,11 +48,11 @@ class Ui_GridUnit(QtGui.QGraphicsObject):
 
     def SetEnabled(self, flag):
         if (flag):
-            self.setOpacity(0)
+            self.setVisible(False)
             self.setEnabled(False)
         else:
             self.setEnabled(True)
-            self.setOpacity(1)
+            self.setVisible(True)
 
     def boundingRect(self):
         return QtCore.QRectF(0-PEN_WIDTH, 0-PEN_WIDTH,

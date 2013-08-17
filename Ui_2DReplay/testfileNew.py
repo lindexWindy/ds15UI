@@ -18,7 +18,6 @@ class Ui_NewMapUnit(Ui_MapUnit):
             return False
     def DragStopEvent(self, args):
         return True
-    acceptEvent = True
 
 class Ui_NewSoldierUnit(Ui_GridUnit):
     def __init__(self, pos, side, order, parent = None):
@@ -29,7 +28,8 @@ class Ui_NewSoldierUnit(Ui_GridUnit):
         painter.drawRect(10, 10, 50, 50)#for test
 
     def DragStartEvent(self, info):
-        return self
+        if (self.isEnabled):
+            return self
     def DragStopEvent(self, args):
         dragUnit, info = args
         info.eventAccept = False
@@ -123,7 +123,7 @@ class Ui_MapEditor(Ui_ReplayView):
         error will be raised if no units is in this side."
         if (self.iniUnits[side]):
             delUnit = self.iniUnits[side].pop(-1)
-            self.scene().removeItem(delUnit)
+            self.RemoveItem(delUnit)
             pos = (delUnit.mapX, delUnit.mapY)
             self.usableGrid.append(pos)
             #self.scene().update()
@@ -136,19 +136,21 @@ class Ui_MapEditor(Ui_ReplayView):
     def EditMapMode(self):
         "EditMapMode() -> void \
         set the widget in the map-editing mode."
-        if (not Ui_NewMapUnit.acceptEvent):
-            Ui_NewMapUnit.acceptEvent = True
-            for side in (0, 1):
-                for unit in self.iniUnits[side]:
-                    self.scene().removeItem(unit)#bug
+        for column in self.mapItem:
+            for item in column:
+                item.SetEnabled(True)
+        for side in (0, 1):
+            for unit in self.iniUnits[side]:
+                unit.SetEnabled(False)
     def EditUnitMode(self):
         "EditUnitMode() -> void \
         set the widget in the unit-placing mode."
-        if (Ui_NewMapUnit.acceptEvent):
-            Ui_NewMapUnit.acceptEvent = False
-            for side in (0, 1):
-                for unit in self.iniUnits[side]:
-                    self.scene().addItem(unit)#bug
+        for column in self.mapItem:
+            for item in column:
+                item.SetEnabled(False)
+        for side in (0, 1):
+            for unit in self.iniUnits[side]:
+                nit.SetEnabled(True)
     #function to change the mode
     #too yellow too violent
 
