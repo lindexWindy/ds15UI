@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #Ver 0.7 edited at 2013-08-05-17:11
 #Changes: type of data changed
