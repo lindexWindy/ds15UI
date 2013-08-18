@@ -156,7 +156,6 @@ class Ui_SoldierUnit(Ui_GridUnit):
 
     #slots for creating animation
     def FadeOut(self, time):
-        print time#for test
         self.setOpacity(1-time)
     #def Flicker(self, frame):
 
@@ -228,7 +227,6 @@ class Ui_MouseCursor(Ui_GridCursor):
             self.setOpacity(1-self.opacity()) #make the cursor fricker
     #timer
     def MouseLeaveEvent(self, info):
-        print "cursor called"#for test
         if (info.isValid and self.isEnabled()):
             x, y = info.nowPos
             self.SetMapPos(x, y)

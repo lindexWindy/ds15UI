@@ -4,6 +4,7 @@
 from Ui_UnitsNew import *
 from Ui_Error import Ui_Error
 import sys, math
+import testdata
 
 class Ui_MouseInfo:
     def __init__(self, view, event):
@@ -214,23 +215,21 @@ class Ui_ReplayView(Ui_View):
         TIME_PER_FRAME = 1000#ms, one-step movement in a frame
         FRAMES_BEFORE_MOVE = 3
         soldier = self.soldierItem[idnum]
-        #self.setPos(GetPos(route[0].x, route[0].y))
-        soldier.setPos(GetPos(route[0][0], route[0][1]))
         steps = len(route)-1
         frames = steps+FRAMES_BEFORE_MOVE
 
-        self.movTimeline = QtCore.QTimeLine(frames*TIME_PER_FRAME)
-        self.movTimeline.setCurveShape(self.movTimeline.LinearCurve)
-        self.animation = QtGui.QGraphicsItemAnimation()
-        self.animation.setItem(soldier)
-        self.animation.setTimeLine(self.movTimeline)
+        movTimeline = QtCore.QTimeLine(frames*TIME_PER_FRAME)
+        movTimeline.setCurveShape(movTimeline.LinearCurve)
+        animation = QtGui.QGraphicsItemAnimation()
+        animation.setItem(soldier)
+        animation.setTimeLine(movTimeline)
         for i in range(steps+1):
             #
             pos = GetPos(route[i][0], route[i][1])
-            self.animation.setPosAt(float((i+FRAMES_BEFORE_MOVE))/frames, pos)
+            animation.setPosAt(float((i+FRAMES_BEFORE_MOVE))/frames, pos)
         #
-        soldier.SetMapPos(route[steps][0], route[steps][1])
-        self.movTimeline.start()
+        #soldier.SetMapPos(route[steps][0], route[steps][1
+        return movTimeline, animation
 
     def AttackingAnimation(self, selfId, targetId, damage, info = ""):
         "attack animation, displayed when the soldier launches an attack."
@@ -241,27 +240,27 @@ class Ui_ReplayView(Ui_View):
         attacker = self.soldierItem[selfId]
         target = self.soldierItem[targetId]
         
-        self.atkTimeline = QtCore.QTimeLine(TOTAL_TIME)
-        self.atkTimeline.setCurveShape(self.atkTimeline.LinearCurve)
-        self.animation = QtGui.QGraphicsItemAnimation()
-        self.animation.setItem(attacker)
-        self.animation.setTimeLine(self.atkTimeline)
+        atkTimeline = QtCore.QTimeLine(TOTAL_TIME)
+        atkTimeline.setCurveShape(atkTimeline.LinearCurve)
+        animation = QtGui.QGraphicsItemAnimation()
+        animation.setItem(attacker)
+        animation.setTimeLine(atkTimeline)
         r = DIST/math.sqrt((attacker.mapX-target.mapX)**2+(attacker.mapY-target.mapY)**2)
         pos = attacker.GetPos()*(1-r)+target.GetPos()*r
-        self.animation.setPosAt(0, attacker.GetPos())
-        self.animation.setPosAt(float(TIME_FOR_MOVING)/TOTAL_TIME, pos)
-        self.animation.setPosAt(float(TIME_WHEN_RESETING)/TOTAL_TIME, pos)
-        self.animation.setPosAt(1, attacker.GetPos())
+        animation.setPosAt(0, attacker.GetPos())
+        animation.setPosAt(float(TIME_FOR_MOVING)/TOTAL_TIME, pos)
+        animation.setPosAt(float(TIME_WHEN_RESETING)/TOTAL_TIME, pos)
+        animation.setPosAt(1, attacker.GetPos())
 
         text = "%+d" % damage
         if (damage==0):
             text = info
         self.label = Ui_GridLabel(text, target.mapX, target.mapY)
-        self.connect(self.atkTimeline, QtCore.SIGNAL("valueChanged(qreal)"),
-                     self._ShowLabel)
+        self.connect(atkTimeline, QtCore.SIGNAL("valueChanged(qreal)"),
+                     self.__ShowLabel)
         #set focus
-        self.atkTimeline.start()
-    def _ShowLabel(self, time):
+        return atkTimeline, animation
+    def __ShowLabel(self, time):
         SHOW_TIME = 0.6
         DISAP_TIME = 0.9
         if (time>=SHOW_TIME):
@@ -276,12 +275,13 @@ class Ui_ReplayView(Ui_View):
         TIME_PER_FRAME = 40
         soldier = self.soldierItem[selfId]
 
-        self.dieTimeline = QtCore.QTimeLine(TOTAL_TIME)
-        self.dieTimeline.setCurveShape(self.dieTimeline.LinearCurve)
-        self.dieTimeline.setUpdateInterval(TIME_PER_FRAME)
-        self.connect(self.dieTimeline, QtCore.SIGNAL('valueChanged(qreal)'),
+        dieTimeline = QtCore.QTimeLine(TOTAL_TIME)
+        dieTimeline.setCurveShape(dieTimeline.LinearCurve)
+        dieTimeline.setUpdateInterval(TIME_PER_FRAME)
+        self.connect(dieTimeline, QtCore.SIGNAL('valueChanged(qreal)'),
                      soldier.FadeOut)
-        self.dieTimeline.start()
+        animation = None
+        return dieTimeline, animation
 
     #def TerrainChangeAnimation(self):
 
@@ -298,7 +298,21 @@ class Ui_ReplayView(Ui_View):
             except TypeError:
                 #pass
                 print "No connection!"#for test
-        if (units):
+        if (units!=None):
             self.SetSoldiers(units)#?
 
+
+
+if __name__=="__main__":
+    app = QtGui.QApplication(sys.argv)
+    scene = QtGui.QGraphicsScene()
+    view = Ui_ReplayView(scene)
+    view.Initialize(testdata.maps, testdata.units, 3)
+    #timeline, animation = view.MovingAnimation(0, ((0, 0), (0, 1), (1, 1), (1, 2), (1, 1)))
+    #timeline, animation = view.AttackingAnimation(0, 1, 0, "blocked!")
+    timeline, animation = view.DiedAnimation(3)
+
+    view.show()
+    timeline.start()
+    sys.exit(app.exec_())
 
