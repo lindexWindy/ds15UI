@@ -18,8 +18,8 @@ class CtrlSlider(QWidget):
         self.pausePoint = []
         self.nowRound = 0
         self.totalRound = 0
-        self.nowStatus = 0
-        self.totalStatus = 0
+        self.nowStatus = 1
+        self.totalStatus = 1
         self.setFocusPolicy(Qt.NoFocus)
         self.setSizePolicy(QSizePolicy(QSizePolicy.MinimumExpanding,
                                        QSizePolicy.Fixed))
@@ -81,22 +81,26 @@ class CtrlSlider(QWidget):
       
     def changeTotalRound(self):
         if self.totalStatus == 0:
-            self.totalStatus = 1
-            self.nowStatus = 1
+            self.nowStatus = self.totalStatus = 1
         else:
             #当前回合和总回合一起前移，播放最新的状态
             self.totalRound += 1
             self.nowRound += 1
+            self.nowStatus = self.totalStatus = 0
         self.emit(SIGNAL("totalChanged()"))
         self.update()
 
+    def reset(self):
+        self.totalRound = self.nowRound = self.totalStatus = self.nowStatus = 0
+        self.update()
     def paintEvent(self, event=None):
         font = QFont(self.font())
         font.setPointSize(font.pointSize() - 1)
         fm = QFontMetricsF(font)
         fracWidth = fm.width(CtrlSlider.WSTRING)
         span = self.width() - (CtrlSlider.XMARGIN * 2)
-        if self.totalRound == 0:
+        if self.totalRound == 0 or (self.totalRound == 1 and
+                                    self.totalStatus == 0):
             value = 0
         else:
             value = ((self.nowRound-1) * 2 + self.nowStatus) / float((self.totalRound-1) * 2 + self.totalStatus)
@@ -114,7 +118,10 @@ class CtrlSlider(QWidget):
         painter.drawRect(CtrlSlider.XMARGIN,
                          CtrlSlider.YMARGIN, span, fm.height())
         textColor = self.palette().color(QPalette.Text)
-        segWidth = span / ((self.totalRound-1) * 2 + self.totalStatus)
+        if self.totalRound == 1 and self.totalStatus == 0:
+            segWidth = span
+        else:
+            segWidth = span / ((self.totalRound-1) * 2 + self.totalStatus)
         segHeight = fm.height() * 2
         nRect = fm.boundingRect(CtrlSlider.WSTRING)
         x = CtrlSlider.XMARGIN
@@ -164,7 +171,7 @@ class AiReplayWidget(QWidget):
         self.NowEqualTotal = True
         self.playMode = 1#默认连续播放模式0, 逐回合暂停模式为1
         self.isPaused = False
-
+        self.started = False
         self.replayWidget = Ui_2DReplayWidget(scene, parent)
      #   self.replayWidget = QLabel()
         self.ctrlSlider = CtrlSlider()
@@ -176,13 +183,13 @@ class AiReplayWidget(QWidget):
         self.totalStatusInfo = QLabel("At begin")
         self.nowInfo = QLineEdit("")
         self.nowInfo.setText("0")
-        self.nowStatusInfo = QLabel("At begin")
+     #   self.nowStatusInfo = QLabel("At begin")
         self.nextRoundButton = QPushButton("Next Round")
         self.pauseButton = QPushButton("Pause")
         self.playModeLabel = QLabel("Continuous")
         self.pauseLabel = QLabel("")
         self.playModeLabel.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
-        self.nowStatusInfo.setSizePolicy(QSizePolicy(QSizePolicy.Fixed|QSizePolicy.Fixed))
+      #  self.nowStatusInfo.setSizePolicy(QSizePolicy(QSizePolicy.Fixed|QSizePolicy.Fixed))
         self.totalStatusInfo.setSizePolicy(QSizePolicy(QSizePolicy.Fixed|QSizePolicy.Fixed))
         self.pauseLabel.setSizePolicy(QSizePolicy(QSizePolicy.Fixed|QSizePolicy.Fixed))
         self.playModeLabel.setSizePolicy(QSizePolicy(QSizePolicy.Fixed|QSizePolicy.Fixed))
@@ -193,7 +200,7 @@ class AiReplayWidget(QWidget):
         hlayout.addWidget(self.totalStatusInfo)
         hlayout.addWidget(self.nowLabel)
         hlayout.addWidget(self.nowInfo)
-        hlayout.addWidget(self.nowStatusInfo)
+   #     hlayout.addWidget(self.nowStatusInfo)
         hlayout.addWidget(self.nextRoundButton)
         hlayout.addWidget(self.pauseButton)
         hlayout.addStretch()
@@ -218,16 +225,16 @@ class AiReplayWidget(QWidget):
         self.totalInfo.display(self.ctrlSlider.totalRound)
         self.nowInfo.setText(QString.number(self.ctrlSlider.nowRound))
         totalstatus = "At begin" if self.ctrlSlider.totalStatus == 0 else "At end"
-        nowstatus = "At begin" if self.ctrlSlider.nowStatus == 0 else "At end"
+       # nowstatus = "At begin" if self.ctrlSlider.nowStatus == 0 else "At end"
         self.totalStatusInfo.setText(totalstatus)
-        self.nowStatusInfo.setText(nowstatus)
+       # self.nowStatusInfo.setText(nowstatus)
         self.NowEqualTotal = (self.ctrlSlider.nowRound == self.ctrlSlider.totalRound
                               and self.ctrlSlider.nowStatus == self.ctrlSlider.totalStatus)
         #在不同模式里en/disable按钮,
         enable = True if self.playMode == 0 else False
-        self.nextRoundButton.setEnabled(enable and self.ctrlSlider.totalStatus)
+        self.nextRoundButton.setEnabled(enable and self.started) #and self.ctrlSlider.totalStatus)
         enable = not enable and self.NowEqualTotal
-        self.pauseButton.setEnabled(enable and self.ctrlSlider.totalStatus)
+        self.pauseButton.setEnabled(enable and self.started)# and self.ctrlSlider.totalStatus)
 
         modetext = "Continuous" if self.playMode == 1 else "Discontinuous"
         self.playModeLabel.setText(modetext)
@@ -246,7 +253,7 @@ class AiReplayWidget(QWidget):
 
     def setNowRound(self, a, b):
         self.replayWidget.GoToRound(a,b)
-        #信息展示的处理还没有做.在gotoround后同步游戏信息展示，
+        #信息展示的处理还没有做完
         self.emit(SIGNAL("goToRound(int, int)"), a, b)
         self.updateUI()
 
@@ -276,14 +283,14 @@ class AiReplayWidget(QWidget):
             self.isPaused = True
         else:
             self.emit(SIGNAL("nonpauseRound()"))
-            self.isPaused = False                  
+            self.isPaused = False
         self.updateUI()
 
     #下面三个方法在从平台获得信息时,从外部调用，
     #包装了回放界面的UpdateBeginInfo，UpdateEndInfo这些函数
     def updateIni(self, ini_info, beginfo):
         self.replayWidget.Initialize(ini_info, beginfo)
-        self.changeTotalRound()
+        self.ctrlSlider.changeTotalRound()
         self.updateUI()
 
 
@@ -293,7 +300,7 @@ class AiReplayWidget(QWidget):
             self.ctrlSlider.changeNowRound(self.ctrlSlider.totalRound,
                                            self.ctrlSlider.totalStatus)
         self.replayWidget.UpdateBeginData(beginfo)
-        self.changeTotalRound()
+        self.ctrlSlider.changeTotalRound()
         self.updateUI()
 
     def updateEnd(self, cmd, endinfo):
@@ -301,7 +308,16 @@ class AiReplayWidget(QWidget):
             self.ctrlSlider.changeNowRound(self.ctrlSlider.totalRound,
                                            self.ctrlSlider.totalStatus)
         self.replayWidget.UpdateEndData(cmd, endinfo)
-        self.changeTotalRound()
+        self.ctrlSlider.changeTotalRound()
+        
+        self.updateUI()
+
+    #游戏结束时，清空所有游戏相关数据，重置进度条等。
+    def reset(self):
+        #清空data
+        self.replayWidget.data = None
+        #重置进度条
+        self.ctrlSlider.reset()
         self.updateUI()
 
 #just for test

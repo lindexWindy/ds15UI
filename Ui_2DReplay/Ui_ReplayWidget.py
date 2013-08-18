@@ -58,17 +58,17 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         self.ShowStatus()
 
     def UpdateBeginData(self, begInfo):
-        if (self.data.nextRoundInfo!=None):
-            pass#raise error
-        self.data.nextRoundInfo = begInfo
+     #   if (self.data.nextRoundInfo!=None):
+      #      pass#raise error
+      #  self.data.nextRoundInfo = begInfo
         self.latestRound += 1
         self.latestStatus = self.BEGIN_FLAG
     def UpdateEndData(self, cmd, endInfo):
-        if (self.data.nextRoundInfo==None):
-            pass#raise error
-        rInfo = UiD_RoundInfo(self.data.nextRoundInfo, cmd, endInfo, self.data.map)
-        self.data.roundInfo.append(rInfo)
-        self.data.nextRoundInfo = None
+      #  if (self.data.nextRoundInfo==None):
+      #      pass#raise error
+     #   rInfo = UiD_RoundInfo(self.data.nextRoundInfo, cmd, endInfo, self.data.map)
+     #   self.data.roundInfo.append(rInfo)
+      #  self.data.nextRoundInfo = None
         self.latestStatus = self.END_FLAG
 
     #def GetGameInfo(self):
