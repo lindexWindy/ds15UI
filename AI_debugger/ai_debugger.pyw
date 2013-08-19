@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
+#AI debugger for watching two ai fighting
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
@@ -44,7 +45,7 @@ class AiThread(QThread):
                 sio._sends(self.conn,(sio.AI_VS_AI, gameMapPath,gameAIPath))
                 mapInfo,aiInfo,baseInfo = sio._recvs(self.conn)#add base info
                 frInfo = sio._recvs(self.conn)
-         #在ai_vs_ai模式里,平台并没有给用户设置自己士兵类型和英雄类型的函数,用默认的吗?
+         #在ai_vs_ai模式里,平台并没有给用户设置自己士兵类型和英雄类型的函数
                 self.emit(SIGNAL("firstRecv"),mapInfo, frInfo, aiInfo, baseInfo)
 
     def pause(self):
@@ -152,7 +153,7 @@ class ai_debugger(QMainWindow):
         self.infoDockWidget.setWidget(self.infoWidget)
         self.addDockWidget(Qt.RightDockWidgetArea, self.infoDockWidget)
         self.info_visible = self.infoDockWidget.isVisible()
-        
+
         #add status bar
 
         self.status = self.statusBar()
@@ -230,7 +231,6 @@ class ai_debugger(QMainWindow):
                                  (continue_modeAction, True),
                                  (discon_modeAction, False))
         #creat action and add it to window menu
-
         self.dockAction = self.createAction("(dis/en)able infos", self.setInfoWidget,
                                        tip = "enable/disable info dock-widget",
                                        checkable = True,
@@ -254,10 +254,11 @@ class ai_debugger(QMainWindow):
         #to show messages
         self.connect(self.replayWindow.replayWidget, SIGNAL("unitSelected"),
                      self.infoWidget, SLOT("newUnitInfo"))
-        self.connect(self.replayWindow.replayWidget, SIGNAL("mapGridSelected"),
-                     self.infoWidget, SLOT("newMapInfo"))
-        self.connect(self.replayWindow, SIGNAL("goToRound(int, int)"), self.on_goToRound)
+      #  self.connect(self.replayWindow.replayWidget, SIGNAL("mapGridSelected"),
+       #              self.infoWidget, SLOT("newMapInfo"))
 
+        self.connect(self.replayWindow, SIGNAL("goToRound(int, int)"), self.on_goToRound)
+        print "hi11"
         #进度条到主界面的通信
         self.connect(self.replayWindow, SIGNAL("nextRound()"), self.nextRound)
 
@@ -265,7 +266,6 @@ class ai_debugger(QMainWindow):
 
         self.updateUi()
         self.setWindowTitle("DS15_AIDebugger")
-
 
 
     #wrapper function for reducing codes
@@ -317,7 +317,7 @@ class ai_debugger(QMainWindow):
     def startGame(self):
         flag = True
         if len(self.loaded_ai) == 1:
-            #加入默认的什么都不做ai
+         #加入默认的什么都不做ai
             self.loaded_ai.append(DEFAULT_SCILENT_AI)
         #开始这个线程开始交互
         self.pltThread = AiThread(self.lock, self.Con, self)
@@ -326,7 +326,7 @@ class ai_debugger(QMainWindow):
             self.pltThread.initialize(self.loaded_ai,self.loaded_map)
         except:
             QMessageBox.critical(self, "Connection Error",
-                                 "Failed to connect to UI_PORT。\n",
+                                 "Failed to connect to UI_PORT\n",
                                  QMessageBox.Ok, QMessageBox.NoButton)
             flag = False
         if flag:
@@ -410,7 +410,7 @@ class ai_debugger(QMainWindow):
     #进度条跳转回合信息同步(现在只同步了分数）
     def on_goToRound(self, round_, status):
         score = self.replayWindow.replayWidget.data.roundInfo[round_].score
-        self.infoWidget_Game.setSocreinfo("%d : %d" %(score[0], score[1]))
+        self.infoWidget.infoWidget_Game.setScoreinfo("%d : %d" %(score[0], score[1]))
      #   if status == 0:
       #      self.infoWidget.beginRoundInfo()
       #  else:

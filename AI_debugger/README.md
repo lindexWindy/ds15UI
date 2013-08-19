@@ -20,5 +20,4 @@
 8.    不重要:进度条里回放时暂停点的设置(这个可以完全取消掉,进度条类CtrlSlider里的pausepoint数据和addPausePoint方法,contextmenuEvent都是为这个服务(所以可以一起删掉)
 
 9.    如果要允许有连续调试和逐步调试的功能的话，waitforcondition的时候平台组如果往socket里面直接写，这样数据都会丢掉
-10.    data那里问题很多啊。
-
+11.    pause后，如果有数据新到达socket里，会自动开始次线程（没有pause效果）有没有先blockuntil数据到的方法
