@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>mainwindow</class>
- <widget class="QWidget" name="mainwindow">
+ <class>beginMenu</class>
+ <widget class="QWidget" name="beginMenu">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>256</width>
-    <height>426</height>
+    <width>263</width>
+    <height>352</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QPushButton" name="startsingle">
+  <widget class="QPushButton" name="singleGameButton">
    <property name="geometry">
     <rect>
-     <x>40</x>
+     <x>60</x>
      <y>50</y>
      <width>141</width>
      <height>31</height>
@@ -26,10 +26,10 @@
     <string>单人游戏</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="webfight">
+  <widget class="QPushButton" name="webGameButton">
    <property name="geometry">
     <rect>
-     <x>40</x>
+     <x>60</x>
      <y>110</y>
      <width>141</width>
      <height>31</height>
@@ -39,10 +39,10 @@
     <string>网络对战</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="website">
+  <widget class="QPushButton" name="websiteButton">
    <property name="geometry">
     <rect>
-     <x>40</x>
+     <x>60</x>
      <y>170</y>
      <width>141</width>
      <height>31</height>
@@ -52,37 +52,24 @@
     <string>队式官网</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="team">
+  <widget class="QPushButton" name="teamButton">
    <property name="geometry">
     <rect>
-     <x>40</x>
+     <x>60</x>
      <y>230</y>
      <width>141</width>
      <height>31</height>
     </rect>
    </property>
    <property name="text">
-    <string>开发人员</string>
+    <string>开发组</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="music">
+  <widget class="QPushButton" name="exitGameButton">
    <property name="geometry">
     <rect>
-     <x>40</x>
+     <x>60</x>
      <y>290</y>
-     <width>141</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>音乐效果</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="exitgame">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>350</y>
      <width>141</width>
      <height>31</height>
     </rect>

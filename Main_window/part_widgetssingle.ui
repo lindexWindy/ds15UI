@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>startsingle</class>
- <widget class="QWidget" name="startsingle">
+ <class>widgetssingle</class>
+ <widget class="QWidget" name="widgetssingle">
   <property name="geometry">
    <rect>
     <x>0</x>
