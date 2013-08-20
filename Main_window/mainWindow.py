@@ -329,7 +329,7 @@ class MainWindow(QGraphicsView):
         pass
     def closeEvent(self, event):
         if self.media.state() == Phonon.PlayingState:
-            self.musicWidget.checkBox.setTristate(false)
+            self.musicWidget.checkBox.setTristate(False)
             self.media.pause()
         self.media.stop()
 
