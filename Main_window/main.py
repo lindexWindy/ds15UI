@@ -2,10 +2,14 @@
 # -*- coding: UTF-8 -*-
 
 from mainWindow import *
-import sys
+import sys,time
 
+
+#def singleShot(main_window):
+    
 app = QApplication(sys.argv)
 #ScreenHeight = app.desktop().availableGeometry().y()
+app.setApplicationName("Mirror")
 
 #设置字体
 font = app.font()
@@ -19,17 +23,18 @@ palette.setBrush(QPalette.Active, QPalette.ButtonText, QColor(255,255,255))
 palette.setBrush(QPalette.Disabled, QPalette.ButtonText, QColor(0,0,0))
 
 #设置鼠标
-cursor = QCursor(QPixmap("./image/cursor.png"))
+cursor = QCursor(QPixmap("./image/cursor.png"), 0, 0)
 app.setOverrideCursor(cursor)
 
 #splash
-splash = QSplashScreen()
-#splash.setPixmap(QPixmap("./image/cursor.png"))
+splash = QSplashScreen(QPixmap('./image/splash.png'),Qt.WindowStaysOnTopHint)
+
+
 splash.show()
+app.processEvents()
 
 main_window = MainWindow()
-#for window in main_window.windowList:
- #   window.setY(-ScreenHeight)
+time.sleep(2)
 main_window.show()
 splash.finish(main_window)
 del splash

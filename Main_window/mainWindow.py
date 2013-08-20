@@ -2,26 +2,42 @@
 # -*- coding: UTF-8 -*-
 
 #队式游戏主界面
-
+from PyQt4.phonon import Phonon
 from mainAnimation import *
-from UiSimpleWidgets import *
-#from 
+from UiSimpleWidgets import *#BeginMenu,SingleMenu,MusicCheck
+from Uibackwindow import BackWidget
+from Uiteamwidget import TeamWidget
+#from Uiaivsai import AivsAi
+#from Uihumanvsai import HumanvsAi
+#from Uimapeditor import MapEditor
+#from Uireplaywindow import ReplayWindow
+
+#styleSheet = """
+#QPushButton {background-image: url(image/button.jpg);}
+#"""
+
 class MainWindow(QGraphicsView):
     def __init__(self, parent = None):
         super(MainWindow, self).__init__(parent)
 
         #音乐
-     #   self.media = Phonon.MediaObject()
-      #  self.sourceList.append(QString("music/"))
+        self.sourceList =[]
+        self.output = Phonon.AudioOutput(Phonon.MusicCategory, self)
+        self.media = Phonon.MediaObject()
+        Phonon.createPath(self.media, self.output)
+        self.sourceList.append(Phonon.MediaSource(QString("music/music.mp3")))
+
+        #临时
         self.pad = QGraphicsEllipseItem()
+
         #backwindow
         self.backWindow = QGraphicsProxyWidget(self.pad)
         self.backWidget = BackWidget()
         self.backWindow.setX(0)
         self.backWindow.setY(0)
         self.backWindow.setWidget(self.backWidget)
-        self.backWindow.setZValue(0)
-        self.backWindow.widget().setWindowOpacity(0)
+        self.backWindow.setZValue(0.1)
+ #       self.backWindow.widget().setWindowOpacity(1)
 
 
         #设置开始窗口按钮
@@ -30,9 +46,9 @@ class MainWindow(QGraphicsView):
         self.beginWindow.setWidget(self.beginWidget)
         self.beginWindow.setX(self.backWindow.x()+400)
         self.beginWindow.setY(self.backWindow.y()+200)
-        self.beginWindow.widget().setWindowOpacity(1)
+ #       self.beginWindow.widget().setWindowOpacity(1)
         self.beginWindow.setZValue(0.5)
-     #   self.beginWindow.widget().setEnabled(True)
+
         #设置音乐按键
         self.musicWindow =  QGraphicsProxyWidget(self.pad)
         self.musicWidget =  MusicCheck()
@@ -40,26 +56,26 @@ class MainWindow(QGraphicsView):
         #写完backwidget这个位置就有意义了
         self.musicWindow.setX(self.backWindow.widget().width()-120)
         self.musicWindow.setY(self.backWindow.y()+20)
-        self.musicWindow.widget().setWindowOpacity(0)
+    #    self.musicWindow.widget().setWindowOpacity(1)
         self.musicWindow.setZValue(0.9)
 #        self.musicWindow.widget()setDisabled(True)
         #设置AI对战窗口
         self.aiWindow =  QGraphicsProxyWidget(self.pad)
-        self.aiWidget =  AIvsAI()
+        self.aiWidget =  AivsAi()
         self.aiWindow.setWidget(self.aiWidget)
         self.aiWindow.setX(self.backWindow.x())
         self.aiWindow.setY(self.backWindow.y())
-        self.aiWindow.widget().setWindowOpacity(0)
+    #    self.aiWindow.widget().setWindowOpacity(0)
         self.aiWindow.setZValue(0.5)
       #  self.aiWindow.widget().setDisabled(True)
 
         #按钮控件
         self.singleWindow =  QGraphicsProxyWidget(self.pad)
-        self.singleWidget =  WidgetSingle()
+        self.singleWidget =  SingleMenu()
         self.singleWindow.setWidget(self.singleWidget)
-        self.singleWindow.setX(self.backWindow.x()+400)
+        self.singleWindow.setX(self.backWindow.x()+430)
         self.singleWindow.setY(self.backWindow.y()+200)
-        self.singleWindow.widget().setWindowOpacity(0)
+     #   self.singleWindow.widget().setWindowOpacity(1)
         self.singleWindow.setZValue(0.5)
     #    self.singleWindow.widget().setDisabled(True)
 
@@ -69,7 +85,7 @@ class MainWindow(QGraphicsView):
         self.replayWindow.setWidget(self.replayWidget)
         self.replayWindow.setX(self.backWindow.x())
         self.replayWindow.setY(self.backWindow.y())
-        self.replayWindow.widget().setWindowOpacity(0)
+     #   self.replayWindow.widget().setWindowOpacity(1)
         self.replayWindow.setZValue(0.5)
       #  self.replayWindow.widget().setDisabled(True)
 
@@ -79,45 +95,35 @@ class MainWindow(QGraphicsView):
         self.mapEditWindow.setWidget(self.mapWidget)
         self.mapEditWindow.setX(self.backWindow.x())
         self.mapEditWindow.setY(self.backWindow.y())
-        self.mapEditWindow.widget().setWindowOpacity(0)
+   #     self.mapEditWindow.widget().setWindowOpacity(0)
         self.mapEditWindow.setZValue(0.5)
     #    self.mapEditWindow.widget().setDisabled(True)
 
         #人机对战
         self.humanaiWindow =  QGraphicsProxyWidget(self.pad)
-        self.humanaiWidget =  humanai()
+        self.humanaiWidget =  HumanvsAi()
         self.humanaiWindow.setX(self.backWindow.x())
         self.humanaiWindow.setY(self.backWindow.y())
         self.humanaiWindow.setWidget(self.humanaiWidget)
-        self.humanaiWindow.widget().setWindowOpacity(0)
+#        self.humanaiWindow.widget().setWindowOpacity(1)
         self.humanaiWindow.setZValue(0.5)
     #    self.humanaiWindow.widget().setDisabled(True)
 
         #制作团队
         self.teamWindow =  QGraphicsProxyWidget(self.pad)
-        self.teamWidget =  TeamMenu()
+        self.teamWidget =  TeamWidget()
         self.teamWindow.setWidget(self.teamWidget)
         self.teamWindow.setX(self.backWindow.x())
         self.teamWindow.setY(self.backWindow.y())
-        self.teamWindow.widget().setWindowOpacity(0)
+ #       self.teamWindow.widget().setWindowOpacity(1)
         self.teamWindow.setZValue(0.5)
 
-        self.teamWindow =  QGraphicsProxyWidget(self.pad)
-        self.teamWideget =  ProductionTeam()
-        self.teamWindow.setWidget(self.teamWideget)
-        self.teamWindow.widget().setWindowOpacity(0)
-        self.teamWindow.setZValue(0.5)
-        self.teamWideget.setAutoFillBackground(True)
-        Tpalette = self.teamWindow.palette()
-        Tpalette.setBrush(QPalette.Window,
-                          QBrush(Qt.black))
-        self.teamWindow.setPalette(Tpalette)
-    #    self.teamWindow.widget().setDisabled(True)
+ 
         #登陆
         self.LogInWindow =  QGraphicsProxyWidget(self.pad)
         self.logInwidget =  LogInWidget()
         self.LogInWindow.setWidget(self.logInwidget)
-        self.LogInWindow.widget().setWindowOpacity(0)
+  #      self.LogInWindow.widget().setWindowOpacity(1)
         self.LogInWindow.setZValue(0.5)
         self.LogInWindow.setX(0)
         self.LogInWindow.setY(0)
@@ -126,7 +132,7 @@ class MainWindow(QGraphicsView):
         self.testWindow =  QGraphicsProxyWidget(self.pad)
         self.testwidget =  TestWidget()
         self.testWindow.setWidget(self.testwidget)
-        self.testWindow.widget().setWindowOpacity(0)
+        self.testWindow.widget().setWindowOpacity(1)
         self.testWindow.setZValue(0.5)
         self.testWindow.setX(0)
         self.testWindow.setY(0)
@@ -156,7 +162,7 @@ class MainWindow(QGraphicsView):
 
         self.setScene(self.scene)
         self.showFullScreen()
-
+ #       self.setStyleSheet(styleSheet)
         #建立状态
         self.stateMachine =  QStateMachine(self)
         #main state
@@ -172,12 +178,8 @@ class MainWindow(QGraphicsView):
         self.MapState =  QState(self.stateMachine)
         #human vs ai state
         self.HumanaiState =  QState(self.stateMachine)
-
         #single menu state
         self.SingleState=  QState(self.stateMachine)
-      #  self.OldMenuState =  QState(self.stateMachine)
-      #  self.CheckMenuState =  QState(self.stateMachine)
-      #  self.TeamMenuState =  QState(self.stateMachine)
         #login state
         self.LogState =  QState(self.stateMachine)
         #ai state
@@ -186,10 +188,10 @@ class MainWindow(QGraphicsView):
         self.QuitState = QFinalState(self.stateMachine)
 
         #states和windows映射的dict
-        self.stateDict = {self.MainState:self.beginWindow, self.ReplayState:self.replayWindow,
-                     self.MapState:self.mapEditWindow, self.AiState:self.aiWindow,
-                     self.HumanaiState:self.humanaiWindow, self.LogState:self.LogInWindow,
-                     self.SingleState:self.singleWindow}
+        self.stateDict = {self.MainState:self.beginWindow, self.TeamState:self.teamWindow,
+                          self.ReplayState:self.replayWindow, self.MapState:self.mapEditWindow, self.AiState:self.aiWindow,
+                          self.HumanaiState:self.humanaiWindow, self.LogState:self.LogInWindow,
+                          self.SingleState:self.singleWindow}
         #存下上一个state
         self.preState = None
 
@@ -236,11 +238,10 @@ class MainWindow(QGraphicsView):
         #             self.SingleState)
 #        self.trans_ReplayToSingle.addAnimation(WindowToMenuAnimation(replayWindow, singleWindow))
 
- #       self.trans_BeginToTeam = self.MainState.addTransition(self.beginWidget.teamButton,SIGNAL("clicked()"),
-  #                   self.TeamState)
-        #不用动画这里，用信号连接
-   #     self.TeamState.addTransition(self.teamWideget.pushButton,SIGNAL("clicked()"),
-    #                 self.MainState)
+        self.trans_MainToTeam = self.MainState.addTransition(self.beginWidget.teamButton,SIGNAL("clicked()"),
+                                                              self.TeamState)
+        self.trans_TeamToMain = self.TeamState.addTransition(self.teamWidget.returnButton,SIGNAL("clicked()"),
+                                     self.MainState)
 
      #   self.trans_MapToSingle = self.MapState.addTransition(self.mapWideget.pushButton_5,SIGNAL("clicked()"),
       #                                                       self.SingleState)
@@ -274,18 +275,18 @@ class MainWindow(QGraphicsView):
         for state in self.stateDict.keys():
             self.connect(state, SIGNAL("entered()"), self.closeWindow)
         self.transitionList = [self.trans_MainToQuit, self.trans_MainToSingle, self.trans_SingleToMain,
-                               self.trans_SingleToAi]
+                               self.trans_SingleToAi, self.trans_MainToTeam, self.trans_TeamToMain]
         for transition in self.transitionList:
             self.connect(transition, SIGNAL("triggered()"), self.showWindow)
 
         self.connect(self.stateMachine, SIGNAL("finished()"), self, SLOT("close()"))
-#        self.connect(self.musicWidget.checkBox,SIGNAL("clicked()"),
- #                    self.Music)
+        self.connect(self.musicWidget.checkBox,SIGNAL("clicked()"),
+                     self.Music)
   #      self.connect(self.replayWidget.pushButton,SIGNAL("clicked()"),
    #                  self.replayWidget.GoInto)
     #    self.connect(self.singleWidget.playervsai, SIGNAL("clicked()"),
      #                self.humanaiWidget.initEmpty)
-      #  self.connect(self.media,SIGNAL("aboutToFinish()"),self.continueMusic)
+        self.connect(self.media,SIGNAL("aboutToFinish()"),self.continueMusic)
 
 
         self.stateMachine.setInitialState(self.MainState)
@@ -310,25 +311,27 @@ class MainWindow(QGraphicsView):
                 self.stateDict[target].widget().show()
 
     def Music(self):
-    #    if self.sourceList.isEmpty():
-     #       QMessageBox.information(this, tr("no music files"), tr("no files to play"))
-      #      return
-        pass
-#        self.media.setQueue(self.sourceList)#列表循环
-#        if self.media.state() == Phonon.PlayingState:
-  #          self.media.pause()
- #       else:
-  #          self.media.play()
+        if not self.sourceList:
+            QMessageBox.information(this, tr("no music files"), tr("no files to play"))
+            return
+        print "play1"
+        #列表循环
+        self.media.setQueue(self.sourceList)
+        if self.media.state() == Phonon.PlayingState:
+            self.media.pause()
+        else:
+            self.media.play()
+            print "play2"
 
     def continueMusic(self):
-    #    self.media.enqueue(self.sourceList)
-     #   self.media.play()
+        self.media.enqueue(self.sourceList)
+        self.media.play()
         pass
- #   def closeEvent(self, event):
- #       if self.media.state() == Phonon.PlayingState:
-  #          self.musicWidget.checkBox.setTristate(false)
-   #         self.media.pause()
-#        self.media.stop()
+    def closeEvent(self, event):
+        if self.media.state() == Phonon.PlayingState:
+            self.musicWidget.checkBox.setTristate(false)
+            self.media.pause()
+        self.media.stop()
 
     def resizeEvent(self, event):
         QGraphicsView.resizeEvent(self,event)

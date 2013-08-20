@@ -2,39 +2,40 @@
 import ui_beginMenu
 import ui_widgetssingle
 import ui_musicCheck
-from PyQt4.QtGui import QWidget
+from PyQt4.QtGui import *
+from PyQt4.QtCore import *
 
 class BeginMenu(QWidget,ui_beginMenu.Ui_beginMenu):
     def __init__(self, parent = None):
         super(BeginMenu,self).__init__(parent)
+#        self.setAutoFillBackground(True)
         self.setupUi(self)
+        pal = self.palette()
+        pal.setBrush(QPalette.Window, QBrush(Qt.NoBrush))
+        self.setPalette(pal)
 
-class WidgetSingle(QWidget,ui_widgetssingle.Ui_widgetssingle):
+class SingleMenu(QWidget,ui_widgetssingle.Ui_widgetssingle):
     def __init__(self, parent = None):
-        super(WidgetSingle, self).__init__(parent)
+        super(SingleMenu, self).__init__(parent)
+#        self.setAutoFillBackground(True)
         self.setupUi(self)
+        pal = self.palette()
+        pal.setBrush(QPalette.Window, QBrush(Qt.NoBrush))
+        self.setPalette(pal)
 
 class MusicCheck(QWidget, ui_musicCheck.Ui_musicCheck):
     def __init__(self, parent = None):
         super(MusicCheck, self).__init__(parent)
+#        self.setAutoFillBackground(True)
         self.setupUi(self)
-
-class BackWidget(QWidget):
-    pass
-
-#plan
-class ProductionTeam(QWidget):
-    pass
-
-#plan
-class TeamMenu(QWidget):
-    pass
-
+        pal = self.palette()
+        pal.setBrush(QPalette.Window, QBrush(Qt.NoBrush))
+        self.setPalette(pal)
 
 #可不可以加外部应用程序链接
-class AIvsAI(QWidget):
+class AivsAi(QWidget):
     pass
-class humanai(QWidget):
+class HumanvsAi(QWidget):
     pass
 class MapEditor(QWidget):
     pass
