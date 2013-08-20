@@ -11,6 +11,11 @@ app = QApplication(sys.argv)
 #ScreenHeight = app.desktop().availableGeometry().y()
 app.setApplicationName("Mirror")
 
+#设置stylesheet
+file = QFile("mainStyle.qss")
+file.open(QFile.ReadOnly)
+styleSheet = QLatin1String(file.readAll())
+app.setStyleSheet(styleSheet)
 #设置字体
 font = app.font()
 font.setBold(True)
@@ -19,7 +24,7 @@ app.setFont(font)
 
 #设置颜色
 palette = app.palette()
-palette.setBrush(QPalette.Active, QPalette.ButtonText, QColor(255,255,255))
+palette.setBrush(QPalette.Active, QPalette.ButtonText, QColor(150,255,255))
 palette.setBrush(QPalette.Disabled, QPalette.ButtonText, QColor(0,0,0))
 
 #设置鼠标

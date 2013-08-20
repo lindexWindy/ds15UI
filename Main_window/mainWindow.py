@@ -157,19 +157,27 @@ class MainWindow(QGraphicsView):
         #设置界面背景
         self.scene =  QGraphicsScene()
         self.scene.addItem(self.pad)
-        self.scene.setBackgroundBrush(QBrush(QColor(200,200,0)))
+        self.scene.setBackgroundBrush(QBrush(QColor(10,10,10)))
         self.scene.setSceneRect(self.scene.itemsBoundingRect())
 
         self.setScene(self.scene)
         self.showFullScreen()
  #       self.setStyleSheet(styleSheet)
+     #   file = QFile("mainStyle.qss")
+      #  file.open(QFile.ReadOnly)
+      #  styleSheet = QLatin1String(file.readAll())
+
+     #   self.beginWindow.widget().setStyleSheet(styleSheet)
+     #   self.singleWindow.widget().setStyleSheet(styleSheet)
+     #   for window in self.windowList:
+     #       window.widget().setStyleSheet(styleSheet)
+
         #建立状态
         self.stateMachine =  QStateMachine(self)
         #main state
         self.MainState =  QState(self.stateMachine)
         #team state
         self.TeamState =  QState(self.stateMachine)
-      #  self.TestState =  QState(self.stateMachine)
         #replay state
         self.ReplayState =  QState(self.stateMachine)
         #web browse state

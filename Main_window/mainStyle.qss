@@ -1,0 +1,4 @@
+QPushButton {
+    background-image :  url(image/button.jpg);
+    border: none;
+}
