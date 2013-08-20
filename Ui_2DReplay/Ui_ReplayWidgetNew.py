@@ -18,6 +18,8 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         self.status = self.BEGIN_FLAG
         self.latestRound = -1
         self.latestStatus = self.BEGIN_FLAG
+        self.anim = None
+        self.additionItem = []
         #connecting of animation
         self.animState = 0
         self.connect(self.movTimeline, QtCore.SIGNAL("finished()"),
@@ -66,7 +68,7 @@ class Ui_2DReplayWidget(Ui_ReplayView):
     #def GetSolldierInfo(self):
 
     def ShowStatus(self):
-        self.TerminateAnimation()
+        self.__TerminateAnimation()
         self.animState = 0
         if (self.nowRound*2+self.status>self.latestRound*2+self.latestStatus):
             pass#raise error
@@ -74,7 +76,62 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         self.SetSoldiers(units)
 
     def ShowMoveAnimation(self, state = None):
-        raise NotImplementedError
+        #check
+        if (self.status==self.END_FLAG):
+            return
+        self.ShowStatus()
+        try:
+            cmd = self.data.roundInfo[self.nowRound].cmdChanges
+        except IndexError:
+            return#raise error?
+        #initialize
+        self.status = self.END_FLAG
+        self.animState = self.ANIM_RUNNING
+        self.anim = QtCore.QSequentialAnimationGroup()
+        self.additionItem = []
+        #move
+        anim, item = self.MovingAnimation(cmd.idNum, self.route)
+        self.anim.addAnimation(anim)
+        self.additionItem.extend(item)
+        #terrain changes
+        #
+        if (cmd.order==1):#attack
+            anim, item = self.AttackingAnimation(cmd.idNum, cmd.target,
+                                                 cmd.damage[1], cmd.note[1])
+            self.anim.addAnimation(anim)
+            self.additionItem.extend(item)
+            if (cmd.isDead[1]):#target died
+                anim, item = self.DiedAnimation(cmd.target)
+                self.anim.addAnimation(anim)
+                self.additionItem.extend(item)
+            elif (cmd.fightBack):#target fights back
+                anim, item = self.AttackingAnimation(cmd.target, cmd.idNum,
+                                                     cmd.damage[0], cmd.damage[1])
+                self.anim.addAnimation(anim)
+                self.additionItem.extend(item)
+                if (cmd.isDead[0]):#attacker dies
+                    anim, item = self.DiedAnimation(cmd.idNum)
+                    self.anim.addAnimation(anim)
+                    self.additionItem.extend(item)
+        #some other prepararion
+        for item in self.additionItem:
+            self.scene().addItem(item)
+            item.SetEnabled(False)#set them invisible
+        self.connect(self.anim, SIGNAL("finished()"), self.ShowStatus)
+        self.connect(self.anim, SIGNAL("finished()"), self.moveAnimEnd)
+
+        self.anim.start()
+
+    def __TerminateAnimation(self):
+        if (self.anim!=None):
+            self.anim.stop()
+        self.animState = ANIM_STOP
+        for item in self.additonItem:
+            self.scene().removeItem(item)
+        self.additionItem = []
+
+                
+        
 
     #def ShowBeginAnimation(self):
 
