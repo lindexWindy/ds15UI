@@ -31,6 +31,7 @@ def GetGrid(corX, corY):
     return x, y
 
 
+
 class Ui_GridUnit(QtGui.QGraphicsObject):
     "the superclass of all grid units"
     def __init__(self, x = 0, y = 0, parent = None):
@@ -47,12 +48,15 @@ class Ui_GridUnit(QtGui.QGraphicsObject):
         return GetPos(self.mapX, self.mapY)
 
     def SetEnabled(self, flag):
+        print "fset called", flag#for test
         if (flag):
-            self.setVisible(False)
-            self.setEnabled(False)
-        else:
-            self.setEnabled(True)
             self.setVisible(True)
+            self.setEnabled(True)
+        else:
+            self.setEnabled(False)
+            self.setVisible(False)
+    def IsEnabled(self):
+        return (self.isVisible() or self.isEnabled())
 
     def boundingRect(self):
         return QtCore.QRectF(0-PEN_WIDTH, 0-PEN_WIDTH,
@@ -77,6 +81,9 @@ class Ui_GridUnit(QtGui.QGraphicsObject):
     def DragFail(self, args):
         self.setPos(self.GetPos())
     #my event
+
+    enability = QtCore.pyqtProperty(bool, fget = IsEnabled,
+                                    fset = SetEnabled)
 
 
 
@@ -165,6 +172,8 @@ class Ui_GridLabel(Ui_GridUnit):
     def __init__(self, text, mapX, mapY, parent = None):
         Ui_GridUnit.__init__(self, mapX, mapY, parent)
         self.text = text
+        self.SetEnabled(False)#for test
+        self.setPos(self.GetPos())
 
     def boundingRect(self):
         return QtCore.QRectF(LABEL_LEFT_MARGIN-PEN_WIDTH, 0-LABEL_HEIGHT-PEN_WIDTH,
@@ -177,6 +186,15 @@ class Ui_GridLabel(Ui_GridUnit):
         painter.setFont(font)
         #painter.setColor(QtGui.QColor(0, 0, 0))
         painter.drawText(QtCore.QPointF(LABEL_LEFT_MARGIN, 0), self.text)
+
+    #slots
+    def ShowLabel(self, time):
+        SHOW_TIME = 0.6
+        DISAP_TIME = 0.9
+        if (time>=SHOW_TIME):
+            self.SetEnabled(True)
+        if (time>=DISAP_TIME):
+            self.SetEnabled(False)
         
 
 
@@ -262,5 +280,20 @@ class Ui_TargetCursor(Ui_GridUnit):
                          QtCore.QPointF(RMARGIN*UNIT_WIDTH, (1-RMARGIN)*UNIT_HEIGHT))
 
 #class Ui_KeyboardCursor(Ui_GridUnit):
+
+
+#animation
+class Ui_Animation(QtCore.QPropertyAnimation):
+    def __init__(self, widget = None, prop = ""):
+        QtCore.QPropertyAnimation.__init__(self, widget, prop)
+
+    def interpolated(self, start, end, progress):
+        if (start.type()==QtCore.QVariant.Bool
+            and end.type()==QtCore.QVariant.Bool):
+            return start
+        #customed interpolator
+        else:
+            return QtCore.QPropertyAnimation.interpolated(self, start, end, progress)
+
 
 
