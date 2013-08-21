@@ -22,14 +22,14 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         self.additionItem = []
         #connecting of animation
         self.animState = 0
-        self.connect(self.movTimeline, QtCore.SIGNAL("finished()"),
-                     self.ShowMoveAnimation)
-        self.connect(self.atkTimeline, QtCore.SIGNAL("finished()"),
-                     self.ShowMoveAnimation)
-        self.connect(self.dieTimeline, QtCore.SIGNAL("finished()"),
-                     self.ShowMoveAnimation)
-        self.moveAnimEnd.connect(self.Play)
-        self.begAnimEnd.connect(self.Play)
+        #self.connect(self.movTimeline, QtCore.SIGNAL("finished()"),
+        #             self.ShowMoveAnimation)
+        #self.connect(self.atkTimeline, QtCore.SIGNAL("finished()"),
+        #             self.ShowMoveAnimation)
+        #self.connect(self.dieTimeline, QtCore.SIGNAL("finished()"),
+        #             self.ShowMoveAnimation)
+        #self.moveAnimEnd.connect(self.Play)
+        #self.begAnimEnd.connect(self.Play)
     def Initialize(self, iniInfo, begInfo):
         self.data = UiD_BattleData(iniInfo, begInfo)
         Ui_ReplayView.Initialize(self, self.data.map, self.data.iniUnits,
@@ -113,6 +113,8 @@ class Ui_2DReplayWidget(Ui_ReplayView):
                     anim, item = self.DiedAnimation(cmd.idNum)
                     self.anim.addAnimation(anim)
                     self.additionItem.extend(item)
+        elif (cmd.order==2):#skill
+            raise NotImplementedError
         #some other prepararion
         for item in self.additionItem:
             self.scene().addItem(item)
@@ -189,13 +191,8 @@ class Ui_2DReplayWidget(Ui_ReplayView):
     BEGIN_FLAG = 0
     END_FLAG = 1
     #flags showing the round state(at the beginning or the end)
-    BEGIN_STATE = 0
-    AFTER_MOVING = 1
-    AFTER_TERRAIN_CHANGE = 2
-    AFTER_ATTACK = 3
-    AFTER_FIGHTING_BACK = 4
-    PAUSE_STATE = 5
-    END_STATE = 6
+    ANIM_STOP = 0
+    ANIM_RUNNING = 1
     #flags showing the state of the animation
     moveAnimEnd = QtCore.pyqtSignal()
     begAnimEnd = QtCore.pyqtSignal()

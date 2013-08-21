@@ -296,4 +296,58 @@ class Ui_Animation(QtCore.QPropertyAnimation):
             return QtCore.QPropertyAnimation.interpolated(self, start, end, progress)
 
 
+#data of game
+def ConvertTo1D(iniUnits):
+    units = []
+    for row in iniUnits:
+        units.extend(row)
+    return units
+
+class UiD_BeginChanges:
+    def __init__(self, beginInfo, cmd, endInfo, maps):
+        self.templeRenew = None#
+
+class UiD_EndChanges:
+    def __init__(self, begInfo, cmd, endInfo, maps):
+        self.idNum = idNum = begInfo.id[0]*len(begInfo.base[0])+begInfo.id[1]
+        self.route = GetRoute(maps, begInfo.base, begInfo.id, cmd.move)
+        self.order = cmd.order
+        if (cmd.order==1):
+            target = self.target = cmd.target[0]*len(endInfo.base[0])+cmd.target[1]
+            begUnits = ConvertTo1D(begInfo.base)
+            endUnits = ConvertTo1D(endInfo.base)
+            self.damage = (endUnits[idNum].life-begUnits[idNum].life,
+                           endUnits[target].life-begUnits[target].life) #(self, enemy)
+            self.note = ["", ""]
+            for i in (0, 1):
+                if (self.damage[i]==0):
+                    if (endInfo.attack_effect[i]==1):
+                        self.note[i] = "Blocked!"
+                    elif (endInfo.attack_effect[i]==0):
+                        self.note[i] = "Miss"
+            self.fightBack = (endInfo.attack_effect[1]!=-1) and (endUnits.life!=0)
+            self.isDead = (endInfo.base[idNum].life==0, endInfo.base[target].life==0)
+        elif (cmd.order==2):
+            raise NotImplementedError#skill
+
+class UiD_RoundInfo:
+    "info of every round"
+    def __init__(self, begInfo, cmd, endInfo, maps):
+        #print len(begInfo.base[0])#for test
+        self.begChanges = UiD_BeginChanges(begInfo, cmd, endInfo, maps)
+        self.cmdChanges = UiD_EndChanges(begInfo, cmd, endInfo, maps)
+        self.begUnits = None #if it is none, there's no changes in the unit info
+        self.endUnits = ConvertTo1D(endInfo.base)
+        self.idNum = begInfo.id[0]*len(endInfo.base[0])+begInfo.id[1]
+        self.score = endInfo.score
+
+class UiD_BattleData:
+    "info of the entire battle(not completed)"
+    def __init__(self, iniInfo, begInfo):
+        self.map = iniInfo.map
+        self.side0SoldierNum = len(iniInfo.base[0])
+        self.iniUnits = ConvertTo1D(iniInfo.base)
+        self.roundInfo = []
+        self.nextRoundInfo = begInfo #temporary stores the round_begin_info
+        self.result = None #result
 
