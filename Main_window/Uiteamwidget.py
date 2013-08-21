@@ -34,9 +34,7 @@ class TeamScrollWidget(QWidget):
 
     def showEvent(self, event):
         self.myTimerId = self.startTimer(50)
-        QWidget.showEvent(self, event)
-        self.update()
-
+    #close 也会调用
     def hideEvent(self, event):
         self.killTimer(self.myTimerId)
 
