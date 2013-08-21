@@ -17,6 +17,8 @@ class Ui_NewMapUnit(Ui_MapUnit):
         else:
             return False
     def DragStopEvent(self, args):
+        dragUnit, info = args
+        dragUnit.unsetCursor()
         return True
 
 class Ui_NewSoldierUnit(Ui_GridUnit):
@@ -33,13 +35,21 @@ class Ui_NewSoldierUnit(Ui_GridUnit):
     def DragStopEvent(self, args):
         dragUnit, info = args
         info.eventAccept = False
-        self.setCursor(QtCore.Qt.ForbiddenCursor)
+        if (dragUnit is not self):
+            dragUnit.setCursor(QtCore.Qt.ForbiddenCursor)
+        else:
+            dragUnit.unsetCursor()
         return True
     def DragComplete(self, info):
+        for item in self.scene().items():
+            item.unsetCursor()
         if (info.eventAccept):
             self.SetMapPos(info.nowPos[0], info.nowPos[1])
         else:
             self.setPos(self.GetPos())
+    def DragFail(self, info):
+        self.unsetCursor()
+        self.setPos(self.GetPos())
             
         
 #units of map editor

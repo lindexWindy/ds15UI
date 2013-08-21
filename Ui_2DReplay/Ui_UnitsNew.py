@@ -22,6 +22,7 @@ PEN_WIDTH = 0.5
 LABEL_WIDTH = 100
 LABEL_HEIGHT = 30
 LABEL_LEFT_MARGIN = 20
+DRAG_SPOT = QtCore.QPoint(20, 20)
 
 def GetPos(mapX, mapY):
     return QtCore.QPointF(mapX*UNIT_WIDTH, mapY*UNIT_HEIGHT)

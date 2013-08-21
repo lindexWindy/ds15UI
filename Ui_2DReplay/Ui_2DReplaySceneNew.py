@@ -94,11 +94,11 @@ class Ui_View(QtGui.QGraphicsView):
             #handles the mouse press event
             self.dragUnit = self.RaiseEvent(info.nowPos, self.DRAG_START_EVENT, info)
             #starts a drag
-        elif (info.eventType==QtCore.QEvent.MouseButtonRelease):
+        elif (info.eventType==QtCore.QEvent.MouseButtonRelease and
+              not (info.eventButton & QtCore.Qt.LeftButton)):
             if (self.dragUnit!=None):
                 if (self.unitMap[info.nowPos]==[] or
                     self.RaiseEvent(info.nowPos, self.DRAG_STOP_EVENT, (self.dragUnit, info))):
-                    print info.eventAccept#for test
                     self.dragUnit.DragComplete(info)
                     self.UpdateHash(self.dragUnit.hashIndex)
                 else:
@@ -108,7 +108,7 @@ class Ui_View(QtGui.QGraphicsView):
             #handles the drop event
         elif (info.eventType==QtCore.QEvent.MouseMove):
             if (self.dragUnit!=None):
-                self.dragUnit.setPos(info.nowCoor)#handles the drag-move event
+                self.dragUnit.setPos(info.nowCoor-DRAG_SPOT)#handles the drag-move event
                 self.RaiseEvent(info.nowPos, self.DRAG_STOP_EVENT, (self.dragUnit, info))
             else:
                 if (info.initPos!=info.nowPos):
