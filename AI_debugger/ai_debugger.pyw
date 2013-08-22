@@ -16,17 +16,17 @@ DEBUG_MODE = 1
 DEFAULT_SCILENT_AI = ""#默认的ai路径,待设置
 
 
-WaitForNext = QWaitCondition()
-WaitForPause = QWaitCondition()
+#WaitForNext = QWaitCondition()
+#WaitForPause = QWaitCondition()
 
 class AiThread(QThread):
-    def __init__(self, lock, con, parent = None):
+    def __init__(self, lock, parent = None):
         super(AiThread, self).__init__(parent)
 
         self.lock = lock
         self.mutex = QMutex()
-        self.isPaused = False#是否暂停
-        self.Con = con#连续模式，连续模式下可以设置暂停
+#        self.isPaused = False#是否暂停
+#        self.Con = con#连续模式，连续模式下可以设置暂停
         self.Run = True#连接成功
 
     #每次开始游戏时，用ai路径和地图路径调用initialize以开始一个新的游戏
@@ -48,63 +48,62 @@ class AiThread(QThread):
          #在ai_vs_ai模式里,平台并没有给用户设置自己士兵类型和英雄类型的函数
                 self.emit(SIGNAL("firstRecv"),mapInfo, frInfo, aiInfo, baseInfo)
 
-    def pause(self):
-        try:
-            self.mutex.lock()
-            self.isPaused = True
-        finally:
-            self.mutex.unlock()
-        if self.isPaused:
-            print "i am paused"
-        else:
-            print "i am not paused"
-    def nonPause(self):
-        try:
-            self.mutex.lock()
-            self.isPaused = False
-        finally:
-            self.mutex.unlock()
+#    def pause(self):
+#        try:
+#            self.mutex.lock()
+#            self.isPaused = True
+#        finally:
+#            self.mutex.unlock()
+#        if self.isPaused:
+#            print "i am paused"
+#        else:
+#            print "i am not paused"
+#    def nonPause(self):
+#        try:
+#            self.mutex.lock()
+#            self.isPaused = False
+#        finally:
+#            self.mutex.unlock()
 
-    def isPaused_(self):
-        try:
-            self.mutex.lock()
-            return self.isPaused
-        finally:
-            self.mutex.unlock()
+#    def isPaused_(self):
+#        try:
+#            self.mutex.lock()
+#           return self.isPaused
+#       finally:
+#            self.mutex.unlock()
 
     def run(self):
         #为了实现逐步暂停播放模式中用户自己下达下一回合命令和连续播放模式中
         #暂停接受数据设置的QWaitCondition全局变量
-        global WaitForNext,WaitForPause
+#        global WaitForNext,WaitForPause
         if self.Run:
             reFlag = 0
-            if self.Con and self.isPaused_():
-                WaitForPause.wait(self.lock)
-            if not self.Con:
-                WaitForNext.wait(self.lock)
+#            if self.Con and self.isPaused_():
+#                WaitForPause.wait(self.lock)
+#            if not self.Con:
+#                WaitForNext.wait(self.lock)
             rCommand, reInfo = sio._recvs(self.conn)
         #第一个回合单独搞出来
             self.emit(SIGNAL("reRecv"), rCommand, reInfo)
             reFlag += 1
             while reInfo.over == -1:
                 #         self.conn.waitForReadyRead(-1)
-                if not self.Con:
-                    WaitForNext.wait(self.lock)
-                if self.Con and self.isPaused_():
+ #               if not self.Con:
+ #                   WaitForNext.wait(self.lock)
+ #               if self.Con and self.isPaused_():
                 #等待WaitForPause被主界面wakeall
-                    print "I am waiting"
-                    WaitForPause.wait(self.lock)
-                    self.nonPause()
+ #                   print "I am waiting"
+ #                   WaitForPause.wait(self.lock)
+ #                   self.nonPause()
                 rbInfo = sio._recvs(self.conn)
                 self.emit(SIGNAL("rbRecv"),rbInfo)
             #        self.conn.waitForReadyRead(-1)
-                if not self.Con:
-                    WaitForNext.wait(self.lock)
-                if self.Con and self.isPaused_():
-                    print "i am waiting"
-                    WaitForPause.wait(self.lock)
-                    self.nonPause()
-
+#                if not self.Con:
+#                    WaitForNext.wait(self.lock)
+#                if self.Con and self.isPaused_():
+#                    print "i am waiting"
+#                    WaitForPause.wait(self.lock)
+#                    self.nonPause()
                 rCommand,reInfo = sio._recvs(self.conn)
                 self.emit(SIGNAL("reRecv"),rCommand, reInfo)
                 reFlag += 1
@@ -193,43 +192,43 @@ class ai_debugger(QMainWindow):
                                         tip = "reset all settings")
         self.configMenu.addAction(resetAction)
 
-        modeGroup1 = QActionGroup(self)
+#        modeGroup1 = QActionGroup(self)
         #还没有实现如何设置debug模式
-        run_modeAction = self.createAction("Run_mode", self.setRunMode,
-                                          "Ctrl+R", "modeRun", "run mode",
-                                           True, "toggled(bool)")
-        debug_modeAction = self.createAction("Debug_mode", self.setDebugMode,
-                                            "Ctrl+D", "modeDebug", "debug mode",
-                                             True, "toggled(bool)")
-        modeGroup1.addAction(run_modeAction)
-        modeGroup1.addAction(debug_modeAction)
-        run_modeAction.setChecked(True)
+#        run_modeAction = self.createAction("Run_mode", self.setRunMode,
+#                                          "Ctrl+R", "modeRun", "run mode",
+#                                           True, "toggled(bool)")
+#        debug_modeAction = self.createAction("Debug_mode", self.setDebugMode,
+#                                            "Ctrl+D", "modeDebug", "debug mode",
+#                                             True, "toggled(bool)")
+#        modeGroup1.addAction(run_modeAction)
+#        modeGroup1.addAction(debug_modeAction)
+#        run_modeAction.setChecked(True)
 
-        modeGroup2 = QActionGroup(self)
-        continue_modeAction = self.createAction("Continuous_mode", self.setConMode,
-                                               icon = "modeCon",
-                                               tip = "set continuous mode",
-                                               checkable = True,
-                                               signal = "toggled(bool)")
-        discon_modeAction = self.createAction("DisContinuous_mode", self.setDisconMode,
-                                              icon = "modeDiscon",
-                                              tip = "set discontinuous mode",
-                                              checkable = True,
-                                              signal = "toggled(bool)")
-        modeGroup2.addAction(continue_modeAction)
-        modeGroup2.addAction(discon_modeAction)
-        continue_modeAction.setChecked(True)
+#        modeGroup2 = QActionGroup(self)
+#        continue_modeAction = self.createAction("Continuous_mode", self.setConMode,
+#                                               icon = "modeCon",
+#                                               tip = "set continuous mode",
+#                                               checkable = True,
+#                                               signal = "toggled(bool)")
+#        discon_modeAction = self.createAction("DisContinuous_mode", self.setDisconMode,
+#                                              icon = "modeDiscon",
+#                                              tip = "set discontinuous mode",
+#                                              checkable = True,
+#                                              signal = "toggled(bool)")
+#        modeGroup2.addAction(continue_modeAction)
+#        modeGroup2.addAction(discon_modeAction)
+#        continue_modeAction.setChecked(True)
 
-        modeMenu = self.configMenu.addMenu("&Mode")
-        self.addActions(modeMenu, (run_modeAction, debug_modeAction, None,
-                                   continue_modeAction, discon_modeAction))
+#        modeMenu = self.configMenu.addMenu("&Mode")
+#        self.addActions(modeMenu, (run_modeAction, debug_modeAction, None,
+#                                   continue_modeAction, discon_modeAction))
 
         #action group's resetable values
 
-        self.resetableActions = ((run_modeAction, True),
-                                 (debug_modeAction, False),
-                                 (continue_modeAction, True),
-                                 (discon_modeAction, False))
+#        self.resetableActions = ((run_modeAction, True),
+#                                 (debug_modeAction, False),
+#                                 (continue_modeAction, True),
+#                                 (discon_modeAction, False))
         #creat action and add it to window menu
         self.dockAction = self.createAction("(dis/en)able infos", self.setInfoWidget,
                                        tip = "enable/disable info dock-widget",
@@ -243,11 +242,11 @@ class ai_debugger(QMainWindow):
         gameToolbar =  self.addToolBar("Game")
         self.addActions(gameToolbar, (self.gameStartAction,
                                   self.gameEndAction, self.gameLoadAction1, self.gameLoadAction2))
-        configToolbar = self.addToolBar("Config")
-        self.addActions(configToolbar, (run_modeAction, debug_modeAction,
-                                        None, continue_modeAction,
-                                        discon_modeAction, None,
-                                        resetAction))
+#        configToolbar = self.addToolBar("Config")
+#        self.addActions(configToolbar, (run_modeAction, debug_modeAction,
+#                                        None, continue_modeAction,
+#                                        discon_modeAction, None,
+#                                        resetAction))
 
 
         self.connect(self.infoWidget, SIGNAL("hided()"), self.synhide)
@@ -260,9 +259,9 @@ class ai_debugger(QMainWindow):
         self.connect(self.replayWindow, SIGNAL("goToRound(int, int)"), self.on_goToRound)
         print "hi11"
         #进度条到主界面的通信
-        self.connect(self.replayWindow, SIGNAL("nextRound()"), self.nextRound)
+#        self.connect(self.replayWindow, SIGNAL("nextRound()"), self.nextRound)
 
-        self.connect(self.replayWindow, SIGNAL("nonpauseRound()"), self.nonPauseRound)
+#        self.connect(self.replayWindow, SIGNAL("nonpauseRound()"), self.nonPauseRound)
 
         self.updateUi()
         self.setWindowTitle("DS15_AIDebugger")
@@ -320,7 +319,7 @@ class ai_debugger(QMainWindow):
          #加入默认的什么都不做ai
             self.loaded_ai.append(DEFAULT_SCILENT_AI)
         #开始这个线程开始交互
-        self.pltThread = AiThread(self.lock, self.Con, self)
+        self.pltThread = AiThread(self.lock, self)
         self.connect(self.pltThread, SIGNAL("firstRecv"), self.on_firstRecv)
         try:
             self.pltThread.initialize(self.loaded_ai,self.loaded_map)
@@ -333,8 +332,8 @@ class ai_debugger(QMainWindow):
             self.connect(self.pltThread, SIGNAL("rbRecv"), self.on_rbRecv)
             self.connect(self.pltThread, SIGNAL("reRecv"), self.on_reRecv)
             self.connect(self.pltThread, SIGNAL("gameWinner"), self.on_gameWinner)
-            self.connect(self.replayWindow, SIGNAL("pauseRound()"), self.pltThread.pause)
-            self.connect(self.pltThread, SIGNAL("threadEnd()"), self.on_threadEnd)
+#            self.connect(self.replayWindow, SIGNAL("pauseRound()"), self.pltThread.pause)
+            self.connect(self.pltThread, SIGNAL("finished()"), self.replayWindow.updateUI)
 
             self.started = True
             self.replayWindow.started = True
@@ -385,12 +384,12 @@ class ai_debugger(QMainWindow):
         #唤醒所有在waitfornext的线程
         WaitForNext.wakeAll()
 
-    def nonPauseRound(self):
-        global WaitForPause
+#    def nonPauseRound(self):
+#        global WaitForPause
         #唤醒所有在waitforpause的线程
 
-        self.pltThread.nonPause()
-        WaitForPause.wakeAll()
+#        self.pltThread.nonPause()
+#        WaitForPause.wakeAll()
 
 
     def on_firstRecv(self, mapInfo, frInfo, aiInfo, baseInfo):
@@ -421,9 +420,9 @@ class ai_debugger(QMainWindow):
         QMessageBox.information(self, "Game Winner", "player %s win the game" %winner)
         #需要其他特效再加
 
-    def on_threadEnd(self):
-        self.replayWindow.started = False
-        self.replayWindow.updateUI()
+#    def on_threadEnd(self):
+#        self.replayWindow.started = False
+#        self.replayWindow.updateUI()
 
     def setRunMode(self):
         pass
@@ -431,33 +430,33 @@ class ai_debugger(QMainWindow):
     def setDebugMode(self):
         pass
 
-    def setConMode(self):
-        self.replayWindow.setPlayMode(1)
-        #这个lock可以考虑移到AiThread类里实现
-        if isinstance(self.pltThread, AiThread):
-            try:
-                self.pltThread.mutex.lock()
-                self.pltThread.Con = 1
-            finally:
-                self.pltThread.mutex.unlock()
-        #唤醒可能正在waitForPause的次线程，也就是说在游戏暂停时设置tForNext的次线程,跳到下一回合
-            self.nextRound()
-        self.Con = 1
+#    def setConMode(self):
+#        self.replayWindow.setPlayMode(1)
+#        #这个lock可以考虑移到AiThread类里实现
+#        if isinstance(self.pltThread, AiThread):
+#            try:
+#                self.pltThread.mutex.lock()
+#                self.pltThread.Con = 1
+#            finally:
+#                self.pltThread.mutex.unlock()
+#        #唤醒可能正在waitForPause的次线程，也就是说在游戏暂停时设置tForNext的次线程,跳到下一回合
+#            self.nextRound()
+#        self.Con = 1
 
 
-    def setDisconMode(self):
-        self.replayWindow.setPlayMode(0)
-        #唤醒可能正在waitForPause的次线程，也就是说在游戏暂停时设置
-        #disconMode的时候会往后跳一个状态
-        if isinstance(self.pltThread, AiThread):
-            try:
-                self.pltThread.mutex.lock()
-                self.pltThread.Con = 0
-            finally:
-                self.pltThread.mutex.unlock()
-                self.pltThread.nonPause()
-                self.nonPauseRound()
-        self.Con = 0
+#    def setDisconMode(self):
+#        self.replayWindow.setPlayMode(0)
+#        #唤醒可能正在waitForPause的次线程，也就是说在游戏暂停时设置
+#        #disconMode的时候会往后跳一个状态
+#        if isinstance(self.pltThread, AiThread):
+#            try:
+#                self.pltThread.mutex.lock()
+#                self.pltThread.Con = 0
+#            finally:
+#                self.pltThread.mutex.unlock()
+#                self.pltThread.nonPause()
+#                self.nonPauseRound()
+#        self.Con = 0
 
     def reset(self):
         pass
