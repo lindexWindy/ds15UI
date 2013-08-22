@@ -42,7 +42,7 @@ def available_spots(map_list, unit_list, source_num, prev = None):
             if p[0] < 0 or p[1] < 0 or p[0] >= row or p[1] >= column:
                 continue    
             if not (p in u_block or p in d_spots): # 松弛点的条件
-                lf = map_list[p[0]][p[1]].type # 松弛点的地形 
+                lf = map_list[p[0]][p[1]].kind # 松弛点的地形 
                 move_cost = basic.FIELD_EFFECT[lf][0] # 该点的体力消耗
                 if p in a_spots: # 更新
                     p_id = a_spots.index(p) # 松弛点在a_spots里的index
@@ -51,7 +51,7 @@ def available_spots(map_list, unit_list, source_num, prev = None):
                         if a_weight[p_id] <= s_unit.move_range:
                             prev_a[p_id] = d_index
                 else: 			#新加入
-                    lf = map_list[p[0]][p[1]].type
+                    lf = map_list[p[0]][p[1]].kind
                     a_spots.append(p)
                     a_weight.append(a_weight[s] + move_cost)
                     if a_weight[s] + move_cost <= s_unit.move_range:
@@ -66,6 +66,7 @@ def available_spots(map_list, unit_list, source_num, prev = None):
     return d_spots
 
 def GetRoute(maps, units, idnum, end):
+    '''用于从prev获取直接路径的函数'''
     route = []
     last = []
     #print "soulu"#for test
@@ -84,22 +85,3 @@ def GetRoute(maps, units, idnum, end):
     except:
         pass #raise error
     #possibility: 1. invalid pos 2. invalid idnum
-
-#def main():
-#    (map_list, unit_list) = read_from()
-#    prev = []
-#    print available_spots(map_list, unit_list, (1, 0), prev)
-#    print prev
-#    raw_input("print anything to continue")
-
-#if __name__ == '__main__':
-#    main()
-
-from testdata import *
-if __name__ == '__main__':
-    last = []
-    field = available_spots(maps, units1, (0, 1), last)
-    print field
-    print last
-
-

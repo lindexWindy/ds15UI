@@ -8,6 +8,7 @@
 #replay widget
 
 from Ui_2DReplaySceneNew import *
+from testdata import *
 
 
 class Ui_2DReplayWidget(Ui_ReplayView):
@@ -75,7 +76,7 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         units = self.__getNowUnitArray()
         self.SetSoldiers(units)
 
-    def ShowMoveAnimation(self, state = None):
+    def ShowMoveAnimation(self):
         #check
         if (self.status==self.END_FLAG):
             return
@@ -127,8 +128,8 @@ class Ui_2DReplayWidget(Ui_ReplayView):
     def __TerminateAnimation(self):
         if (self.anim!=None):
             self.anim.stop()
-        self.animState = ANIM_STOP
-        for item in self.additonItem:
+        self.animState = self.ANIM_STOP
+        for item in self.additionItem:
             self.scene().removeItem(item)
         self.additionItem = []
 
@@ -208,7 +209,7 @@ if __name__=="__main__":
     app = QtGui.QApplication(sys.argv)
     scene = QtGui.QGraphicsScene()
     view = Ui_2DReplayWidget(scene)
-    view.setBackgroundBrush(QtGui.QColor(255, 255, 255))
+    view.Initialize(iniInfo, begInfo0)
     view.show()
     sys.exit(app.exec_())
     
