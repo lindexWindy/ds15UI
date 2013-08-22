@@ -19,7 +19,7 @@ class Ui_MouseInfo:
             self.nowPos = self.initPos
             self.isValid = False
         self.eventType = event.type()
-        self.eventButton = event.buttons()
+        self.eventButton = event.button()
         self.eventAccept = True
 
 
@@ -89,13 +89,14 @@ class Ui_View(QtGui.QGraphicsView):
         info = Ui_MouseInfo(self, event)
         self.nowPos = info.nowPos
         if (info.eventType==QtCore.QEvent.MouseButtonPress and
-            (info.eventButton & QtCore.Qt.LeftButton)):
+            info.eventButton==QtCore.Qt.LeftButton):
             self.RaiseEvent(info.nowPos, self.MOUSE_PRESS_EVENT, info)
             #handles the mouse press event
             self.dragUnit = self.RaiseEvent(info.nowPos, self.DRAG_START_EVENT, info)
             #starts a drag
         elif (info.eventType==QtCore.QEvent.MouseButtonRelease and
-              not (info.eventButton & QtCore.Qt.LeftButton)):
+              (info.eventButton==QtCore.Qt.LeftButton)):
+            print info.eventButton==QtCore.Qt.NoButton#for test
             if (self.dragUnit!=None):
                 if (self.unitMap[info.nowPos]==[] or
                     self.RaiseEvent(info.nowPos, self.DRAG_STOP_EVENT, (self.dragUnit, info))):
