@@ -9,20 +9,52 @@ import ui_aivsai
 
 AI_FILE_DIR = ""#ai目录路径
 MAP_FILE_DIR = ""#map目录路径
+class AiThread(QThread):
+    def __init__(self, map, ai1, ai2, parent = None):
+        super(AiThread, self).__init__(parent)
+        self.map = map
+        self.ai1 = ai1
+        self.ai2 = ai2
+    def run(self):
+
+        conn = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        try:
+            conn.connect((sio.HOST,sio.UI_PORT))
+        except:
+            self.emit(SIGNAL("connectError()"))
+        else:
+            sio._sends(conn,(sio.AI_VS_AI, self.map ,[self.ai1, self.ai2]))
+
+            mapInfo,aiInfo = sio._recvs(conn)
+
+            rbInfo = sio._recvs(conn)
+            rCommand,reInfo = sio._recvs(conn)
+            self.emit(SIGNAL("round"))
+
+            while reInfo.over == -1:
+                rbInfo = sio._recvs(conn)
+                rCommand,reInfo = sio._recvs(conn)
+                self.emit(SIGNAL("round()"))
+
+            winner = sio._recvs(conn)
+            self.emit(SIGNAL("gameEnd"),winner)
+
+	finally:
+            conn.close()
+
 class AivsAi(QWidget, ui_aivsai.Ui_AIvsAI):
     def __init__(self, parent = None):
         super(AivsAi, self).__init__(parent)
         self.setupUi(self)
         pal = self.palette()
-        pal.setBrush(QPalette.Window, QBrush(Qt.NoBrush))
+        pal.setBrush(QPalette.Window, QBrush(QPixmap("image/aiback.png")))
         self.setPalette(pal)
-        self.round = 0
-        self.roundDisplay()
+        self.roundLCD.display(0)
 
     @pyqtSlot()
     def on_startButton_clicked(self):
         self.round = 0
-        self.roundDisplay()
+        self.roundLCD.display(0)
         self.ai1 = self.AiCombo1.currentText()
         self.ai2 = self.AiCombo2.currentText()
         self.map = self.mapCombo.currentText()
@@ -68,34 +100,28 @@ class AivsAi(QWidget, ui_aivsai.Ui_AIvsAI):
             self.mapCombo.setCurrentIndex(self.mapCombo.count() - 1)
 
     def roundDisplay(self):
+        self.round += 1
         self.roundLCD.display(self.round)
+
+
+    def endGame(self, winner):
+        QMessageBox.information(self, QString.fromUtf8("游戏结束"), QString.fromUtf8("ai %s 胜利" %winner))
+        self.startButton.setEnabled(True)
+
+
+    def connectError(self):
+        QMessageBox.critical(self, QString.fromUtf8("连接错误"),QString.fromUtf8("平台连接错误"),
+                             QMessageBox.Ok, QMessageBox.NoButton)
+        self.startButton.setEnabled(True)
 
     def startGame(self):
         self.startButton.setEnabled(False)
-        conn = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        try:
-            conn.connect((sio.HOST,sio.UI_PORT))
-        except:
-            QMessageBox.critical(self, QString.fromUtf8("连接错误"),QString.fromUtf8("平台连接错误"),
-                                 QMessageBox.Ok, QMessageBox.NoButton)
-        else:
-            sio._sends(conn,(sio.AI_VS_AI, self.map ,[self.ai1, self.ai2]))
-
-            mapInfo,aiInfo = sio._recvs(conn)
-
-            rbInfo = sio._recvs(conn)
-            rCommand,reInfo = sio._recvs(conn)
-            while reInfo.over == -1:
-                rbInfo = sio._recvs(conn)
-                rCommand,reInfo = sio._recvs(conn)
-                self.round += 1
-                self.roundDisplay()
-            winner = sio._recvs(conn)
-            QMessageBox.information(self, QString.fromUtf8("游戏结束"), QString.fromUtf8("ai %s 胜利" %winner))
-	finally:
-            conn.close()
-            self.startButton.setEnabled(True)
-
+        self.thread = AiThread(self.map, self.ai1, self.ai2, self)
+        self.connect(self.thread, SIGNAL("finished()"), self.thread, SLOT("deleteLater()"))
+        self.connect(self.thread, SIGNAL("gameEnd"), self.endGame)
+        self.connect(self.thread, SIGNAL("connectError()"), self.connectError)
+        self.connect(self.thread, SIGNAL("round()"), self.roundDisplay)
+        self.thread.start()
 
 
 #for test

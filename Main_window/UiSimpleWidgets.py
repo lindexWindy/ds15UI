@@ -33,8 +33,7 @@ class MusicCheck(QWidget, ui_musicCheck.Ui_musicCheck):
         self.setPalette(pal)
 
 #可不可以加外部应用程序链接
-class AivsAi(QWidget):
-    pass
+
 class HumanvsAi(QWidget):
     pass
 class MapEditor(QWidget):

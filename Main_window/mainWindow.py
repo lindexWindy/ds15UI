@@ -7,7 +7,7 @@ from mainAnimation import *
 from UiSimpleWidgets import *#BeginMenu,SingleMenu,MusicCheck
 from Uibackwindow import BackWidget
 from Uiteamwidget import TeamWidget
-#from Uiaivsai import AivsAi
+from Uiaivsai import AivsAi
 #from Uihumanvsai import HumanvsAi
 #from Uimapeditor import MapEditor
 #from Uireplaywindow import ReplayWindow
@@ -203,11 +203,6 @@ class MainWindow(QGraphicsView):
         #存下上一个state
         self.preState = None
 
-    #    self.MainState.assignProperty(self.MainState, "z", 0)
-     #   self.MainState.assignProperty(self.beginWindow.widget(), "windowOpacity", 1)
-
-    #    self.MainState.assignProperty(self.
-
 
         self.trans_MainToQuit = self.MainState.addTransition(self.beginWidget.exitGameButton,
                                                             SIGNAL("clicked()"),
@@ -231,10 +226,10 @@ class MainWindow(QGraphicsView):
         self.ani_SingleToAi = MenuToWindowAnimation(self.singleWindow, self.aiWindow)
         self.trans_SingleToAi.addAnimation(self.ani_SingleToAi)
 
-      #  self.trans_AiToSingle = self.AiState.addTransition(self.aiWidget.Pre, SIGNAL("clicked()"),
-          #                                   self.SingleState)
-      #  self.ani_AiToSingle = WindowToMenuAnimation(self.aiWindow, self.singleWindow)
-      #  self.trans_AiToSingle.addAnimation(self.ani_AiToSingle)
+        self.trans_AiToSingle = self.AiState.addTransition(self.aiWidget.returnButton, SIGNAL("clicked()"),
+                                             self.SingleState)
+        self.ani_AiToSingle = WindowToMenuAnimation(self.aiWindow, self.singleWindow)
+        self.trans_AiToSingle.addAnimation(self.ani_AiToSingle)
 
 
         #self.trans_SingleToReplay = self.SingleState.addTransition(self.singleWidget.replay, SIGNAL("clicked()"),
@@ -283,7 +278,7 @@ class MainWindow(QGraphicsView):
         for state in self.stateDict.keys():
             self.connect(state, SIGNAL("entered()"), self.closeWindow)
         self.transitionList = [self.trans_MainToQuit, self.trans_MainToSingle, self.trans_SingleToMain,
-                               self.trans_SingleToAi, self.trans_MainToTeam, self.trans_TeamToMain]
+                               self.trans_SingleToAi, self.trans_AiToSingle, self.trans_MainToTeam, self.trans_TeamToMain]
         for transition in self.transitionList:
             self.connect(transition, SIGNAL("triggered()"), self.showWindow)
 
