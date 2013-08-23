@@ -9,6 +9,7 @@
 
 from PyQt4 import QtGui, QtCore
 from basic import *
+from shortest import GetRoute
 
 TRAP_TRIGGERED = 8
 
