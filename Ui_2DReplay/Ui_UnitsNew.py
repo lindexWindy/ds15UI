@@ -9,7 +9,8 @@
 
 from PyQt4 import QtGui, QtCore
 from basic import *
-
+from shortest import *
+import qrc_resources
 TRAP_TRIGGERED = 8
 
 
@@ -145,15 +146,17 @@ class Ui_SoldierUnit(Ui_GridUnit):
         #regard the upleft corner as origin
 
     def paint(self, painter, option, widget):
-        imageRoute = {SABER:"saber.png",
-                     LANCER:"lancer.png",
-                     ARCHER:"archer.png",
-                     DRAGON_RIDER:"dragonrider.png",
-                     WARRIOR:"warrior.png",
-                     WIZARD:"wizard.png",
-                     HERO_1:"hero1.png"}
-        fileRoute = "SoldierImage\\"
-        image = QtGui.QImage(fileRoute+imageRoute[self.type])
+        imageRoute = {SABER:":saber.png",
+                     LANCER:":lancer.png",
+                     ARCHER:":archer.png",
+                     DRAGON_RIDER:":dragonrider.png",
+                     WARRIOR:":warrior.png",
+                     WIZARD:":wizard.png",
+                     HERO_1:":hero1.png"}
+#        fileRoute = "SoldierImage/"
+#        dir = QtCore.QDir(QtCore.toNativeSeparator("../Ui_2DReplay/"+fileRoute))
+#        print "find dir",dir.exists()
+        image = QtGui.QImage(imageRoute[self.type])
         painter.setCompositionMode(painter.CompositionMode_Multiply)
         painter.drawImage(QtCore.QRectF(0, 0, UNIT_WIDTH, UNIT_HEIGHT), image)
 
@@ -322,12 +325,12 @@ class UiD_EndChanges:
             self.note = ["", ""]
             for i in (0, 1):
                 if (self.damage[i]==0):
-                    if (endInfo.attack_effect[i]==1):
+                    if (endInfo.effect[i]==1):
                         self.note[i] = "Blocked!"
-                    elif (endInfo.attack_effect[i]==0):
+                    elif (endInfo.effect[i]==0):
                         self.note[i] = "Miss"
-            self.fightBack = (endInfo.attack_effect[1]!=-1) and (endUnits.life!=0)
-            self.isDead = (endInfo.base[idNum].life==0, endInfo.base[target].life==0)
+            self.fightBack = (endInfo.effect[1]!=-1) and (endUnits.life!=0)
+            self.isDead = (endUnits[idNum].life==0, endUnits[target].life==0)
         elif (cmd.order==2):
             raise NotImplementedError#skill
 

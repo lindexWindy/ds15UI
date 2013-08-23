@@ -28,25 +28,24 @@ class AiThread(QThread):
 #        self.isPaused = False#是否暂停
 #        self.Con = con#连续模式，连续模式下可以设置暂停
         self.Run = True#连接成功
+        self.closed = False#close标识以便强制关闭线程
 
     #每次开始游戏时，用ai路径和地图路径调用initialize以开始一个新的游戏
     def initialize(self, gameAIPath, gameMapPath):
-        exception = None
         self.conn = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         try:
             self.conn.connect((sio.HOST,sio.UI_PORT))
-        finally:
-            if exception:
-                self.conn.close()
-                self.Run = False
-                raise exception
+        except exception:
+            self.conn.close()
+            self.Run = False
+            raise exception
 
-            else:
-                sio._sends(self.conn,(sio.AI_VS_AI, gameMapPath,gameAIPath))
-                mapInfo,aiInfo,baseInfo = sio._recvs(self.conn)#add base info
-                frInfo = sio._recvs(self.conn)
-         #在ai_vs_ai模式里,平台并没有给用户设置自己士兵类型和英雄类型的函数
-                self.emit(SIGNAL("firstRecv"),mapInfo, frInfo, aiInfo, baseInfo)
+        else:
+            sio._sends(self.conn,(sio.AI_VS_AI, gameMapPath,gameAIPath))
+            mapInfo,aiInfo,baseInfo = sio._recvs(self.conn)#add base info
+            frInfo = sio._recvs(self.conn)
+         #在ai_vs_ai模式里,平台并没有给用户设置自己英雄类型的函数
+            self.emit(SIGNAL("firstRecv"),mapInfo, frInfo, aiInfo, baseInfo)
 
 #    def pause(self):
 #        try:
@@ -71,7 +70,18 @@ class AiThread(QThread):
 #           return self.isPaused
 #       finally:
 #            self.mutex.unlock()
-
+    def isClosed(self):
+        try:
+            self.mutex.lock()
+            return self.closed
+        finally:
+            self.mutex.unlock()
+    def close(self):
+        try:
+            self.mutex.lock()
+            self.closed = True
+        finally:
+            self.mutex.unlock()
     def run(self):
         #为了实现逐步暂停播放模式中用户自己下达下一回合命令和连续播放模式中
         #暂停接受数据设置的QWaitCondition全局变量
@@ -86,7 +96,7 @@ class AiThread(QThread):
         #第一个回合单独搞出来
             self.emit(SIGNAL("reRecv"), rCommand, reInfo)
             reFlag += 1
-            while reInfo.over == -1:
+            while reInfo.over == -1 and not self.isClosed():
                 #         self.conn.waitForReadyRead(-1)
  #               if not self.Con:
  #                   WaitForNext.wait(self.lock)
@@ -96,6 +106,8 @@ class AiThread(QThread):
  #                   WaitForPause.wait(self.lock)
  #                   self.nonPause()
                 rbInfo = sio._recvs(self.conn)
+                if self.isClosed():
+                    break
                 self.emit(SIGNAL("rbRecv"),rbInfo)
             #        self.conn.waitForReadyRead(-1)
 #                if not self.Con:
@@ -105,17 +117,13 @@ class AiThread(QThread):
 #                    WaitForPause.wait(self.lock)
 #                    self.nonPause()
                 rCommand,reInfo = sio._recvs(self.conn)
+                if self.isClosed():
+                    break
                 self.emit(SIGNAL("reRecv"),rCommand, reInfo)
-                reFlag += 1
-                print "rend receive"
-                print reFlag
-
-            winner = sio._recvs(self.conn)
-         #做一些界面的赢家展示替代print
-            self.emit(SIGNAL("gameWinner"),winner)
+            if not self.closed:
+                winner = sio._recvs(self.conn)
+                self.emit(SIGNAL("gameWinner"),winner)
             self.conn.close()
-            self.emit(SIGNAL("threadEnd()"))
-
 
 
 
@@ -257,7 +265,7 @@ class ai_debugger(QMainWindow):
        #              self.infoWidget, SLOT("newMapInfo"))
 
         self.connect(self.replayWindow, SIGNAL("goToRound(int, int)"), self.on_goToRound)
-        print "hi11"
+
         #进度条到主界面的通信
 #        self.connect(self.replayWindow, SIGNAL("nextRound()"), self.nextRound)
 
@@ -314,7 +322,6 @@ class ai_debugger(QMainWindow):
             self.gameLoadAction2.setEnabled(True)
     #game operation slot
     def startGame(self):
-        flag = True
         if len(self.loaded_ai) == 1:
          #加入默认的什么都不做ai
             self.loaded_ai.append(DEFAULT_SCILENT_AI)
@@ -327,28 +334,30 @@ class ai_debugger(QMainWindow):
             QMessageBox.critical(self, "Connection Error",
                                  "Failed to connect to UI_PORT\n",
                                  QMessageBox.Ok, QMessageBox.NoButton)
-            flag = False
-        if flag:
+            self.pltThread.deleteLater()
+        else:
             self.connect(self.pltThread, SIGNAL("rbRecv"), self.on_rbRecv)
             self.connect(self.pltThread, SIGNAL("reRecv"), self.on_reRecv)
             self.connect(self.pltThread, SIGNAL("gameWinner"), self.on_gameWinner)
 #            self.connect(self.replayWindow, SIGNAL("pauseRound()"), self.pltThread.pause)
             self.connect(self.pltThread, SIGNAL("finished()"), self.replayWindow.updateUI)
+            self.connect(self.pltThread, SIGNAL("finished()"), self.pltThread,
+                         SLOT("deleteLater()"))
 
             self.started = True
             self.replayWindow.started = True
             self.replayWindow.updateUI()
             self.updateUi()
+            self.pltThread.start()
 
-        self.connect(self.pltThread, SIGNAL("finished()"), self.pltThread,
-                     SLOT("deleteLater()"))
-        self.pltThread.start()
         #   def pauseGame(self):
   #      self.replayWindow.pauseGame()
 
     def endGame(self):
-        #待实现(清空游戏缓存数据)
+        #清空游戏缓存数据
         #强制在游戏没有进行到胜利条件的时候结束游戏
+        if self.pltThread.isRunning():
+            self.pltThread.close()
         self.replayWindow.reset()
         self.started = False
         self.updateUi()

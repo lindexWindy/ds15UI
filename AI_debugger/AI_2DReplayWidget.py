@@ -6,7 +6,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from functools import partial
-from Ui_2DReplay.Ui_ReplayWidget import *
+from Ui_2DReplay.Ui_ReplayWidgetNew import *
 
 class CtrlSlider(QWidget):
     XMARGIN = 12.0
@@ -98,7 +98,8 @@ class CtrlSlider(QWidget):
         self.update()
 
     def reset(self):
-        self.totalRound = self.nowRound = self.totalStatus = self.nowStatus = 0
+        self.totalRound = self.nowRound = 0
+        self.totalStatus = self.nowStatus = 1
         self.update()
 
     def paintEvent(self, event=None):

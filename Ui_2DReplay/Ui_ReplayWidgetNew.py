@@ -56,6 +56,7 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         self.data.nextRoundInfo = begInfo
         self.latestRound += 1
         self.latestStatus = self.BEGIN_FLAG
+
     def UpdateEndData(self, cmd, endInfo):
         if (self.data.nextRoundInfo==None):
             pass#raise error
@@ -63,6 +64,7 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         self.data.roundInfo.append(rInfo)
         self.data.nextRoundInfo = None
         self.latestStatus = self.END_FLAG
+
 
     #def GetGameInfo(self):
     #def GetTerrainInfo(self):
@@ -174,7 +176,7 @@ class Ui_2DReplayWidget(Ui_ReplayView):
                 else:
                     units = self.data.roundInfo[self.nowRound-1].endUnits
             else:
-                units = self.data.roundInfo[self.nowRound].begUnits
+                units = self.data.roundInfo[self.nowRound-1].begUnits
                 if (units==None):
                     if (self.nowRound==0):
                         units = self.data.iniUnits
