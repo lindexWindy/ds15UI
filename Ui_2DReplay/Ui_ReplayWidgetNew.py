@@ -52,13 +52,13 @@ class Ui_2DReplayWidget(Ui_ReplayView):
 
     def UpdateBeginData(self, begInfo):
         if (self.data.nextRoundInfo!=None):
-            pass#raise error
+            raise TypeError#raise error
         self.data.nextRoundInfo = begInfo
         self.latestRound += 1
         self.latestStatus = self.BEGIN_FLAG
     def UpdateEndData(self, cmd, endInfo):
         if (self.data.nextRoundInfo==None):
-            pass#raise error
+            raise TypeError#raise error
         rInfo = UiD_RoundInfo(self.data.nextRoundInfo, cmd, endInfo, self.data.map)
         self.data.roundInfo.append(rInfo)
         self.data.nextRoundInfo = None
@@ -72,7 +72,7 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         self.__TerminateAnimation()
         self.animState = 0
         if (self.nowRound*2+self.status>self.latestRound*2+self.latestStatus):
-            pass#raise error
+            raise TypeError#raise error
         units = self.__getNowUnitArray()
         self.SetSoldiers(units)
 
@@ -131,6 +131,10 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         self.animState = self.ANIM_STOP
         for item in self.additionItem:
             self.scene().removeItem(item)
+        
+        self.nowRound += (self.nowStatus+1)/2
+        self.nowStatus = (self.nowStatus+1)/2
+        self.ShowStatus()
         self.additionItem = []
 
                 
@@ -139,11 +143,9 @@ class Ui_2DReplayWidget(Ui_ReplayView):
     #def ShowBeginAnimation(self):
 
     def Play(self):
-        self.nowRound += (self.nowStatus+1)/2
-        self.nowStatus = (self.nowStatus+1)/2
         if (self.nowRound*2+self.status>=self.latestRound*2+self.latestStatus
             or (self.nowRound==self.latestRound and self.latestStatus==self.BEGIN_FLAG)):
-            pass#raise error
+            raise TypeError#raise error
         else:
             if (self.nowStatus==self.BEGIN_FLAG):
                 self.ShowMoveAnimation()
@@ -183,7 +185,7 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         elif (self.status==self.END_FLAG):
             units = self.data.roundInfo[self.nowRound].endUnits
         else:
-            pass#raise error
+            raise TypeError#raise error
         return units
 
     def __dispFun(self, dic):#for test
@@ -210,6 +212,9 @@ if __name__=="__main__":
     scene = QtGui.QGraphicsScene()
     view = Ui_2DReplayWidget(scene)
     view.Initialize(iniInfo, begInfo0)
+    view.UpdateEndData(cmd0, endInfo0)
+    view.UpdateBeginData(begInfo1)
+    view.UpdateEndData(cmd1 ,endInfo1)
     view.show()
     sys.exit(app.exec_())
     

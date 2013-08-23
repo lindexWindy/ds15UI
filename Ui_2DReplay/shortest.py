@@ -85,3 +85,7 @@ def GetRoute(maps, units, idnum, end):
     except:
         pass #raise error
     #possibility: 1. invalid pos 2. invalid idnum
+
+if __name__=="__main__":
+    import testdata
+    print GetRoute(testdata.maps, testdata.units0, (0, 0), (1, 2))
