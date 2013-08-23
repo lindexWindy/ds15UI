@@ -4,7 +4,7 @@
 from Ui_UnitsNew import *
 from Ui_Error import Ui_Error
 import sys, math
-import testdata
+#import testdata
 
 class Ui_MouseInfo:
     def __init__(self, view, event):

@@ -263,13 +263,10 @@ class ai_debugger(QMainWindow):
                      self.infoWidget, SLOT("newUnitInfo"))
       #  self.connect(self.replayWindow.replayWidget, SIGNAL("mapGridSelected"),
        #              self.infoWidget, SLOT("newMapInfo"))
-
+        #进度条到主界面的通信
         self.connect(self.replayWindow, SIGNAL("goToRound(int, int)"), self.on_goToRound)
 
-        #进度条到主界面的通信
-#        self.connect(self.replayWindow, SIGNAL("nextRound()"), self.nextRound)
 
-#        self.connect(self.replayWindow, SIGNAL("nonpauseRound()"), self.nonPauseRound)
 
         self.updateUi()
         self.setWindowTitle("DS15_AIDebugger")
@@ -304,19 +301,16 @@ class ai_debugger(QMainWindow):
         if len(self.loaded_ai) != 0 and self.loaded_map:
             if not self.started:
                 self.gameStartAction.setEnabled(True)
-              #  self.gamePauseAction.setEnabled(False)
                 self.gameEndAction.setEnabled(False)
                 self.gameLoadAction1.setEnabled(True)
                 self.gameLoadAction2.setEnabled(True)
             else:
                 self.gameStartAction.setEnabled(False)
-               # self.gamePauseAction.setEnabled(True)
                 self.gameEndAction.setEnabled(True)
                 self.gameLoadAction1.setEnabled(False)
                 self.gameLoadAction2.setEnabled(False)
         else:
             self.gameStartAction.setEnabled(False)
-           # self.gamePauseAction.setEnabled(False)
             self.gameEndAction.setEnabled(False)
             self.gameLoadAction1.setEnabled(True)
             self.gameLoadAction2.setEnabled(True)
@@ -339,7 +333,6 @@ class ai_debugger(QMainWindow):
             self.connect(self.pltThread, SIGNAL("rbRecv"), self.on_rbRecv)
             self.connect(self.pltThread, SIGNAL("reRecv"), self.on_reRecv)
             self.connect(self.pltThread, SIGNAL("gameWinner"), self.on_gameWinner)
-#            self.connect(self.replayWindow, SIGNAL("pauseRound()"), self.pltThread.pause)
             self.connect(self.pltThread, SIGNAL("finished()"), self.replayWindow.updateUI)
             self.connect(self.pltThread, SIGNAL("finished()"), self.pltThread,
                          SLOT("deleteLater()"))
@@ -350,13 +343,10 @@ class ai_debugger(QMainWindow):
             self.updateUi()
             self.pltThread.start()
 
-        #   def pauseGame(self):
-  #      self.replayWindow.pauseGame()
-
     def endGame(self):
         #清空游戏缓存数据
         #强制在游戏没有进行到胜利条件的时候结束游戏
-        if self.pltThread.isRunning():
+        if self.pltThread:
             self.pltThread.close()
         self.replayWindow.reset()
         self.started = False
@@ -388,22 +378,8 @@ class ai_debugger(QMainWindow):
             self.infoWidget.infoWidget_Game.setMapFileinfo(self.loaded_map)
             self.updateUi()
 
-    def nextRound(self):
-        global WaitForNext
-        #唤醒所有在waitfornext的线程
-        WaitForNext.wakeAll()
-
-#    def nonPauseRound(self):
-#        global WaitForPause
-        #唤醒所有在waitforpause的线程
-
-#        self.pltThread.nonPause()
-#        WaitForPause.wakeAll()
-
-
     def on_firstRecv(self, mapInfo, frInfo, aiInfo, baseInfo):
         self.replayWindow.updateIni(basic.Begin_Info(mapInfo, baseInfo), frInfo)
-        #base还没给出来?
         self.infoWidget.beginRoundInfo(frInfo)
         #这个aiInfo是什么...
 
@@ -417,7 +393,7 @@ class ai_debugger(QMainWindow):
 
     #进度条跳转回合信息同步(现在只同步了分数）
     def on_goToRound(self, round_, status):
-        score = self.replayWindow.replayWidget.data.roundInfo[round_].score
+        score = self.replayWindow.replayWidget.data.roundInfo[round_-1].score
         self.infoWidget.infoWidget_Game.setScoreinfo("%d : %d" %(score[0], score[1]))
      #   if status == 0:
       #      self.infoWidget.beginRoundInfo()
@@ -428,44 +404,6 @@ class ai_debugger(QMainWindow):
     def on_gameWinner(self, winner):
         QMessageBox.information(self, "Game Winner", "player %s win the game" %winner)
         #需要其他特效再加
-
-#    def on_threadEnd(self):
-#        self.replayWindow.started = False
-#        self.replayWindow.updateUI()
-
-    def setRunMode(self):
-        pass
-
-    def setDebugMode(self):
-        pass
-
-#    def setConMode(self):
-#        self.replayWindow.setPlayMode(1)
-#        #这个lock可以考虑移到AiThread类里实现
-#        if isinstance(self.pltThread, AiThread):
-#            try:
-#                self.pltThread.mutex.lock()
-#                self.pltThread.Con = 1
-#            finally:
-#                self.pltThread.mutex.unlock()
-#        #唤醒可能正在waitForPause的次线程，也就是说在游戏暂停时设置tForNext的次线程,跳到下一回合
-#            self.nextRound()
-#        self.Con = 1
-
-
-#    def setDisconMode(self):
-#        self.replayWindow.setPlayMode(0)
-#        #唤醒可能正在waitForPause的次线程，也就是说在游戏暂停时设置
-#        #disconMode的时候会往后跳一个状态
-#        if isinstance(self.pltThread, AiThread):
-#            try:
-#                self.pltThread.mutex.lock()
-#                self.pltThread.Con = 0
-#            finally:
-#                self.pltThread.mutex.unlock()
-#                self.pltThread.nonPause()
-#                self.nonPauseRound()
-#        self.Con = 0
 
     def reset(self):
         pass

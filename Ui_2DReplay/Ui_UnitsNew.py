@@ -9,8 +9,10 @@
 
 from PyQt4 import QtGui, QtCore
 from basic import *
+
 from shortest import *
 import qrc_resources
+
 TRAP_TRIGGERED = 8
 
 
@@ -153,9 +155,6 @@ class Ui_SoldierUnit(Ui_GridUnit):
                      WARRIOR:":warrior.png",
                      WIZARD:":wizard.png",
                      HERO_1:":hero1.png"}
-#        fileRoute = "SoldierImage/"
-#        dir = QtCore.QDir(QtCore.toNativeSeparator("../Ui_2DReplay/"+fileRoute))
-#        print "find dir",dir.exists()
         image = QtGui.QImage(imageRoute[self.type])
         painter.setCompositionMode(painter.CompositionMode_Multiply)
         painter.drawImage(QtCore.QRectF(0, 0, UNIT_WIDTH, UNIT_HEIGHT), image)

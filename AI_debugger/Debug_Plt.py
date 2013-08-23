@@ -25,7 +25,7 @@ sio._sends(connUI, Ui_2DReplay.testdata.begInfo0)
 time.sleep(3)
 sio._sends(connUI, (Ui_2DReplay.testdata.cmd0, Ui_2DReplay.testdata.endInfo0))
 print "re1 send"
-time.sleep(10)
+time.sleep(1)
 #Round 2
 sio._sends(connUI, Ui_2DReplay.testdata.begInfo0)
 time.sleep(3)
@@ -35,6 +35,7 @@ time.sleep(10)
 #Round 3
 sio._sends(connUI, Ui_2DReplay.testdata.begInfo1)
 time.sleep(3)
+Ui_2DReplay.testdata.cmd1.target = (2,2)
 sio._sends(connUI, (Ui_2DReplay.testdata.cmd1, Ui_2DReplay.testdata.endInfo1))
 print "re3 send"
 time.sleep(10)
