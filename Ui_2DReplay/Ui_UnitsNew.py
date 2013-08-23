@@ -327,8 +327,8 @@ class UiD_EndChanges:
                         self.note[i] = "Blocked!"
                     elif (endInfo.attack_effect[i]==0):
                         self.note[i] = "Miss"
-            self.fightBack = (endInfo.attack_effect[1]!=-1) and (endUnits.life!=0)
-            self.isDead = (endInfo.base[idNum].life==0, endInfo.base[target].life==0)
+            self.fightBack = (endInfo.attack_effect[1]!=-1) and (endUnits[target].life!=0)
+            self.isDead = (endUnits[idNum].life==0, endUnits[target].life==0)
         elif (cmd.order==2):
             raise NotImplementedError#skill
 

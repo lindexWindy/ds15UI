@@ -131,6 +131,10 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         self.animState = self.ANIM_STOP
         for item in self.additionItem:
             self.scene().removeItem(item)
+        
+        self.nowRound += (self.nowStatus+1)/2
+        self.nowStatus = (self.nowStatus+1)/2
+        self.ShowStatus()
         self.additionItem = []
 
                 
@@ -139,8 +143,6 @@ class Ui_2DReplayWidget(Ui_ReplayView):
     #def ShowBeginAnimation(self):
 
     def Play(self):
-        self.nowRound += (self.nowStatus+1)/2
-        self.nowStatus = (self.nowStatus+1)/2
         if (self.nowRound*2+self.status>=self.latestRound*2+self.latestStatus
             or (self.nowRound==self.latestRound and self.latestStatus==self.BEGIN_FLAG)):
             raise TypeError#raise error
