@@ -40,7 +40,7 @@ class Ui_GridUnit(QtGui.QGraphicsObject):
         QtGui.QGraphicsObject.__init__(self, parent)
         self.mapX = x
         self.mapY = y
-        self.selected = False#no need
+        self.setPos(self.GetPos())
 
     def SetMapPos(self, x, y):
         self.mapX = x
@@ -50,7 +50,6 @@ class Ui_GridUnit(QtGui.QGraphicsObject):
         return GetPos(self.mapX, self.mapY)
 
     def SetEnabled(self, flag):
-        print "fset called", flag#for test
         if (flag):
             self.setVisible(True)
             self.setEnabled(True)
@@ -164,8 +163,8 @@ class Ui_SoldierUnit(Ui_GridUnit):
     soldierSelected = QtCore.pyqtSignal(int)
 
     #slots for creating animation
-    def FadeOut(self, time):
-        self.setOpacity(1-time)
+    #def FadeOut(self, time):
+        #self.setOpacity(1-time)
     #def Flicker(self, frame):
 
 
@@ -174,8 +173,6 @@ class Ui_GridLabel(Ui_GridUnit):
     def __init__(self, text, mapX, mapY, parent = None):
         Ui_GridUnit.__init__(self, mapX, mapY, parent)
         self.text = text
-        self.SetEnabled(False)#for test
-        self.setPos(self.GetPos())
 
     def boundingRect(self):
         return QtCore.QRectF(LABEL_LEFT_MARGIN-PEN_WIDTH, 0-LABEL_HEIGHT-PEN_WIDTH,
@@ -189,21 +186,14 @@ class Ui_GridLabel(Ui_GridUnit):
         #painter.setColor(QtGui.QColor(0, 0, 0))
         painter.drawText(QtCore.QPointF(LABEL_LEFT_MARGIN, 0), self.text)
 
-    #slots
-    def ShowLabel(self, time):
-        SHOW_TIME = 0.6
-        DISAP_TIME = 0.9
-        if (time>=SHOW_TIME):
-            self.SetEnabled(True)
-        if (time>=DISAP_TIME):
-            self.SetEnabled(False)
+
         
 
 
 
 class Ui_GridCursor(Ui_GridUnit):
-    def __init__(self):
-        Ui_GridUnit.__init__(self)
+    def __init__(self, x = 0, y = 0):
+        Ui_GridUnit.__init__(self, x, y)
 
     def paint(self, painter, option, widget):
         pen = QtGui.QPen()
@@ -257,8 +247,8 @@ class Ui_MouseCursor(Ui_GridCursor):
 
 class Ui_TargetCursor(Ui_GridUnit):
     "the cursor used to point out the target"
-    def __init__(self):
-        Ui_GridUnit.__init__(self)
+    def __init__(self, x = 0, y = 0):
+        Ui_GridUnit.__init__(self, x, y)
 
     def paint(self, painter, option, widget):
         pen = QtGui.QPen()
@@ -298,6 +288,8 @@ class Ui_Animation(QtCore.QPropertyAnimation):
             return QtCore.QPropertyAnimation.interpolated(self, start, end, progress)
 
 
+###########################################
+        
 #data of game
 def ConvertTo1D(iniUnits):
     units = []
@@ -352,4 +344,5 @@ class UiD_BattleData:
         self.roundInfo = []
         self.nextRoundInfo = begInfo #temporary stores the round_begin_info
         self.result = None #result
+
 

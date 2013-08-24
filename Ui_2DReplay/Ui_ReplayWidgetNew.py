@@ -36,13 +36,14 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         Ui_ReplayView.Initialize(self, self.data.map, self.data.iniUnits,
                                    self.data.side0SoldierNum)
         #connecting disp signals
-        for column in self.mapItem:
-            for grid in column:
-                grid.mapGridSelected.connect(self.__callMapGridDisp)
-        for unit in self.soldierItem:
-            unit.soldierSelected.connect(self.__callUnitDisp)
-        self.unitSelected.connect(self.__dispFun)#for test
-        self.mapGridSelected.connect(self.__dispFun)#for test
+        #for column in self.mapItem:
+            #for grid in column:
+                #grid.mapGridSelected.connect(self.__callMapGridDisp)
+        #for unit in self.soldierItem:
+            #unit.soldierSelected.connect(self.__callUnitDisp)
+        self.focusGridChange.connect(self.__emitInfo)
+        self.connect(self, QtCore.SIGNAL("unitSelected"), self.__dispFun)#for test
+        self.connect(self, QtCore.SIGNAL("mapGridSelected"), self.__dispFun)#for test
         #maybe the connecting part shouldn't be here.
         self.nowRound = 0
         self.status = self.BEGIN_FLAG
@@ -132,9 +133,8 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         for item in self.additionItem:
             self.scene().removeItem(item)
         
-        self.nowRound += (self.nowStatus+1)/2
-        self.nowStatus = (self.nowStatus+1)/2
-        self.ShowStatus()
+        self.nowRound += (self.status+1)/2
+        self.status = (self.status+1)/2
         self.additionItem = []
 
                 
@@ -160,10 +160,19 @@ class Ui_2DReplayWidget(Ui_ReplayView):
             self.nowRound = r
         self.ShowStatus()
 
-    def __callUnitDisp(self, idnum):
-        self.unitSelected.emit((self.__getNowUnitArray())[idnum].__dict__)
-    def __callMapGridDisp(self, x, y):
-        self.mapGridSelected.emit(self.data.map[x][y].__dict__)
+    def __emitInfo(self, grid):
+        x, y = grid.x(), grid.y()
+        units = self.__getNowUnitArray()
+        for i in range(len(self.soldierItem)):
+            if ((self.soldierItem[i].mapX, self.soldierItem[i].mapY)==(x, y)):
+                self.emit(QtCore.SIGNAL("unitSelected"), units[i])
+                break
+        self.emit(QtCore.SIGNAL("mapGridSelected"), self.data.map[x][y])
+        
+    #def __callUnitDisp(self, idnum):
+        #self.unitSelected.emit((self.__getNowUnitArray())[idnum].__dict__)
+    #def __callMapGridDisp(self, x, y):
+        #self.mapGridSelected.emit(self.data.map[x][y].__dict__)
 
     def __getNowUnitArray(self):
         if (self.nowRound*2+self.status>self.latestRound*2+self.latestStatus):
@@ -189,7 +198,7 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         return units
 
     def __dispFun(self, dic):#for test
-        print dic
+        print dic.__dict__
 
     BEGIN_FLAG = 0
     END_FLAG = 1
@@ -200,8 +209,8 @@ class Ui_2DReplayWidget(Ui_ReplayView):
     moveAnimEnd = QtCore.pyqtSignal()
     begAnimEnd = QtCore.pyqtSignal()
     #signals of animation
-    unitSelected = QtCore.pyqtSignal(dict)
-    mapGridSelected = QtCore.pyqtSignal(dict)
+    #unitSelected = QtCore.pyqtSignal(dict)
+    #mapGridSelected = QtCore.pyqtSignal(dict)
     #signals for info display
 
 
