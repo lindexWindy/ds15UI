@@ -4,7 +4,7 @@
 from Ui_UnitsNew import *
 from Ui_Error import Ui_Error
 import sys, math
-#import testdata
+from testdata import *
 
 class Ui_MouseInfo:
     def __init__(self, view, event):
@@ -31,7 +31,8 @@ class Ui_View(QtGui.QGraphicsView):
         self.unitMap = {}
         self.mapSize = (0, 0)
         self.nowPos = (0, 0)
-        self.nowFocus = (0, 0)##
+        self.focusGrid = QtCore.QPoint(0, 0)
+        self.focusPoint = QtCore.QPoint(0, 0)
         self.dragUnit = None
 
     def Initialize(self, mapSizeX, mapSizeY):
@@ -40,6 +41,7 @@ class Ui_View(QtGui.QGraphicsView):
         for x in range(mapSizeX):
             for y in range(mapSizeY):
                 self.unitMap[(x, y)] = []
+        self.setMouseTracking(True)#for test
 
     def AddItem(self, item):
         item.hashIndex = (item.mapX, item.mapY)
@@ -60,6 +62,39 @@ class Ui_View(QtGui.QGraphicsView):
         self.unitMap[pos] = newHash
     #if bug appears, consider the z value
 
+    def GetFocusPoint(self):
+        return self.focusPoint
+    def SetFocusPoint(self, point):
+        self.focusPoint = point
+        self.centerOn(point)
+
+    def GetFocusGrid(self):
+        return self.focusGrid
+    def SetFocusGrid(self, grid):
+        if (self.focusGrid!=grid):
+            self.focusGridChange.emit(grid)
+        self.focusGrid = grid
+    focusGridChange = QtCore.pyqtSignal(QtCore.QPoint)
+    
+    pFocusPoint = QtCore.pyqtProperty(QtCore.QPoint, fget = GetFocusPoint,
+                                     fset = SetFocusPoint)
+    pFocusGrid = QtCore.pyqtProperty(QtCore.QPoint, fget = GetFocusGrid,
+                                    fset = SetFocusGrid, notify = focusGridChange)
+
+    def SetFocusAnimation(self, grid, time):
+        centerAnim = QtCore.QPropertyAnimation(self, "pFocusPoint")
+        centerAnim.setDuration(time)
+        centerAnim.setStartValue(GetPos(grid[0], grid[1]))
+        centerAnim.setEndValue(GetPos(grid[0], grid[1]))
+        focusAnim = QtCore.QPropertyAnimation(self, "pFocusGrid")
+        focusAnim.setDuration(time)
+        focusAnim.setStartValue(QtCore.QPoint(grid[0], grid[1]))
+        focusAnim.setEndValue(QtCore.QPoint(grid[0], grid[1]))
+        anim = QtCore.QParallelAnimationGroup()
+        anim.addAnimation(centerAnim)
+        anim.addAnimation(focusAnim)
+        return anim
+        
     def RaiseEvent(self, pos, eventType, args):
         l = len(self.unitMap[pos])
         while (l>0):
@@ -90,13 +125,13 @@ class Ui_View(QtGui.QGraphicsView):
         self.nowPos = info.nowPos
         if (info.eventType==QtCore.QEvent.MouseButtonPress and
             info.eventButton==QtCore.Qt.LeftButton):
+            self.SetFocusGrid(QtCore.QPoint(info.nowPos[0], info.nowPos[1]))
             self.RaiseEvent(info.nowPos, self.MOUSE_PRESS_EVENT, info)
             #handles the mouse press event
             self.dragUnit = self.RaiseEvent(info.nowPos, self.DRAG_START_EVENT, info)
             #starts a drag
         elif (info.eventType==QtCore.QEvent.MouseButtonRelease and
               (info.eventButton==QtCore.Qt.LeftButton)):
-            print info.eventButton==QtCore.Qt.NoButton#for test
             if (self.dragUnit!=None):
                 if (self.unitMap[info.nowPos]==[] or
                     self.RaiseEvent(info.nowPos, self.DRAG_STOP_EVENT, (self.dragUnit, info))):
@@ -119,6 +154,7 @@ class Ui_View(QtGui.QGraphicsView):
                 #如果鼠标在拖放状态下移出widget外怎么办？
         self.UpdateHash(info.initPos)
         self.UpdateHash(info.nowPos)
+        self.scene().update()
         #updates the hash map
     #handles seperatedly or together?
             
@@ -146,18 +182,18 @@ class Ui_ReplayView(Ui_View):
         #ini of items
         self.cursor = None
         #ini of the cursor
-        self.movTimeline = QtCore.QTimeLine()
-        self.atkTimeline = QtCore.QTimeLine()
-        self.dieTimeline = QtCore.QTimeLine()
-        self.animation = QtGui.QGraphicsItemAnimation()
-        self.label = Ui_GridLabel("", 0, 0)
+        #self.movTimeline = QtCore.QTimeLine()
+        #self.atkTimeline = QtCore.QTimeLine()
+        #self.dieTimeline = QtCore.QTimeLine()
+        #self.animation = QtGui.QGraphicsItemAnimation()
+        #self.label = Ui_GridLabel("", 0, 0)
         #ini of the animation
     def Initialize(self, maps, units, side0 = 0,
                    MapUnit = Ui_MapUnit, SoldierUnit = Ui_SoldierUnit, Cursor = Ui_MouseCursor):
         if (not (issubclass(MapUnit, Ui_MapUnit)
                  and issubclass(SoldierUnit, Ui_SoldierUnit)
                  and issubclass(Cursor, Ui_GridUnit))):
-            print "error"#raise error
+            print "typeerror"#raise error
         #check the type
         scene = self.scene()
         for item in scene.items():
@@ -192,7 +228,6 @@ class Ui_ReplayView(Ui_View):
         #initialization of soldier units
         self.cursor = Cursor()
         self.AddItem(self.cursor)
-        self.setMouseTracking(True)#for test
         #initialization of the cursor
 
     def SetSoldiers(self, units):
@@ -213,31 +248,47 @@ class Ui_ReplayView(Ui_View):
         FRAMES_BEFORE_MOVE = 3
         soldier = self.soldierItem[idnum]
         steps = len(route)-1
-        frames = steps+FRAMES_BEFORE_MOVE
 
         #movTimeline = QtCore.QTimeLine(frames*TIME_PER_FRAME)
         #movTimeline.setCurveShape(movTimeline.LinearCurve)
         #animation = QtGui.QGraphicsItemAnimation()
         #animation.setItem(soldier)
         #animation.setTimeLine(movTimeline)
-        anim = Ui_Animation(soldier, "pos")
-        anim.setDuration(frames*TIME_PER_FRAME)
-        
+        movAnim = Ui_Animation(soldier, "pos")
+        movAnim.setDuration(steps*TIME_PER_FRAME)
         for i in range(steps+1):
             pos = GetPos(route[i][0], route[i][1])
-            anim.setKeyValueAt(float((i+FRAMES_BEFORE_MOVE))/frames, pos)
+            movAnim.setKeyValueAt(float(i)/steps, pos)
+
+        cursor = Ui_GridCursor(route[0][0], route[0][1])
+        cursAnim = Ui_Animation(cursor, "enability")
+        cursAnim.setDuration(FRAMES_BEFORE_MOVE*TIME_PER_FRAME)
+        cursAnim.setStartValue(True)
+        cursAnim.setKeyValueAt(0.999, False)
+        focusAnim = self.SetFocusAnimation(route[0],
+                                           FRAMES_BEFORE_MOVE*TIME_PER_FRAME)
+        prepAnim = QtCore.QParallelAnimationGroup()
+        prepAnim.addAnimation(cursAnim)
+        prepAnim.addAnimation(focusAnim)
+        
+        anim = QtCore.QSequentialAnimationGroup()
+        anim.addAnimation(prepAnim)
+        anim.addAnimation(movAnim)
         #
         #anim = {}
         #anim["timeline"] = movTimeline
         #anim["animation"] = animation
-        item = []
+        item = [cursor]
+        cursor.SetEnabled(False)
         return anim, item
 
     def AttackingAnimation(self, selfId, targetId, damage, info = ""):
         "attack animation, displayed when the soldier launches an attack."
         TOTAL_TIME = 2000
         TIME_FOR_MOVING = 500
-        TIME_WHEN_RESETING = 1960
+        TIME_WHEN_RESETING = 1900
+        FRICKER_INTERVAL = 200
+        TIME_FOR_SHOW = 200
         DIST = 0.3
         attacker = self.soldierItem[selfId]
         target = self.soldierItem[targetId]
@@ -247,40 +298,80 @@ class Ui_ReplayView(Ui_View):
         #animation = QtCore.QGraphicsItemAnimation()
         #animation.setItem(attacker)
         #animation.setTimeLine(atkTimeline)
+        showAtkAnim = QtCore.QParallelAnimationGroup()
+        showAtkAnim.addAnimation(self.SetFocusAnimation((attacker.mapX, attacker.mapY),
+                                                    TIME_FOR_SHOW))
+        atkCurs = Ui_GridCursor(attacker.mapX, attacker.mapY)
+        atkCursAnim = Ui_Animation(atkCurs, "enability")
+        atkCursAnim.setDuration(TIME_FOR_SHOW)
+        atkCursAnim.setStartValue(True)
+        atkCursAnim.setKeyValueAt(0.999, False)
+        showAtkAnim.addAnimation(atkCursAnim)
+        
+        showTagAnim = QtCore.QParallelAnimationGroup()
+        showTagAnim.addAnimation(self.SetFocusAnimation((target.mapX, target.mapY),
+                                                    TIME_FOR_SHOW))
+        tagCurs = Ui_TargetCursor(target.mapX, target.mapY)
+        tagCursAnim = Ui_Animation(tagCurs, "enability")
+        tagCursAnim.setDuration(TIME_FOR_SHOW)
+        tagCursAnim.setStartValue(True)
+        tagCursAnim.setKeyValueAt(0.999, False)
+        showTagAnim.addAnimation(tagCursAnim)
+
+        atkAnim = QtCore.QParallelAnimationGroup()
         r = DIST/math.sqrt((attacker.mapX-target.mapX)**2+(attacker.mapY-target.mapY)**2)
         pos = attacker.GetPos()*(1-r)+target.GetPos()*r
-        atkAnim = Ui_Animation(attacker, "pos")
-        atkAnim.setDuration(TOTAL_TIME)
-        atkAnim.setKeyValueAt(0, attacker.GetPos())
-        atkAnim.setKeyValueAt(float(TIME_FOR_MOVING)/TOTAL_TIME, pos)
-        atkAnim.setKeyValueAt(float(TIME_WHEN_RESETING)/TOTAL_TIME, pos)
-        atkAnim.setKeyValueAt(1, attacker.GetPos())
+        atkMovAnim = Ui_Animation(attacker, "pos")
+        atkMovAnim.setDuration(TOTAL_TIME)
+        atkMovAnim.setKeyValueAt(0, attacker.GetPos())
+        atkMovAnim.setKeyValueAt(float(TIME_FOR_MOVING)/TOTAL_TIME, pos)
+        atkMovAnim.setKeyValueAt(float(TIME_WHEN_RESETING)/TOTAL_TIME, pos)
+        atkMovAnim.setKeyValueAt(1, attacker.GetPos())
+        atkAnim.addAnimation(atkMovAnim)        
 
         text = "%+d" % damage
         if (damage==0):
             text = info
         label = Ui_GridLabel(text, target.mapX, target.mapY)
-        labelAnim = Ui_Animation(label, "enability")
+        labelAnim = QtCore.QPropertyAnimation(label, "opacity")
         labelAnim.setDuration(TOTAL_TIME)
-        labelAnim.setKeyValueAt(0, False)
-        labelAnim.setKeyValueAt(0.5, True)#for test
-        labelAnim.setKeyValueAt(0.8, False)#for test
-        labelAnim.setKeyValueAt(1, False)
+        labelAnim.setKeyValueAt(0, 0)
+        labelAnim.setKeyValueAt(0.25, 0)
+        labelAnim.setKeyValueAt(0.3, 0)
+        labelAnim.setKeyValueAt(0.9, 1)
+        labelAnim.setKeyValueAt(0.91, 0)
+        labelAnim.setKeyValueAt(1, 0)
+        atkAnim.addAnimation(labelAnim)
 
-        anim = QtCore.QParallelAnimationGroup()
+
+        if (damage<0):
+            dmgAnim = Ui_Animation(target, "enability")
+            dmgAnim.setDuration(TOTAL_TIME)
+            enabled = False
+            for i in range(TIME_FOR_MOVING, TIME_WHEN_RESETING, FRICKER_INTERVAL):
+                dmgAnim.setKeyValueAt(float(i)/TOTAL_TIME, enabled)
+                enabled = not enabled
+            dmgAnim.setKeyValueAt(float(TIME_WHEN_RESETING)/TOTAL_TIME, False)
+            atkAnim.addAnimation(dmgAnim)
+
+        anim = QtCore.QSequentialAnimationGroup()
+        anim.addAnimation(showAtkAnim)
+        anim.addAnimation(showTagAnim)
         anim.addAnimation(atkAnim)
-        anim.addAnimation(labelAnim)
         #self.scene().addItem(label)
         #self.connect(atkTimeline, QtCore.SIGNAL("valueChanged(qreal)"),
         #             label.ShowLabel)
         #set focus
-        item = [label]
+        item = [label, atkCurs, tagCurs]
+        atkCurs.SetEnabled(False)
+        tagCurs.SetEnabled(False)
+        label.SetEnabled(True)
+        label.setOpacity(0)
         return anim, item
 
     def DiedAnimation(self, selfId):
         "displayed when a soldier dies"
         TOTAL_TIME = 2000
-        TIME_PER_FRAME = 40
         soldier = self.soldierItem[selfId]
 
         #dieTimeline = QtCore.QTimeLine(TOTAL_TIME)
@@ -290,11 +381,25 @@ class Ui_ReplayView(Ui_View):
         #             soldier.FadeOut)
         #anim = {}
         #anim["timeline"] = dieTimeline
-        anim = Ui_Animation(soldier, "opacity")
-        anim.setDuration(TOTAL_TIME)
-        anim.setStartValue(1)
-        anim.setEndValue(0)
-        item = []
+        dieAnim = Ui_Animation(soldier, "opacity")
+        dieAnim.setDuration(TOTAL_TIME)
+        dieAnim.setStartValue(1)
+        dieAnim.setEndValue(0)
+
+        cursor = Ui_GridCursor(soldier.mapX, soldier.mapY)
+        cursAnim = Ui_Animation(cursor, "enability")
+        cursAnim.setDuration(TOTAL_TIME)
+        cursAnim.setStartValue(True)
+        cursAnim.setKeyValueAt(0.999, False)
+
+        anim = QtCore.QParallelAnimationGroup()
+        anim.addAnimation(dieAnim)
+        anim.addAnimation(cursAnim)
+        anim.addAnimation(self.SetFocusAnimation((soldier.mapX, soldier.mapY),
+                                                 TOTAL_TIME))
+        
+        item = [cursor]
+        cursor.SetEnabled(False)
         return anim, item
 
     #def TerrainChangeAnimation(self):
@@ -322,13 +427,14 @@ if __name__=="__main__":
     app = QtGui.QApplication(sys.argv)
     scene = QtGui.QGraphicsScene()
     view = Ui_ReplayView(scene)
-    view.Initialize(testdata.maps, testdata.units, 3)
-    #anim, item = view.MovingAnimation(0, ((0, 0), (0, 1), (1, 1), (1, 2), (1, 1)))
-    #anim, item = view.AttackingAnimation(0, 1, 0, "blocked!")
-    anim, item = view.DiedAnimation(3)
+    view.Initialize(maps, units, 3)
+    anim, item = view.MovingAnimation(0, ((0, 7), (0, 6), (1, 6), (2, 6), (2, 5)))
+    #anim, item = view.AttackingAnimation(0, 5, 0, "blocked!")
+    #anim, item = view.DiedAnimation(3)
 
     view.show()
-    #view.scene().addItem(item[0])
+    for i in item:
+        scene.addItem(i)
     #anim["timeline"].start()
     anim.start()
     sys.exit(app.exec_())
