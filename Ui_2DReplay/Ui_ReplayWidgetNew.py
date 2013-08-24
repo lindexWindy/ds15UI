@@ -94,7 +94,6 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         self.additionItem = []
         #move
         anim, item = self.MovingAnimation(cmd.idNum, cmd.route)
-        print "move animation"
         self.anim.addAnimation(anim)
         self.additionItem.extend(item)
         #terrain changes
@@ -102,7 +101,6 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         if (cmd.order==1):#attack
             anim, item = self.AttackingAnimation(cmd.idNum, cmd.target,
                                                  cmd.damage[1], cmd.note[1])
-            print "attack animation"
             self.anim.addAnimation(anim)
             self.additionItem.extend(item)
             if (cmd.isDead[1]):#target died
@@ -126,13 +124,14 @@ class Ui_2DReplayWidget(Ui_ReplayView):
             item.SetEnabled(False)#set them invisible
         self.connect(self.anim, QtCore.SIGNAL("finished()"), self.ShowStatus)
         self.connect(self.anim, QtCore.SIGNAL("finished()"), self.moveAnimEnd)
-        print "abc"
         self.anim.start()
-        print "aaa"
+
 
     def __TerminateAnimation(self):
         if (self.anim!=None):
             self.anim.stop()
+            self.anim.deleteLater()
+            self.anim = None
         self.animState = self.ANIM_STOP
         for item in self.additionItem:
             self.scene().removeItem(item)
@@ -153,7 +152,6 @@ class Ui_2DReplayWidget(Ui_ReplayView):
             raise TypeError#raise error
         else:
             if (self.status==self.BEGIN_FLAG):
-                print "show"
                 self.ShowMoveAnimation()
             elif (self.status==self.END_FLAG):
                 pass#show begin

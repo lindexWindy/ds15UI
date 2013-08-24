@@ -138,12 +138,10 @@ class ai_debugger(QMainWindow):
         self.started = False
         self.loaded_ai = []
         self.loaded_map = None
-        self.lock = QReadWriteLock()#留着备用...暂时我还没有设置共同数据
-        #先init这个与平台交互的线程
-     #   self.pltThread = AiThread(self.lock,self)
         self.pltThread = None
-#        self.replay_speed = MIN_REPLAY_SPEED
         self.ispaused = False
+        #临时
+        self.lock = QReadWriteLock()
 
         #composite replay widget
         self.replayScene = QGraphicsScene()
@@ -172,10 +170,6 @@ class ai_debugger(QMainWindow):
         self.gameStartAction = self.createAction("&Start", self.startGame,
                                             "Ctrl+S","gameStart",
                                             "start game")
-        #游戏暂停功能在进度条里实现,不在这里实现了(不过如果需要加入,也可以..)
-      #  self.gamePauseAction = self.createAction("&Pause", self.pauseGame,
-       #                                     "Ctrl+P","gamePause",
-        #                                    "pause game",True)
         self.gameEndAction = self.createAction("&End", self.endGame,
                                          "Ctrl+E","gameEnd",
                                          "end game")
@@ -260,9 +254,9 @@ class ai_debugger(QMainWindow):
         self.connect(self.infoWidget, SIGNAL("hided()"), self.synhide)
         #to show messages
         self.connect(self.replayWindow.replayWidget, SIGNAL("unitSelected"),
-                     self.infoWidget, SLOT("newUnitInfo"))
-      #  self.connect(self.replayWindow.replayWidget, SIGNAL("mapGridSelected"),
-       #              self.infoWidget, SLOT("newMapInfo"))
+                     self.infoWidget.newUnitInfo)
+        self.connect(self.replayWindow.replayWidget, SIGNAL("mapGridSelected"),
+                     self.infoWidget.newMapInfo)
         #进度条到主界面的通信
         self.connect(self.replayWindow, SIGNAL("goToRound(int, int)"), self.on_goToRound)
 

@@ -37,7 +37,6 @@ class CtrlSlider(QWidget):
                      self.totalRound,
                      (fm.height() * 4) + CtrlSlider.YMARGIN)
 
-    #人工改变当前回合时调用.连续播放改变当前回合时并不调用
     def changeNowRound(self, round_, status):
         if round_ * 2 + status <= self.totalRound * 2 + self.totalStatus:
             if self.nowRound != round_ or self.nowStatus != status:
@@ -47,7 +46,6 @@ class CtrlSlider(QWidget):
                 self.emit(SIGNAL("nowChanged(int, int)"), self.nowRound, self.nowStatus)
 
 
-    #暂停点功能以后再说
     def addPausePoint(self, round_):
         if not round_ in self.pausePoint:
             self.pausePoint.append(round_)
@@ -166,7 +164,7 @@ class CtrlSlider(QWidget):
         painter.setPen(Qt.yellow)
         painter.setBrush(Qt.darkYellow)
         painter.drawPolygon(QPolygonF(triangle))
-        print "Iam paint" ,self.nowRound,self.nowStatus,self.totalRound,self.totalStatus
+
 
 class AiReplayWidget(QWidget):
     def __init__(self, scene, parent = None):
@@ -217,9 +215,7 @@ class AiReplayWidget(QWidget):
                                                       #self.ctrlSlider.nowRound+1,
                                                       #not self.ctrlSlider.nowStatus))
     def __test(self):
-        print "ani end receive"
         self.ctrlSlider.changeNowRound(self.ctrlSlider.nowRound, 1)
-        print "hihihi"
 
     #validate nowInfo的输入
     def check(self):
@@ -255,7 +251,6 @@ class AiReplayWidget(QWidget):
 
     #如果在动画放映过程中通过进度条切换有没有问题?
     def setNowRound(self, a, b):
-        print "setNowRound",a,b
         #为了动画部分不出错
         if a * 2 + b <= self.ctrlSlider.totalRound * 2 + self.ctrlSlider.totalStatus:
             self.replayWidget.GoToRound(a,b)
@@ -263,19 +258,18 @@ class AiReplayWidget(QWidget):
             #给主界面同步信息
             self.emit(SIGNAL("goToRound(int, int)"), a, b)
             if not self.isPaused:
-                time.sleep(2)
-                if self.okToPlay():
+                 if self.okToPlay():
                     if b == 0:
-                        print "play1"
                         self.replayWidget.Play()
                     #自动跳到下一回合begin开始播放
                     elif self.ctrlSlider.totalRound > self.ctrlSlider.nowRound:
+                        time.sleep(2)
                         self.ctrlSlider.changeNowRound(a + 1, 0)
                     else:
                         self.isPaused = True
                         self.updateUI()
                 #自动暂停播放
-                else:
+                 else:
                     self.isPaused = True
                     self.updateUI()
 
@@ -330,7 +324,6 @@ class AiReplayWidget(QWidget):
         self.updateUI()
         #接收完第一回合数据后开始播放
         if self.ctrlSlider.totalStatus == 1 and self.ctrlSlider.totalRound == 1:
-            print "play called"
             self.replayWidget.Play()
 
 
