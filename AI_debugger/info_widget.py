@@ -49,7 +49,8 @@ class InfoWidget(QTabWidget):
         self.infoWidget_Game.setCmdinfo(QString.fromUtf8("move to %s,%s" %(cmd.move,
                                                              NumToActionType[cmd.order]
                                                              )))
-        self.infoWidget_Game.setTargetinfo(QString.fromUtf8("Team %d Soldier %d" %(cmd.target[0], cmd.target[1])))
+        if cmd.order != 0:
+            self.infoWidget_Game.setTargetinfo(QString.fromUtf8("Team %d Soldier %d" %(cmd.target[0], cmd.target[1])))
         self.infoWidget_Game.setEffectinfo(QString.fromUtf8("攻击%s，反击%s" %(NumToEffect[endinfo.effect[0]],
                                                               NumToEffect[endinfo.effect[1]])))
         self.infoWidget_Game.setScoreinfo("%d : %d" %(endinfo.score[0],endinfo.score[1]))

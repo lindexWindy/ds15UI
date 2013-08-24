@@ -7,6 +7,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from functools import partial
 from Ui_2DReplay.Ui_ReplayWidgetNew import *
+import time
 
 class CtrlSlider(QWidget):
     XMARGIN = 12.0
@@ -42,8 +43,9 @@ class CtrlSlider(QWidget):
             if self.nowRound != round_ or self.nowStatus != status:
                 self.nowRound = round_
                 self.nowStatus = status
+                self.repaint()
                 self.emit(SIGNAL("nowChanged(int, int)"), self.nowRound, self.nowStatus)
-        self.update()
+
 
     #暂停点功能以后再说
     def addPausePoint(self, round_):
@@ -218,44 +220,6 @@ class AiReplayWidget(QWidget):
         print "ani end receive"
         self.ctrlSlider.changeNowRound(self.ctrlSlider.nowRound, 1)
         print "hihihi"
-    def updateUI(self):
-        self.totalInfo.display(self.ctrlSlider.totalRound)
-        self.nowInfo.setText(QString.number(self.ctrlSlider.nowRound))
-        totalstatus = "At begin" if self.ctrlSlider.totalStatus == 0 else "At end"
-        self.totalStatusInfo.setText(totalstatus)
-#        self.NowEqualTotal = (self.ctrlSlider.nowRound == self.ctrlSlider.totalRound
-#                              and self.ctrlSlider.nowStatus == self.ctrlSlider.totalStatus)
-        if self.isPaused:
-            pausetext = "Paused"
-        else:
-            pausetext = "Runing"
-        self.pauseLabel.setText(pausetext)
-
-
-    #如果在动画放映过程中通过进度条切换有没有问题?
-    def setNowRound(self, a, b):
-        print "setNowRound"
-        #为了动画部分不出错
-        if a * 2 + b <= self.ctrlSlider.totalRound * 2 + self.ctrlSlider.totalStatus:
-
-            self.replayWidget.GoToRound(a,b)
-            #给主界面同步信息
-            self.emit(SIGNAL("goToRound(int, int)"), a, b)
-            if not self.isPaused:
-                if self.okToPlay():
-                    if b == 0:
-                        print "play1"
-                        self.replayWidget.Play()
-                    #自动跳到下一回合begin开始播放
-                    else:
-                        if self.ctrlSlider.totalRound > self.ctrlSlider.nowRound:
-                            self.ctrlSlider.changeNowRound(a + 1, 0)
-                #自动暂停播放
-                else:
-                    self.isPaused = True
-    
-           #!!!!!放到每一个回合如果要同步信息回放界面都需要信号发给外面
-        self.updateUI()
 
     #validate nowInfo的输入
     def check(self):
@@ -271,23 +235,77 @@ class AiReplayWidget(QWidget):
             self.nowInfo.selectAll()
             self.nowInfo.setFocus()
 
+    def updateUI(self):
+        self.totalInfo.display(self.ctrlSlider.totalRound)
+        self.nowInfo.setText(QString.number(self.ctrlSlider.nowRound))
+        totalstatus = "At begin" if self.ctrlSlider.totalStatus == 0 else "At end"
+        self.totalStatusInfo.setText(totalstatus)
+#        self.NowEqualTotal = (self.ctrlSlider.nowRound == self.ctrlSlider.totalRound
+#                              and self.ctrlSlider.nowStatus == self.ctrlSlider.totalStatus)
+        if self.isPaused:
+            pausetext = "Paused"
+        else:
+            pausetext = "Runing"
+        self.pauseLabel.setText(pausetext)
+
     def okToPlay(self):
         if self.ctrlSlider.nowRound == self.ctrlSlider.totalRound and self.ctrlSlider.totalStatus == 0:
             return False
         return True
 
+    #如果在动画放映过程中通过进度条切换有没有问题?
+    def setNowRound(self, a, b):
+        print "setNowRound",a,b
+        #为了动画部分不出错
+        if a * 2 + b <= self.ctrlSlider.totalRound * 2 + self.ctrlSlider.totalStatus:
+            self.replayWidget.GoToRound(a,b)
+            self.updateUI()
+            #给主界面同步信息
+            self.emit(SIGNAL("goToRound(int, int)"), a, b)
+            if not self.isPaused:
+                time.sleep(2)
+                if self.okToPlay():
+                    if b == 0:
+                        print "play1"
+                        self.replayWidget.Play()
+                    #自动跳到下一回合begin开始播放
+                    elif self.ctrlSlider.totalRound > self.ctrlSlider.nowRound:
+                        self.ctrlSlider.changeNowRound(a + 1, 0)
+                    else:
+                        self.isPaused = True
+                        self.updateUI()
+                #自动暂停播放
+                else:
+                    self.isPaused = True
+                    self.updateUI()
+
+
     def pauseGame(self):
         if not self.isPaused:
             self.replayWidget.GoToRound(self.ctrlSlider.nowRound, self.ctrlSlider.nowStatus)
+            self.isPaused = True
         else:
             if not self.okToPlay():
-                self.isPaused = False
+                self.isPaused = True
                 QMessageBox.warning(self, QString.fromUtf8("播放警告"),
                                     QString.fromUtf8("游戏数据更新不足，不能继续播放，请等待游戏数据更新后再继续播放。保持暂停状态"),
                                     QMessageBox.Ok,QMessageBox.NoButton)
             else:
-                self.replayWidget.Play()
-        self.isPaused = not self.isPaused
+                #判断是否可以播放
+                if self.ctrlSlider.nowStatus == 1:
+                    #判断是否要往下跳一回合继续播放
+                    if self.ctrlSlider.totalRound > self.ctrlSlider.nowRound:
+                        self.isPaused = False
+                        self.updateUI()
+                        self.ctrlSlider.changeNowRound(self.ctrlSlider.nowRound + 1, 0)
+                    else:
+                        self.isPaused = True
+                        QMessageBox.warning(self, QString.fromUtf8("播放警告"),
+                                            QString.fromUtf8("游戏数据更新不足，不能继续播放，请等待游戏数据更新后再继续播放。保持暂停状态"),
+                                            QMessageBox.Ok,QMessageBox.NoButton)
+                else:
+                    self.isPaused = False
+                    self.replayWidget.Play()
         self.updateUI()
 
     #下面三个方法在从平台获得信息时,从外部调用，
@@ -314,7 +332,7 @@ class AiReplayWidget(QWidget):
         if self.ctrlSlider.totalStatus == 1 and self.ctrlSlider.totalRound == 1:
             print "play called"
             self.replayWidget.Play()
-            
+
 
     #游戏结束时，清空所有游戏相关数据，重置进度条等。
     def reset(self):

@@ -175,16 +175,19 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         if (self.nowRound*2+self.status>self.latestRound*2+self.latestStatus):
             pass#raise error
         if (self.status==self.BEGIN_FLAG):
-            if (self.nowRound==1 and self.latestRound==1 and
+            if (self.nowRound==self.latestRound and
                 self.latestStatus==self.BEGIN_FLAG):
-                units = self.data.iniUnits
+                if self.nowRound == 1:
+                    units = self.data.iniUnits
+                else:
+                    units = self.data.roundInfo[self.nowRound-2].endUnits
             else:
                 units = self.data.roundInfo[self.nowRound-1].begUnits
                 if (units==None):
-                    if (self.nowRound==0):
+                    if (self.nowRound== 1):
                         units = self.data.iniUnits
                     else:
-                        units = self.data.roundInfo[self.nowRound-1].endUnits
+                        units = self.data.roundInfo[self.nowRound-2].endUnits
         elif (self.status==self.END_FLAG):
             units = self.data.roundInfo[self.nowRound - 1].endUnits
         else:

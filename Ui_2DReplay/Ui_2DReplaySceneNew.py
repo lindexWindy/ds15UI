@@ -265,6 +265,7 @@ class Ui_ReplayView(Ui_View):
         labelAnim.setKeyValueAt(0, False)
         labelAnim.setKeyValueAt(0.5, True)#for test
         labelAnim.setKeyValueAt(0.8, False)#for test
+        labelAnim.setKeyValueAt(1, False)
 
         anim = QtCore.QParallelAnimationGroup()
         anim.addAnimation(atkAnim)
