@@ -128,7 +128,7 @@ class Ui_2DReplayWidget(Ui_ReplayView):
 
 
     def __TerminateAnimation(self):
-        if (self.anim!=None):
+        if self.anim:
             self.anim.stop()
             self.anim.deleteLater()
             self.anim = None

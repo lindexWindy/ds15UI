@@ -323,7 +323,7 @@ class AiReplayWidget(QWidget):
         self.ctrlSlider.changeTotalRound()
         self.updateUI()
         #接收完第一回合数据后开始播放
-        if self.ctrlSlider.totalStatus == 1 and self.ctrlSlider.totalRound == 1:
+        if self.ctrlSlider.totalStatus == 1 and self.ctrlSlider.totalRound == 1 and not self.isPaused:
             self.replayWidget.Play()
 
 
