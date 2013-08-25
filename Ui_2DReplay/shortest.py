@@ -73,7 +73,9 @@ def GetRoute(maps, units, idnum, end):
     try:
         #print idnum#for test
         print len(units[0]), len(units[1])#for test
+        print "before avail"
         field = available_spots(maps, units, idnum, last)
+        print "end avail"
         ind = field.index(end)
         start = units[idnum[0]][idnum[1]].position
         route.append(field[ind])
@@ -83,7 +85,7 @@ def GetRoute(maps, units, idnum, end):
         route.reverse()
         return route
     except:
-        pass #raise error
+        print "excption" #raise error
     #possibility: 1. invalid pos 2. invalid idnum
 
 

@@ -75,8 +75,9 @@ class InfoWidget(QTabWidget):
     def newMapInfo(self, map_basic):
         self.infoWidget_Map.info_type.setText(NumToMapType[map_basic.kind])
         self.infoWidget_Map.info_score.setText("%d" %map_basic.score)
-        self.infoWidget_Mao.info_consumption.setText("%d" %map_basic.move_consumption)
+        self.infoWidget_Map.info_consumption.setText("%d" %map_basic.move_consumption)
         self.setCurrentWidget(self.infoWidget_Map)
+
 #展示游戏基础信息
 class InfoWidget1(QWidget):
     def __init__(self, parent = None):
@@ -139,7 +140,6 @@ class InfoWidget1(QWidget):
             
     def setMapFileinfo(self, str):
         self.info_mapfile.setText(str)
-     #逻辑接口里把回合和单位行动周期搞混了,这个回合是什么呢...
     def setUnitinfo(self, str):
         self.info_unit.setText(str)
     def setTimeinfo(self, str):
@@ -186,8 +186,10 @@ class InfoWidget2(QWidget):
         self.info_attackrange = QLabel("")
         self.infos.append(self.info_attackrange)
 
+
         for info in self.infos:
-            info.setFrameStyle(QFrame.StyledPanel|QFrame.Sunken)
+            info.setFrameStyle(QFrame.StyledPanel|QFrame.Raised)
+
 
         self.layout = QGridLayout()
         self.layout.addWidget(self.label_type, 0, 0)
@@ -204,8 +206,11 @@ class InfoWidget2(QWidget):
         self.layout.addWidget(self.info_moverange, 5, 1)
         self.layout.addWidget(self.label_attackrange, 6, 0)
         self.layout.addWidget(self.info_attackrange, 6, 1)
+        self.layout1 = QVBoxLayout()
+        self.layout1.addLayout(self.layout)
+        self.layout1.addStretch()
 
-        self.setLayout(self.layout)
+        self.setLayout(self.layout1)
 
 
 #展示地图基础信息
@@ -233,8 +238,11 @@ class InfoWidget3(QWidget):
         self.layout.addWidget(self.info_score, 1, 1)
         self.layout.addWidget(self.label_consumption, 2, 0)
         self.layout.addWidget(self.info_consumption, 2, 1)
+        self.layout1 = QVBoxLayout()
+        self.layout1.addLayout(self.layout)
+        self.layout1.addStretch()
 
-        self.setLayout(self.layout)
+        self.setLayout(self.layout1)
 
 
 

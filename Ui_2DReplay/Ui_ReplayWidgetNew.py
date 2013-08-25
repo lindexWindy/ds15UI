@@ -135,7 +135,8 @@ class Ui_2DReplayWidget(Ui_ReplayView):
             self.anim = None
         self.animState = self.ANIM_STOP
         for item in self.additionItem:
-            self.scene().removeItem(item)
+            if item in self.scene().items():
+                self.scene().removeItem(item)
         
 #        self.nowRound += (self.status+1)/2
 #        self.status = (self.status+1)/2

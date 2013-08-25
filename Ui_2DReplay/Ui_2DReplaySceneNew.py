@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #new version
 
@@ -32,7 +33,7 @@ class Ui_View(QtGui.QGraphicsView):
         self.mapSize = (0, 0)
         self.nowPos = (0, 0)
         self.focusGrid = QtCore.QPoint(0, 0)
-        self.focusPoint = QtCore.QPoint(0, 0)
+        self.focusPoint = QtCore.QPointF(0, 0)
         self.dragUnit = None
 
     def Initialize(self, mapSizeX, mapSizeY):
@@ -76,7 +77,7 @@ class Ui_View(QtGui.QGraphicsView):
         self.focusGrid = grid
     focusGridChange = QtCore.pyqtSignal(QtCore.QPoint)
     
-    pFocusPoint = QtCore.pyqtProperty(QtCore.QPoint, fget = GetFocusPoint,
+    pFocusPoint = QtCore.pyqtProperty(QtCore.QPointF, fget = GetFocusPoint,
                                      fset = SetFocusPoint)
     pFocusGrid = QtCore.pyqtProperty(QtCore.QPoint, fget = GetFocusGrid,
                                     fset = SetFocusGrid, notify = focusGridChange)
@@ -264,7 +265,7 @@ class Ui_ReplayView(Ui_View):
         cursAnim = Ui_Animation(cursor, "enability")
         cursAnim.setDuration(FRAMES_BEFORE_MOVE*TIME_PER_FRAME)
         cursAnim.setStartValue(True)
-        cursAnim.setKeyValueAt(0.999, False)
+        cursAnim.setKeyValueAt(1, False)
         focusAnim = self.SetFocusAnimation(route[0],
                                            FRAMES_BEFORE_MOVE*TIME_PER_FRAME)
         prepAnim = QtCore.QParallelAnimationGroup()
@@ -305,7 +306,7 @@ class Ui_ReplayView(Ui_View):
         atkCursAnim = Ui_Animation(atkCurs, "enability")
         atkCursAnim.setDuration(TIME_FOR_SHOW)
         atkCursAnim.setStartValue(True)
-        atkCursAnim.setKeyValueAt(0.999, False)
+        atkCursAnim.setKeyValueAt(1, False)
         showAtkAnim.addAnimation(atkCursAnim)
         
         showTagAnim = QtCore.QParallelAnimationGroup()
@@ -315,7 +316,7 @@ class Ui_ReplayView(Ui_View):
         tagCursAnim = Ui_Animation(tagCurs, "enability")
         tagCursAnim.setDuration(TIME_FOR_SHOW)
         tagCursAnim.setStartValue(True)
-        tagCursAnim.setKeyValueAt(0.999, False)
+        tagCursAnim.setKeyValueAt(1, False)
         showTagAnim.addAnimation(tagCursAnim)
 
         atkAnim = QtCore.QParallelAnimationGroup()
