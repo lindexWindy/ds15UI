@@ -42,6 +42,11 @@ class Ui_View(QtGui.QGraphicsView):
             for y in range(mapSizeY):
                 self.unitMap[(x, y)] = []
         self.setMouseTracking(True)#for test
+        sizeX = mapSizeX*UNIT_WIDTH
+        sizeY = mapSizeY*UNIT_HEIGHT
+        self.scene().setSceneRect(0-MARGIN_WIDTH, 0-MARGIN_WIDTH,
+                                  sizeX+2*MARGIN_WIDTH, sizeY+2*MARGIN_WIDTH)
+        self.setBackgroundBrush(QtGui.QColor(255, 255, 255))
 
     def AddItem(self, item):
         item.hashIndex = (item.mapX, item.mapY)
