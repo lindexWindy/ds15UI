@@ -32,7 +32,7 @@ class Ui_View(QtGui.QGraphicsView):
         self.mapSize = (0, 0)
         self.nowPos = (0, 0)
         self.focusGrid = QtCore.QPoint(0, 0)
-        self.focusPoint = QtCore.QPoint(0, 0)
+        #self.focusPoint = QtCore.QPoint(0, 0)
         self.dragUnit = None
 
     def Initialize(self, mapSizeX, mapSizeY):
@@ -68,9 +68,12 @@ class Ui_View(QtGui.QGraphicsView):
     #if bug appears, consider the z value
 
     def GetFocusPoint(self):
-        return self.focusPoint
+        rect = self.geometry()
+        return self.mapToScene(QtCore.QPoint(0, 0))+QtCore.QPoint(rect.width(), rect.height())/2
+        #return self.focusPoint
     def SetFocusPoint(self, point):
-        self.focusPoint = point
+        #self.focusPoint = point
+        #pointf = QtCore.QPointF(point.x(), point.y())
         self.centerOn(point)
 
     def GetFocusGrid(self):
@@ -81,7 +84,7 @@ class Ui_View(QtGui.QGraphicsView):
         self.focusGrid = grid
     focusGridChange = QtCore.pyqtSignal(QtCore.QPoint)
     
-    pFocusPoint = QtCore.pyqtProperty(QtCore.QPoint, fget = GetFocusPoint,
+    pFocusPoint = QtCore.pyqtProperty(QtCore.QPointF, fget = GetFocusPoint,
                                      fset = SetFocusPoint)
     pFocusGrid = QtCore.pyqtProperty(QtCore.QPoint, fget = GetFocusGrid,
                                     fset = SetFocusGrid, notify = focusGridChange)
@@ -89,7 +92,8 @@ class Ui_View(QtGui.QGraphicsView):
     def SetFocusAnimation(self, grid, time):
         centerAnim = QtCore.QPropertyAnimation(self, "pFocusPoint")
         centerAnim.setDuration(time)
-        centerAnim.setStartValue(GetPos(grid[0], grid[1]))
+        #centerAnim.setStartValue(GetPos(grid[0], grid[1]))
+        centerAnim.setKeyValueAt(0.5, GetPos(grid[0], grid[1]))
         centerAnim.setEndValue(GetPos(grid[0], grid[1]))
         focusAnim = QtCore.QPropertyAnimation(self, "pFocusGrid")
         focusAnim.setDuration(time)
@@ -437,6 +441,7 @@ if __name__=="__main__":
     #anim, item = view.DiedAnimation(3)
 
     view.show()
+    #view.centerOn(QtCore.QPointF(500, 500))
     for i in item:
         scene.addItem(i)
     #anim["timeline"].start()
