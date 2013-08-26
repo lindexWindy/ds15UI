@@ -10,9 +10,9 @@
 from PyQt4 import QtGui, QtCore
 from basic import *
 
-from shortest import *
+#from shortest import *
 import qrc_resources
-
+from myGetRoute import GetRoute
 TRAP_TRIGGERED = 8
 
 

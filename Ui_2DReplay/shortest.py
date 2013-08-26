@@ -91,5 +91,5 @@ def GetRoute(maps, units, idnum, end):
 
 if __name__=="__main__":
     import testdata
-    print GetRoute(testdata.maps, testdata.units0, (0, 0), (1, 2))
+    print GetRoute(testdata.maps, testdata.units0, (0, 0), (1, 1))
 
