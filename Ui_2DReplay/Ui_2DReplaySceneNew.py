@@ -33,7 +33,6 @@ class Ui_View(QtGui.QGraphicsView):
         self.mapSize = (0, 0)
         self.nowPos = (0, 0)
         self.focusGrid = QtCore.QPoint(0, 0)
-        self.focusPoint = QtCore.QPointF(0, 0)
         self.dragUnit = None
 
     def Initialize(self, mapSizeX, mapSizeY):
@@ -43,6 +42,11 @@ class Ui_View(QtGui.QGraphicsView):
             for y in range(mapSizeY):
                 self.unitMap[(x, y)] = []
         self.setMouseTracking(True)#for test
+        sizeX = mapSizeX*UNIT_WIDTH
+        sizeY = mapSizeY*UNIT_HEIGHT
+        self.scene().setSceneRect(0-MARGIN_WIDTH, 0-MARGIN_WIDTH,
+                                  sizeX+2*MARGIN_WIDTH, sizeY+2*MARGIN_WIDTH)
+        self.setBackgroundBrush(QtGui.QColor(255, 255, 255))
 
     def AddItem(self, item):
         item.hashIndex = (item.mapX, item.mapY)
@@ -64,9 +68,12 @@ class Ui_View(QtGui.QGraphicsView):
     #if bug appears, consider the z value
 
     def GetFocusPoint(self):
-        return self.focusPoint
+        rect = self.geometry()
+        return self.mapToScene(int(rect.width()/2), int(rect.height()/2))
+        #return self.focusPoint
     def SetFocusPoint(self, point):
-        self.focusPoint = point
+        #self.focusPoint = point
+        #pointf = QtCore.QPointF(point.x(), point.y())
         self.centerOn(point)
 
     def GetFocusGrid(self):
@@ -82,15 +89,16 @@ class Ui_View(QtGui.QGraphicsView):
     pFocusGrid = QtCore.pyqtProperty(QtCore.QPoint, fget = GetFocusGrid,
                                     fset = SetFocusGrid, notify = focusGridChange)
 
-    def SetFocusAnimation(self, to, time):
+    def SetFocusAnimation(self, grid, time):
         centerAnim = QtCore.QPropertyAnimation(self, "pFocusPoint")
         centerAnim.setDuration(time)
-        centerAnim.setStartValue(self.focusPoint)
-        centerAnim.setEndValue(GetPos(to[0], to[1]))
+
+        centerAnim.setKeyValueAt(0.8, GetPos(grid[0], grid[1]))
+        centerAnim.setEndValue(GetPos(grid[0], grid[1]))
         focusAnim = QtCore.QPropertyAnimation(self, "pFocusGrid")
         focusAnim.setDuration(time)
-        focusAnim.setStartValue(QtCore.QPoint(to[0], to[1]))
-        focusAnim.setEndValue(QtCore.QPoint(to[0], to[1]))
+        focusAnim.setStartValue(QtCore.QPoint(grid[0], grid[1]))
+        focusAnim.setEndValue(QtCore.QPoint(grid[0], grid[1]))
         anim = QtCore.QParallelAnimationGroup()
         anim.addAnimation(centerAnim)
         anim.addAnimation(focusAnim)
@@ -248,40 +256,54 @@ class Ui_ReplayView(Ui_View):
         TIME_PER_FRAME = 1000#ms, one-step movement in a frame
         FRAMES_BEFORE_MOVE = 3
         soldier = self.soldierItem[idnum]
-        steps = len(route)-1
+        if route:
+            steps = len(route)-1
 
         #movTimeline = QtCore.QTimeLine(frames*TIME_PER_FRAME)
         #movTimeline.setCurveShape(movTimeline.LinearCurve)
         #animation = QtGui.QGraphicsItemAnimation()
         #animation.setItem(soldier)
         #animation.setTimeLine(movTimeline)
-        movAnim = Ui_Animation(soldier, "pos")
-        movAnim.setDuration(steps*TIME_PER_FRAME)
-        for i in range(steps+1):
-            pos = GetPos(route[i][0], route[i][1])
-            movAnim.setKeyValueAt(float(i)/steps, pos)
+            movAnim = Ui_Animation(soldier, "pos")
+            movAnim.setDuration(steps*TIME_PER_FRAME)
+            for i in range(steps+1):
+                pos = GetPos(route[i][0], route[i][1])
+                movAnim.setKeyValueAt(float(i)/steps, pos)
+            movAnim.setKeyValueAt(1, GetPos(route[steps][0],route[steps][1]))
 
-        cursor = Ui_GridCursor(route[0][0], route[0][1])
-        cursAnim = Ui_Animation(cursor, "enability")
-        cursAnim.setDuration(FRAMES_BEFORE_MOVE*TIME_PER_FRAME)
-        cursAnim.setStartValue(True)
-        cursAnim.setKeyValueAt(1, False)
-        focusAnim = self.SetFocusAnimation(route[0],
-                                           FRAMES_BEFORE_MOVE*TIME_PER_FRAME)
-        prepAnim = QtCore.QParallelAnimationGroup()
-        prepAnim.addAnimation(cursAnim)
-        prepAnim.addAnimation(focusAnim)
+            cursor = Ui_GridCursor(route[0][0], route[0][1])
+            cursAnim = Ui_Animation(cursor, "enability")
+            cursAnim.setDuration(FRAMES_BEFORE_MOVE*TIME_PER_FRAME)
+            cursAnim.setStartValue(True)
+            cursAnim.setKeyValueAt(1, False)
+            focusAnim = self.SetFocusAnimation(route[0],
+                                               FRAMES_BEFORE_MOVE*TIME_PER_FRAME)
+            prepAnim = QtCore.QParallelAnimationGroup()
+            prepAnim.addAnimation(cursAnim)
+            prepAnim.addAnimation(focusAnim)
         
-        anim = QtCore.QSequentialAnimationGroup()
-        anim.addAnimation(prepAnim)
-        anim.addAnimation(movAnim)
-        #
+            anim = QtCore.QSequentialAnimationGroup()
+            anim.addAnimation(prepAnim)
+            anim.addAnimation(movAnim)
+                #
         #anim = {}
         #anim["timeline"] = movTimeline
         #anim["animation"] = animation
-        item = [cursor]
-        cursor.SetEnabled(False)
-        return anim, item
+            item = [cursor]
+            cursor.SetEnabled(False)
+            return anim, item
+        else:
+            cursor = Ui_GridCursor(soldier.mapX, soldier.mapY)
+            cursAnim = Ui_Animation(cursor, "enability")
+            cursAnim.setDuration(FRAMES_BEFORE_MOVE*TIME_PER_FRAME)
+            cursAnim.setStartValue(True)
+            cursAnim.setKeyValueAt(1, False)
+            anim = QtCore.QPauseAnimation()
+            anim.setDuration(2 * TIME_PER_FRAME)
+            animgroup = QtCore.QSequentialAnimationGroup()
+            animgroup.addAnimation(cursAnim)
+            animgroup.addAnimation(anim)
+            return animgroup, [cursor]
 
     def AttackingAnimation(self, selfId, targetId, damage, info = ""):
         "attack animation, displayed when the soldier launches an attack."
@@ -434,6 +456,7 @@ if __name__=="__main__":
     #anim, item = view.DiedAnimation(3)
 
     view.show()
+    #view.centerOn(QtCore.QPointF(500, 500))
     for i in item:
         scene.addItem(i)
     #anim["timeline"].start()

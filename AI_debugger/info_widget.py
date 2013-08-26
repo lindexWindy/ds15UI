@@ -71,12 +71,12 @@ class InfoWidget(QTabWidget):
         self.infoWidget_Unit.info_speed.setText("%d" %base_unit.speed)
         self.infoWidget_Unit.info_moverange.setText("%d" %base_unit.move_range)
         self.infoWidget_Unit.info_attackrange.setText("%s" %base_unit.attack_range)
-        self.setCurrentWidget(self.infoWidget_Unit)
+#        self.setCurrentWidget(self.infoWidget_Unit)
     def newMapInfo(self, map_basic):
         self.infoWidget_Map.info_type.setText(NumToMapType[map_basic.kind])
         self.infoWidget_Map.info_score.setText("%d" %map_basic.score)
         self.infoWidget_Map.info_consumption.setText("%d" %map_basic.move_consumption)
-        self.setCurrentWidget(self.infoWidget_Map)
+#        self.setCurrentWidget(self.infoWidget_Map)
 
 #展示游戏基础信息
 class InfoWidget1(QWidget):
