@@ -82,15 +82,15 @@ class Ui_View(QtGui.QGraphicsView):
     pFocusGrid = QtCore.pyqtProperty(QtCore.QPoint, fget = GetFocusGrid,
                                     fset = SetFocusGrid, notify = focusGridChange)
 
-    def SetFocusAnimation(self, grid, time):
+    def SetFocusAnimation(self, to, time):
         centerAnim = QtCore.QPropertyAnimation(self, "pFocusPoint")
         centerAnim.setDuration(time)
-        centerAnim.setStartValue(GetPos(grid[0], grid[1]))
-        centerAnim.setEndValue(GetPos(grid[0], grid[1]))
+        centerAnim.setStartValue(self.focusPoint)
+        centerAnim.setEndValue(GetPos(to[0], to[1]))
         focusAnim = QtCore.QPropertyAnimation(self, "pFocusGrid")
         focusAnim.setDuration(time)
-        focusAnim.setStartValue(QtCore.QPoint(grid[0], grid[1]))
-        focusAnim.setEndValue(QtCore.QPoint(grid[0], grid[1]))
+        focusAnim.setStartValue(QtCore.QPoint(to[0], to[1]))
+        focusAnim.setEndValue(QtCore.QPoint(to[0], to[1]))
         anim = QtCore.QParallelAnimationGroup()
         anim.addAnimation(centerAnim)
         anim.addAnimation(focusAnim)
