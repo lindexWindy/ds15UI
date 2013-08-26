@@ -155,10 +155,9 @@ class Ui_View(QtGui.QGraphicsView):
             if (self.dragUnit!=None):
                 self.dragUnit.setPos(info.nowCoor-DRAG_SPOT)#handles the drag-move event
                 self.RaiseEvent(info.nowPos, self.DRAG_STOP_EVENT, (self.dragUnit, info))
-            else:
-                if (info.initPos!=info.nowPos):
-                    self.RaiseEvent(info.initPos, self.LEAVE_EVENT, info)
-                    self.RaiseEvent(info.nowPos, self.ENTER_EVENT, info)
+            if (info.initPos!=info.nowPos):
+                self.RaiseEvent(info.initPos, self.LEAVE_EVENT, info)
+                self.RaiseEvent(info.nowPos, self.ENTER_EVENT, info)
                 #handles the enter and the leave event
                 #如果鼠标在拖放状态下移出widget外怎么办？
         self.UpdateHash(info.initPos)
@@ -445,6 +444,8 @@ if __name__=="__main__":
     for i in item:
         scene.addItem(i)
     #anim["timeline"].start()
+    view.cursor.SetEnabled(False)
+    view.setEnabled(False)
     anim.start()
     sys.exit(app.exec_())
 

@@ -117,12 +117,16 @@ class Ui_2DReplayWidget(Ui_ReplayView):
                     self.additionItem.extend(item)
         elif (cmd.order==2):#skill
             raise NotImplementedError
+        elif (cmd.order==0):#standby
+            pass
         #some other prepararion
         for item in self.additionItem:
             self.scene().addItem(item)
             item.SetEnabled(False)#set them invisible
         self.connect(self.anim, SIGNAL("finished()"), self.ShowStatus)
         self.connect(self.anim, SIGNAL("finished()"), self.moveAnimEnd)
+        self.cursor.SetEnabled(False)
+        self.setEnabled(False)
 
         self.anim.start()
 
@@ -136,6 +140,8 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         self.nowRound += (self.status+1)/2
         self.status = (self.status+1)/2
         self.additionItem = []
+        self.cursor.SetEnabled(True)
+        self.setEnabled(True)
 
                 
         
