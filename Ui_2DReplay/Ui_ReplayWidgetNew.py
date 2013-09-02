@@ -166,6 +166,17 @@ class Ui_2DReplayWidget(Ui_ReplayView):
             self.nowRound = r
         self.ShowStatus()
 
+    def GetRoute(self, pos):
+        raise NotImplementedError
+    def GetMovRange(self):
+        raise NotImplementedError
+    def GetAtkRange(self):
+        #returns a dictionary, with keys targets' pos, contents their id
+        raise NotImplementedError
+    def GetSkillRange(self):
+        #ts
+        raise NotImplementedError
+
     def __emitInfo(self, grid):
         x, y = grid.x(), grid.y()
         units = self.__getNowUnitArray()

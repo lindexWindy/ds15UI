@@ -86,6 +86,15 @@ def GetRoute(maps, units, idnum, end):
         pass #raise error
     #possibility: 1. invalid pos 2. invalid idnum
 
+def GetMovRange(maps, units, idnum, end):
+    raise NotImplementedError
+
+def GetAtkRange(maps, units, idnum, end):
+    raise NotImplementedError
+
+def GetSkillRange(maps, units, idnum, end):
+    raise NotImplementedError
+
 if __name__=="__main__":
     import testdata
     print GetRoute(testdata.maps, testdata.units0, (0, 0), (1, 2))
