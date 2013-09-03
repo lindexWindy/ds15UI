@@ -65,6 +65,15 @@ def available_spots(map_list, unit_list, source_num, prev = None):
         prev_a.pop(s)
     return d_spots
 
+def HammDist(pos1, pos2):
+    dist = 0
+    for i in (0, 1):
+        if (pos1[i]>pos2[i]):
+            dist += pos1[i]-pos2[i]
+        else:
+            dist += pos2[i]-pos1[i]
+    return dist
+
 def GetRoute(maps, units, idnum, end):
     '''用于从prev获取直接路径的函数'''
     route = []

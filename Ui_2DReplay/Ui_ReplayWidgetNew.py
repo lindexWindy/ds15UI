@@ -170,10 +170,10 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         raise NotImplementedError
     def GetMovRange(self):
         raise NotImplementedError
-    def GetAtkRange(self):
+    def GetAtkRange(self, movPos):
         #returns a dictionary, with keys targets' pos, contents their id
         raise NotImplementedError
-    def GetSkillRange(self):
+    def GetSkillRange(self, movPos):
         #ts
         raise NotImplementedError
 
