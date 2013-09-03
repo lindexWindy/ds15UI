@@ -3,7 +3,7 @@
 
 from mainWindow import *
 import sys,time
-
+import mainStyle
 
 #def singleShot(main_window):
     
@@ -12,10 +12,12 @@ app = QApplication(sys.argv)
 app.setApplicationName("Mirror")
 
 #设置stylesheet
-file = QFile("mainStyle.qss")
-file.open(QFile.ReadOnly)
-styleSheet = QLatin1String(file.readAll())
-app.setStyleSheet(styleSheet)
+#file = QFile("mainStyle.qss")
+#file.open(QFile.ReadOnly)
+#styleSheet = QLatin1String(file.readAll())
+#app.setStyleSheet(styleSheet)
+style = mainStyle.Style()
+app.setStyle(style)
 #设置字体
 font = app.font()
 font.setBold(True)

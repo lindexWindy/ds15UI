@@ -16,7 +16,7 @@ class AiThread(QThread):
         self.ai1 = ai1
         self.ai2 = ai2
     def run(self):
-
+        #先用QProcess打开平台程序
         conn = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         try:
             conn.connect((sio.HOST,sio.UI_PORT))
