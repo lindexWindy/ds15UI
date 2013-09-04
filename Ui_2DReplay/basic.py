@@ -206,3 +206,4 @@ class Round_End_Info:
         self.score = score #二元数组，表示当前两队积分
         self.over = over #-1表示未结束，0表示0队胜，1表示1队胜
         self.effect = attack_effect #二元组表示攻击与反击方是否命中,1表示命中，0表示未命中，-1表示未攻击(超出攻击范围或已死亡),如(1,-1)表示攻击命中，目标未反击
+
