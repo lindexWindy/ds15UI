@@ -74,7 +74,7 @@ class Ui_ReplayView(QtGui.QGraphicsView):
         #initialization of soldier units
         self.cursor = Cursor()
         scene.addItem(self.cursor)
-        self.setMouseTracking(True)#for test
+        #self.setMouseTracking(True)#for test
         #initialization of the cursor
 
     def SetSoldiers(self, units):
@@ -226,7 +226,7 @@ class UiD_EndChanges:
             self.fightBack = (endInfo.attack_effect[1]!=-1) and (endUnits.life!=0)
             self.isDead = (endInfo.base[idNum].life==0, endInfo.base[target].life==0)
         elif (cmd.order==2):
-            pass#skill
+            raise NotImplementedError#skill
 
 class UiD_RoundInfo:
     "info of every round"

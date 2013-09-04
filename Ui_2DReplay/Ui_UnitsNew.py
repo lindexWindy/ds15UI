@@ -10,9 +10,11 @@
 from PyQt4 import QtGui, QtCore
 from basic import *
 
+
 #from shortest import *
 import qrc_resources
 from myGetRoute import GetRoute
+
 TRAP_TRIGGERED = 8
 
 
@@ -317,11 +319,13 @@ class UiD_EndChanges:
             self.note = ["", ""]
             for i in (0, 1):
                 if (self.damage[i]==0):
-                    if (endInfo.effect[i]==1):
+
+                    if (endInfo.attack_effect[i]==1):
                         self.note[i] = "Blocked!"
-                    elif (endInfo.effect[i]==0):
+                    elif (endInfo.attack_effect[i]==0):
                         self.note[i] = "Miss"
-            self.fightBack = (endInfo.effect[1]!=-1) and (endUnits.life!=0)
+            self.fightBack = (endInfo.attack_effect[1]!=-1) and (endUnits[target].life!=0)
+
             self.isDead = (endUnits[idNum].life==0, endUnits[target].life==0)
         elif (cmd.order==2):
             raise NotImplementedError#skill

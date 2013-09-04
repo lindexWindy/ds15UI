@@ -49,3 +49,26 @@ mapGridSelected = QtCore.pyqtSignal(Base_Unit)
 目前还没有定义错误信息，而且信号模块等一些东西还没实现。我做好后再给大家发源码。
 平台的接口过一阵我会发给大家。
 另外，新发的basic里面，文件末最后四个类为平台传来信息的定义，大家看看。
+
+#人机对战
+Ui_VSModeWidget：
+
+用于人机对战界面的widget。以Ui_ReplayWidget为基类。
+
+新增、有改动的接口：
+
+def Initialize(iniInfo, begInfo, cmd = None, endInfo = None):
+传入N回合的信息，传出void。
+begInfo指前N+1回合的begin_info，cmd、endInfo指前N回合的command、end_info。（均为列表或元组）
+调用后，view的data会依据前N回合来更新，其状态将会直接跳到第N+1回合。
+
+def UpdateBeginData()、
+def UpdateEndData()、
+def ShowAnimation()等不变。
+
+def GetCommand():
+在当前回合接收玩家输入的指令。因为需要等待玩家的鼠标事件，所以这里采用了多线程方法处理输入。在调用该函数时，记得给它另开线程。
+得到的指令暂定以commandComplete的信号向外发送。保证返回前一定发出指令。
+
+注意：
+务必保证nowRound和latestRound同步，否则调用GetCommand会出错。读档重来的功能目前可以通过重新调用Initialize实现。（毕竟是人机对战，应该不需要回合跳转吧……）

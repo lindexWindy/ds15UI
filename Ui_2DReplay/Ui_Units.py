@@ -38,7 +38,7 @@ class Ui_GridUnit(QtGui.QGraphicsObject):
         QtGui.QGraphicsObject.__init__(self, parent)
         self.mapX = x
         self.mapY = y
-        self.selected = False#no need
+        self.selected = False#need
 
     def SetMapPos(self, x, y):
         self.mapX = x
