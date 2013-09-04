@@ -20,12 +20,10 @@ DEFAULT_SCILENT_AI = ""#默认的ai路径,待设置
 #WaitForPause = QWaitCondition()
 
 class AiThread(QThread):
-    def __init__(self, lock, parent = None):
+    def __init__(self, parent = None):
         super(AiThread, self).__init__(parent)
 
-        self.lock = lock
         self.mutex = QMutex()
-        self.Run = True#连接成功
         self.closed = False#close标识以便强制关闭线程
 
     #每次开始游戏时，用ai路径和地图路径调用initialize以开始一个新的游戏
@@ -35,15 +33,10 @@ class AiThread(QThread):
             self.conn.connect((sio.HOST,sio.UI_PORT))
         except exception:
             self.conn.close()
-            self.Run = False
             raise exception
-
         else:
-            sio._sends(self.conn,(sio.AI_VS_AI, gameMapPath,gameAIPath))
-            mapInfo,aiInfo,baseInfo = sio._recvs(self.conn)#add base info
-            frInfo = sio._recvs(self.conn)
-         #在ai_vs_ai模式里,平台并没有给用户设置自己英雄类型的函数
-            self.emit(SIGNAL("firstRecv"),mapInfo, frInfo, aiInfo, baseInfo)
+            self.gameMapPath = gameMapPath
+            self.gameAIPath = gameAIPath
 
     def isClosed(self):
         try:
@@ -58,22 +51,26 @@ class AiThread(QThread):
         finally:
             self.mutex.unlock()
     def run(self):
-        if self.Run:
-            rCommand, reInfo = sio._recvs(self.conn)
-            self.emit(SIGNAL("reRecv"), rCommand, reInfo)
-            while reInfo.over == -1 and not self.isClosed():
-                rbInfo = sio._recvs(self.conn)
-                if self.isClosed():
-                    break
-                self.emit(SIGNAL("rbRecv"),rbInfo)
-                rCommand,reInfo = sio._recvs(self.conn)
-                if self.isClosed():
-                    break
-                self.emit(SIGNAL("reRecv"),rCommand, reInfo)
-            if not self.closed:
-                winner = sio._recvs(self.conn)
-                self.emit(SIGNAL("gameWinner"),winner)
-            self.conn.close()
+        sio._sends(self.conn,(sio.AI_VS_AI, self.gameMapPath, self.gameAIPath))
+        (mapInfo,aiInfo,baseInfo) = sio._recvs(self.conn)#add base info
+        frInfo = sio._recvs(self.conn)
+        self.emit(SIGNAL("firstRecv"),mapInfo, frInfo, aiInfo, baseInfo)
+
+        rCommand, reInfo = sio._recvs(self.conn)
+        self.emit(SIGNAL("reRecv"), rCommand, reInfo)
+        while reInfo.over == -1 and not self.isClosed():
+            rbInfo = sio._recvs(self.conn)
+            if self.isClosed():
+                break
+            self.emit(SIGNAL("rbRecv"),rbInfo)
+            (rCommand,reInfo) = sio._recvs(self.conn)
+            if self.isClosed():
+                break
+            self.emit(SIGNAL("reRecv"),rCommand, reInfo)
+        if not self.isClosed():
+            winner = sio._recvs(self.conn)
+            self.emit(SIGNAL("gameWinner"),winner)
+        self.conn.close()
 
 
 
@@ -83,8 +80,6 @@ class ai_debugger(QMainWindow):
     def __init__(self, parent = None):
         super(ai_debugger, self).__init__(parent)
 
-#        self.gameMode = sio.AI_VS_AI
-        self.Con = 1
         self.started = False
         self.loaded_ai = []
         self.loaded_map = None
@@ -92,8 +87,6 @@ class ai_debugger(QMainWindow):
         self.ispaused = False
         self.gameBegInfo = []
         self.gameEndInfo = []
-        #临时
-        self.lock = QReadWriteLock()
 
         #composite replay widget
         self.replayScene = QGraphicsScene()
@@ -225,8 +218,7 @@ class ai_debugger(QMainWindow):
          #加入默认的什么都不做ai
             self.loaded_ai.append(DEFAULT_SCILENT_AI)
         #开始这个线程开始交互
-        self.pltThread = AiThread(self.lock, self)
-        self.connect(self.pltThread, SIGNAL("firstRecv"), self.on_firstRecv)
+        self.pltThread = AiThread(self)
         try:
             self.pltThread.initialize(self.loaded_ai,self.loaded_map)
         except:
@@ -235,24 +227,30 @@ class ai_debugger(QMainWindow):
                                  QMessageBox.Ok, QMessageBox.NoButton)
             self.pltThread.deleteLater()
         else:
+            self.connect(self.pltThread, SIGNAL("firstRecv"), self.on_firstRecv)
             self.connect(self.pltThread, SIGNAL("rbRecv"), self.on_rbRecv)
             self.connect(self.pltThread, SIGNAL("reRecv"), self.on_reRecv)
             self.connect(self.pltThread, SIGNAL("gameWinner"), self.on_gameWinner)
             self.connect(self.pltThread, SIGNAL("finished()"), self.replayWindow.updateUI)
-            self.connect(self.pltThread, SIGNAL("finished()"), self.pltThread,
-                         SLOT("deleteLater()"))
+            self.connect(self.pltThread, SIGNAL("finished()"), self.deletePlt)
 
             self.started = True
             self.replayWindow.started = True
             self.replayWindow.updateUI()
             self.updateUi()
+
             self.pltThread.start()
+
+    def deletePlt(self):
+        self.pltThread.deleteLater()
+        self.pltThread = None
 
     def endGame(self):
         #清空游戏缓存数据
         #强制在游戏没有进行到胜利条件的时候结束游戏
         if self.pltThread:
             self.pltThread.close()
+            self.pltThread.wait()
         self.gameBegInfo = []
         self.gameEndInfo = []
         self.replayWindow.reset()
@@ -286,6 +284,7 @@ class ai_debugger(QMainWindow):
             self.updateUi()
 
     def on_firstRecv(self, mapInfo, frInfo, aiInfo, baseInfo):
+        print "fisrtRecv"
         self.replayWindow.updateIni(basic.Begin_Info(mapInfo, baseInfo), frInfo)
         self.infoWidget.beginRoundInfo(frInfo)
         #这个aiInfo是什么...

@@ -15,7 +15,7 @@ serv.bind((sio.HOST,sio.UI_PORT))
 
 serv.listen(1)
 connUI, address = serv.accept()
-gameMode,gameMapPath,gameAIPath=sio._recvs(connUI)
+(gameMode,gameMapPath,gameAIPath)=sio._recvs(connUI)
 print gameMode,gameMapPath,gameAIPath
 aiInfo = []
 
