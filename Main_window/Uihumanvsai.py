@@ -95,10 +95,14 @@ class Ui_Player(QThread):
 
 
 	def GetHeroType(self,mapInfo):
-            # time for player to choose herotype here!
             dialog = GetHeroTypeDlg(self.parent)
             if dialog.exec_():
-                result = dialog.choice
+                if len(choice) == 0:
+                    result = (6, 6)
+                elif len(choice) == 2:
+                    result = tuple(dialog.choice)
+                elif len(choice) == 1:
+                    result = tuple(dialog.choice[0], dialog.choice[0])
             else:
                 result = (6,6)
             return result
@@ -145,7 +149,7 @@ class CommThread(QThread):
 class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
     def __init__(self, parent = None):
         super(HumanvsAi, self).__init__(parent)
-        self.setupUi()
+        self.setupUi(self)
 
         self.aiPath = ""
         self.mapPath = ""
