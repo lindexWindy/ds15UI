@@ -42,13 +42,13 @@ class AiThread(QThread):
         else:
             sio._sends(self.conn,(sio.PLAYER_VS_AI, gameMapPath,gameAIPath))
 
-    def isClosed(self):
+    def isStopped(self):
         try:
             self.mutex.lock()
             return self.closed
         finally:
             self.mutex.unlock()
-    def close(self):
+    def stop(self):
         try:
             self.mutex.lock()
             self.closed = True
@@ -62,16 +62,16 @@ class AiThread(QThread):
         
         rCommand, reInfo = sio._recvs(self.conn)
         self.emit(SIGNAL("reRecv"), rCommand, reInfo)
-        while reInfo.over == -1 and not self.isClosed():
+        while reInfo.over == -1 and not self.isStopped():
             rbInfo = sio._recvs(self.conn)
-            if self.isClosed():
+            if self.isStopped():
                 break
             self.emit(SIGNAL("rbRecv"),rbInfo)
             rCommand,reInfo = sio._recvs(self.conn)
-            if self.isClosed():
+            if self.isStopped():
                 break
             self.emit(SIGNAL("reRecv"),rCommand, reInfo)
-            if not self.closed:
+            if not self.isStopped():
                 winner = sio._recvs(self.conn)
                 self.emit(SIGNAL("gameWinner"),winner)
         self.conn.close()
@@ -83,6 +83,7 @@ class Ui_Player(QThread):
             self.num = num
             self.command = None
             self.lock = QReadWriteLock()
+            self.stopped = False
             self.parent = parent
 
         def initialize(self):
@@ -127,7 +128,7 @@ class Ui_Player(QThread):
 
 		sio._sends(self.conn, self.GetHeroType(mapInfo))
 
-		while True:
+		while True and not self.isStopped():
 			rBeginInfo = sio._recvs(self.conn)
 			print 'rbInfo got'
 			if rBeginInfo != '|':
@@ -137,6 +138,19 @@ class Ui_Player(QThread):
 				break
 		self.conn.close()
 
+        def stop(self):
+            try:
+                self.lock.lockForWrite()
+                self.stopped = True
+            finally:
+                self.lock.unlock()
+        def isStopped(self):
+            try:
+                self.lock.lockForRead()
+                return self.stopped
+            finally:
+                self.lock.unlock()
+
 class CommThread(QThread):
     def __init__(self, func, parent = None):
         super(CommTread, self).__init__(parent)
@@ -144,6 +158,9 @@ class CommThread(QThread):
 
     def run(self):
         self.func()
+    def stop(self):
+        #end GetCommand()
+        pass
 
 class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
     def __init__(self, parent = None):
@@ -259,10 +276,17 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
             if answer == QMessageBox.No:
                 return
             #清理工作，停止游戏，关闭线程,强制结束游戏
-            self.aiThread.close()
+            self.aiThread.stop()
+            self.playThread.stop()
+            if self.commandThread.running():
+                self.commandThread.stop()
+                self.commandThread.wait()
+            global WaitForCommand
+            WaitForCommand.wakeAll()
+            self.aiThread.wait()
+            self.playThread.wait()
 
             self.started = False
-
         self.emit(SIGNAL("willReturn()"))
 
 
@@ -316,7 +340,7 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         if answer == QMessageBox.Yes:
             #获取回放文件名字,开始把每个回合信息写入(也可以考虑在游戏一开始就设置这个选择)
             pass
-        #一些清理工作，方便开始下一局游戏
+        #一些清理工作，方便开始下一局游戏,
         self.started = False
         self.updateUi()
 
