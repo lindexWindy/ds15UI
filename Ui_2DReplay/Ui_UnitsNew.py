@@ -10,6 +10,7 @@
 from PyQt4 import QtGui, QtCore
 from basic import *
 from shortest import GetRoute
+import copy
 
 TRAP_TRIGGERED = 8
 
@@ -161,12 +162,7 @@ class Ui_SoldierUnit(Ui_GridUnit):
     def mousePressEvent(self, event):
         self.soldierSelected.emit(self.idNum)
 
-    soldierSelected = QtCore.pyqtSignal(int)
-
-    #slots for creating animation
-    #def FadeOut(self, time):
-        #self.setOpacity(1-time)
-    #def Flicker(self, frame):
+    soldierSelected = QtCore.pyqtSignal(int)#no need
 
 
 class Ui_GridLabel(Ui_GridUnit):
@@ -293,10 +289,19 @@ class Ui_Animation(QtCore.QPropertyAnimation):
         
 #data of game
 def ConvertTo1D(iniUnits):
-    units = []
-    for row in iniUnits:
-        units.extend(row)
+    units = {}
+    for i in (0, 1):
+        for j in range(len(iniUnits[i])):
+            units[(i, j)] = iniUnits[i][j]
     return units
+def ConvertBackTo2D(units):
+    iniUnits = [[], []]
+    for idNum in units.keys():
+        i, j = idNum
+        while (len(iniUnits[i])<=j):
+            iniUnits[i].append(None)
+        iniUnits[i][j] = units[idNum]
+    return iniUnits
 
 class UiD_BeginChanges:
     def __init__(self, beginInfo, cmd, endInfo, maps):
@@ -304,11 +309,15 @@ class UiD_BeginChanges:
 
 class UiD_EndChanges:
     def __init__(self, begInfo, cmd, endInfo, maps):
-        self.idNum = idNum = begInfo.id[0]*len(begInfo.base[0])+begInfo.id[1]
+        #self.idNum = idNum = begInfo.id[0]*len(begInfo.base[0])+begInfo.id[1]
+        self.idNum = idNum = begInfo.id
+#        if (cmd==None and endInfo==None):
+#            return
         self.route = GetRoute(maps, begInfo.base, begInfo.id, cmd.move)
         self.order = cmd.order
         if (cmd.order==1):
-            target = self.target = cmd.target[0]*len(endInfo.base[0])+cmd.target[1]
+            #target = self.target = cmd.target[0]*len(endInfo.base[0])+cmd.target[1]
+            self.target = target = cmd.target
             begUnits = ConvertTo1D(begInfo.base)
             endUnits = ConvertTo1D(endInfo.base)
             self.damage = (endUnits[idNum].life-begUnits[idNum].life,
@@ -333,7 +342,8 @@ class UiD_RoundInfo:
         self.cmdChanges = UiD_EndChanges(begInfo, cmd, endInfo, maps)
         self.begUnits = None #if it is none, there's no changes in the unit info
         self.endUnits = ConvertTo1D(endInfo.base)
-        self.idNum = begInfo.id[0]*len(endInfo.base[0])+begInfo.id[1]
+        #self.idNum = begInfo.id[0]*len(endInfo.base[0])+begInfo.id[1]
+        self.idNum = begInfo.id
         self.score = endInfo.score
 
 class UiD_BattleData:

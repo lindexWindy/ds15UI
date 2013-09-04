@@ -33,8 +33,7 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         #self.begAnimEnd.connect(self.Play)
     def Initialize(self, iniInfo, begInfo):
         self.data = UiD_BattleData(iniInfo, begInfo)
-        Ui_ReplayView.Initialize(self, self.data.map, self.data.iniUnits,
-                                   self.data.side0SoldierNum)
+        Ui_ReplayView.Initialize(self, self.data.map, self.data.iniUnits)
         #connecting disp signals
         #for column in self.mapItem:
             #for grid in column:

@@ -128,9 +128,9 @@ class Ui_SoldierUnit(Ui_GridUnit):
 
     #slots for creating animation
     def FadeOut(self, time):
-        print time#for test
         self.setOpacity(1-time)
     #def Flicker(self, frame):
+
 
 
 class Ui_GridLabel(Ui_GridUnit):

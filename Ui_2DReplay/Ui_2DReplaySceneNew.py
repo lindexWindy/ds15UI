@@ -158,6 +158,8 @@ class Ui_View(QtGui.QGraphicsView):
             if (info.initPos!=info.nowPos):
                 self.RaiseEvent(info.initPos, self.LEAVE_EVENT, info)
                 self.RaiseEvent(info.nowPos, self.ENTER_EVENT, info)
+#            self.RaiseEvent(info.initPos, self.LEAVE_EVENT, info)
+#            self.RaiseEvent(info.nowPos, self.ENTER_EVENT, info)
                 #handles the enter and the leave event
                 #如果鼠标在拖放状态下移出widget外怎么办？
         self.UpdateHash(info.initPos)
@@ -196,7 +198,7 @@ class Ui_ReplayView(Ui_View):
         #self.animation = QtGui.QGraphicsItemAnimation()
         #self.label = Ui_GridLabel("", 0, 0)
         #ini of the animation
-    def Initialize(self, maps, units, side0 = 0,
+    def Initialize(self, maps, units,
                    MapUnit = Ui_MapUnit, SoldierUnit = Ui_SoldierUnit, Cursor = Ui_MouseCursor):
         if (not (issubclass(MapUnit, Ui_MapUnit)
                  and issubclass(SoldierUnit, Ui_SoldierUnit)
@@ -222,16 +224,13 @@ class Ui_ReplayView(Ui_View):
             for j in range(len(maps[i])):
                 self.mapItem[i][j].setPos(GetPos(i, j))
         #initialization of map units
-        self.soldierItem = []
-        self.soldierAlive = []
-        for i in range(len(units)):
-            side = 0
-            if (i>=side0):
-                side = 1
-            newSoldierUnit = SoldierUnit(i, side, units[i])
+        self.soldierItem = {}
+        self.soldierAlive = {}
+        for idNum in units.keys():
+            newSoldierUnit = SoldierUnit(idNum, idNum[0], units[idNum])
             self.AddItem(newSoldierUnit)
-            self.soldierItem.append(newSoldierUnit)
-            self.soldierAlive.append(True)
+            self.soldierItem[idNum] = newSoldierUnit
+            self.soldierAlive[idNum] = (True)
         self.SetSoldiers(units)
         #initialization of soldier units
         self.cursor = Cursor()
@@ -240,11 +239,12 @@ class Ui_ReplayView(Ui_View):
 
     def SetSoldiers(self, units):
         "set the pos of soldiers"
-        alive = map(lambda unit: (unit.life!=0), units)
-        for i in range(len(units)):
-            if (alive[i]!=self.soldierAlive[i]):
-                self.soldierItem[i].SetEnabled(alive[i])
-                self.soldierAlive[i] = alive[i]
+        #alive = map(lambda unit: (unit.life!=0), units)
+        for i in units.keys():
+            alive = (units[i].life!=0)
+            if (alive!=self.soldierAlive[i]):
+                self.soldierItem[i].SetEnabled(alive)
+                self.soldierAlive[i] = alive
             if (self.soldierAlive[i]):
                 self.soldierItem[i].SetMapPos(units[i].position[0],
                                               units[i].position[1])
@@ -412,20 +412,6 @@ class Ui_ReplayView(Ui_View):
     #def TerrainChangeAnimation(self):
 
     #cursor
-    def TerminateAnimation(self, units = None):
-        "stop the animation and rearrange the units. \
-        it should be called after an naimation."
-        animTimeline = [self.movTimeline, self.atkTimeline, self.dieTimeline]
-        self.animation.clear()
-        for timeline in animTimeline:
-            timeline.stop()
-            try:
-                timeline.valueChanged.disconnect()
-            except TypeError:
-                #pass
-                print "No connection!"#for test
-        if (units!=None):
-            self.SetSoldiers(units)#?
 
 
 
@@ -434,8 +420,9 @@ if __name__=="__main__":
     app = QtGui.QApplication(sys.argv)
     scene = QtGui.QGraphicsScene()
     view = Ui_ReplayView(scene)
-    view.Initialize(maps, units, 3)
-    anim, item = view.MovingAnimation(0, ((0, 7), (0, 6), (1, 6), (2, 6), (2, 5)))
+    units= ConvertTo1D(units0)
+    view.Initialize(maps, units)
+    anim, item = view.MovingAnimation((0, 0), ((0, 7), (0, 6), (1, 6), (2, 6), (2, 5)))
     #anim, item = view.AttackingAnimation(0, 5, 0, "blocked!")
     #anim, item = view.DiedAnimation(3)
 
