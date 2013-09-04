@@ -74,6 +74,16 @@ def HammDist(pos1, pos2):
             dist += pos2[i]-pos1[i]
     return dist
 
+def GetRange(pos, rng, mapSize):
+    avalRng = []
+    for i in range(pos[0]-rng, pos[0]+rng):
+        if (not 0<=i<mapSize[0]):
+            continue
+        for j in range(pos[1]-rng, pos[1]+rng):
+            if (0<=j<mapSize[1] and HammDist((i, j), pos)<=rng):
+                avalRng.append((i, j))
+    return avalRng
+
 def GetRoute(maps, units, idnum, end):
     '''用于从prev获取直接路径的函数'''
     route = []
@@ -92,17 +102,14 @@ def GetRoute(maps, units, idnum, end):
         route.reverse()
         return route
     except:
-        pass #raise error
+        return None #raise error
     #possibility: 1. invalid pos 2. invalid idnum
 
-def GetMovRange(maps, units, idnum, end):
-    raise NotImplementedError
+#def GetAtkRange(maps, units, idnum):
+#    raise NotImplementedError
 
-def GetAtkRange(maps, units, idnum, end):
-    raise NotImplementedError
-
-def GetSkillRange(maps, units, idnum, end):
-    raise NotImplementedError
+#def GetSkillRange(maps, units, idnum):
+#    raise NotImplementedError
 
 if __name__=="__main__":
     import testdata

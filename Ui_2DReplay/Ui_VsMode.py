@@ -6,7 +6,7 @@ from Ui_ReplayWidgetNew import *
 import copy
 
 MENU_WIDTH = 60
-MENU_LENGTH = 35
+MENU_HEIGHT = 35
 class Ui_OrderSelection(QtGui.QGraphicsItem):
     def __init__(self, view, order, text, parent = None):
         QtGui.QGraphicsItem.__init__(self, parent)
@@ -39,12 +39,12 @@ class Ui_OrderMenu(QtGui.QGraphicsItem):
     def paint(self, painter, option, widget):
         raise NotImplementedError
 
-class Ui_TempSoldier(Ui_GridUnit):
-    raise NotImplementedError
+#class Ui_TempSoldier(Ui_SoldierUnit):
+#    raise NotImplementedError
 
 
 
-class Ui_VSModeWidget(Ui_ReplayWidget):
+class Ui_VSModeWidget(Ui_2DReplayWidget):
     def __init__(self, scene, parent = None):
         self.newInput = QtCore.QWaitConditon()
         self.mutex = QtCore.QMutex()
@@ -145,6 +145,18 @@ class Ui_VSModeWidget(Ui_ReplayWidget):
             self.emit(QtCore.SIGNAL("commandComplete"), cmd)
         self.SetCmdState(self.INIT_STATE)
 
+    def GetAtkTarget(self):
+        avalUnits = {}
+        units = self.__getNowUnitArray()
+        for i in units.keys():
+            if (HammDist(self.nowSoldier.position,
+                         units[i].position)<=self.nowSoldier.attack_range
+                and i[0]!=self.data.roundInfo[self.nowRound].idNum[0]):
+                avalUnits[units[i].position] = i
+        return avalUnits
+    def GetSkillTarget(self):
+        raise NotImplementedError
+
     def ShowCmdState(self, oldState, state):
         for item in self.scene().items():
             item.selected = False
@@ -176,16 +188,16 @@ class Ui_VSModeWidget(Ui_ReplayWidget):
                     item.selected = True#type?
                     raise NotImplementedError
         elif (state==self.SET_ORDER_STATE):
-            self.tempSoldier = Ui_TempSoldier(self.nowPos[0], self.nowPos[1])
+#            self.tempSoldier = Ui_TempSoldier(self.nowPos[0], self.nowPos[1])
             self.scene().addItem(self.tempSoldier)
             self.__AddOrderMenu()
             self.setEnabled(False)
         elif (state==self.SELECT_ATK_TARGET_STATE):
-            self.tempSoldier = Ui_TempSoldier(self.nowPos[0], self.nowPos[1])
+#            self.tempSoldier = Ui_TempSoldier(self.nowPos[0], self.nowPos[1])
             self.scene().addItem(self.tempSoldier)
-            for item in self.scene().items():
-                if (HammDist(self.nowPos, (item.mapX, item.mapY))<=self.nowSoldier.attack_range):
-                    item.selected = True
+#            for item in self.scene().items():
+#                if (HammDist(self.nowPos, (item.mapX, item.mapY))<=self.nowSoldier.attack_range):
+#                    item.selected = True
         elif (state==self.SELECT_SKILL_TARGET_STATE):
             self.tempSoldier = Ui_TempSoldier(self.nowPos[0], self.nowPos[1])
             self.scene().addItem(self.tempSoldier)
@@ -211,7 +223,7 @@ class Ui_VSModeWidget(Ui_ReplayWidget):
     BREAK_FLAG = -1
 
     cmdStateChange = QtCore.pyqtSignal(int, int)
-    pCmdState = QtCore.pyqtProperty(fget = CmdState,
+    pCmdState = QtCore.pyqtProperty(int, fget = CmdState,
                                     fset = SetCmdState,
                                     notify = cmdStateChange)
 

@@ -156,15 +156,30 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         self.ShowStatus()
 
     def GetRoute(self, pos):
-        raise NotImplementedError
+        return GetRoute(self.data.map,
+                        ConvertBackTo2D(self.__getNowUnitArray()),
+                        self.data.roundInfo[self.nowRound].idNum,
+                        pos)
     def GetMovRange(self):
-        raise NotImplementedError
-    def GetAtkRange(self, movPos):
+        idNum = self.data.roundInfo[self.nowRound].idNum
+        units = self.__getNowUnitArray()
+        movRng = availabel_spots(self.data.map,
+                                 ConvertBackTo2D(units),
+                                 idNum)
+        for i in units.keys():
+            if (units[i].position in movRng):
+                movRng.remove(units[i].position)
+        if (units[idNum] not in movRng):
+            movRng.append(units[idNum])
+        return movRng
+    #some Qs
+            
+#    def GetAtkTarget(self, movPos):
         #returns a dictionary, with keys targets' pos, contents their id
-        raise NotImplementedError
-    def GetSkillRange(self, movPos):
+#        raise NotImplementedError
+#    def GetSkillTarget(self, movPos):
         #ts
-        raise NotImplementedError
+#        raise NotImplementedError
 
     def __emitInfo(self, grid):
         x, y = grid.x(), grid.y()
