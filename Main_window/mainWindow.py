@@ -259,7 +259,7 @@ class MainWindow(QGraphicsView):
    #     self.trans_SingleToHumanai.addAnimation(MenuToWindowAnimation(self.singleWindow, self.humanaiWindow))
 
 
-#        self.trans_HumanaiToSingle = self.HumanaiState(self.humanaiWidget.returnButton, SIGNAL("clicked()"),
+#        self.trans_HumanaiToSingle = self.HumanaiState(self.humanaiWidget, SIGNAL("willReturn()"),
  #                                                 self.SingleState)
   #      self.trans_HumanaiToSingle.addAnimation(WindowToMenuAnimation(humanaiWindow, singleWindow))
 #

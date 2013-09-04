@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'part_herotypedlg.ui'
 #
-# Created: Wed Sep  4 14:21:03 2013
+# Created: Wed Sep  4 16:04:06 2013
 #      by: PyQt4 UI code generator 4.9.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -77,6 +77,12 @@ class Ui_HeroTypeDlg(object):
         self.label_3.setFont(font)
         self.label_3.setAlignment(QtCore.Qt.AlignCenter)
         self.label_3.setObjectName(_fromUtf8("label_3"))
+        self.nameEdit = QtGui.QLineEdit(HeroTypeDlg)
+        self.nameEdit.setGeometry(QtCore.QRect(160, 20, 113, 29))
+        self.nameEdit.setObjectName(_fromUtf8("nameEdit"))
+        self.label_4 = QtGui.QLabel(HeroTypeDlg)
+        self.label_4.setGeometry(QtCore.QRect(80, 20, 61, 21))
+        self.label_4.setObjectName(_fromUtf8("label_4"))
 
         self.retranslateUi(HeroTypeDlg)
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), HeroTypeDlg.accept)
@@ -84,8 +90,9 @@ class Ui_HeroTypeDlg(object):
         QtCore.QMetaObject.connectSlotsByName(HeroTypeDlg)
 
     def retranslateUi(self, HeroTypeDlg):
-        HeroTypeDlg.setWindowTitle(QtGui.QApplication.translate("HeroTypeDlg", "Dialog", None, QtGui.QApplication.UnicodeUTF8))
+        HeroTypeDlg.setWindowTitle(QtGui.QApplication.translate("HeroTypeDlg", "选择英雄", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("HeroTypeDlg", "英雄1", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("HeroTypeDlg", "英雄2", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("HeroTypeDlg", "英雄3", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_4.setText(QtGui.QApplication.translate("HeroTypeDlg", "尊姓大名:", None, QtGui.QApplication.UnicodeUTF8))
 

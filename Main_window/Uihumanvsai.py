@@ -96,15 +96,20 @@ class Ui_Player(QThread):
 
 	def GetHeroType(self,mapInfo):
             dialog = GetHeroTypeDlg(self.parent)
+            name = ""
             if dialog.exec_():
-                if len(choice) == 0:
+                if len(dialog.choice) == 0:
                     result = (6, 6)
-                elif len(choice) == 2:
+                elif len(dialog.choice) == 2:
                     result = tuple(dialog.choice)
-                elif len(choice) == 1:
+                elif len(dialog.choice) == 1:
                     result = tuple(dialog.choice[0], dialog.choice[0])
+                name = dialog.nameEdit.text()
+                if not name:
+                    name = "Player"
+                result = (name, result)
             else:
-                result = (6,6)
+                result = ("Player", (6, 6))
             return result
 
 	def AI(self,rBeginInfo):
@@ -117,16 +122,10 @@ class Ui_Player(QThread):
             return self.command
 
 	def run(self):
-		print 'ai thread called ##################################################'
-		# 玩家输入名称
-		aiInfo = 'Player'
-
-
 		mapInfo = sio._recvs(self.conn)
+                self.emit(SIGNAL("mapRecv"), mapInfo)
 
-		#此处向玩家展示地图,顺序有待考虑
-
-		sio._sends(self.conn,(aiInfo,self.GetHeroType(mapInfo)))
+		sio._sends(self.conn, self.GetHeroType(mapInfo))
 
 		while True:
 			rBeginInfo = sio._recvs(self.conn)
@@ -165,6 +164,8 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
 
         #connect
         self.connect(self.replayWindow, SIGNAL("commandComplete"), self.on_recvC)
+        self.connect(self.replayWindow, SIGNAL("unitSelected"), self.on_unitS)
+        self.connect(self.replayWindow, SIGNAL("mapSelected"), self.on_mapS)
         #other
         self.roundLabel.setWindowOpacity(0)
 
@@ -214,6 +215,7 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
             self.connect(self.aiThread, SIGNAL("firstRecv"), self.on_firstRecv)
             self.connect(self.aiThread, SIGNAL("rbRecv"), self.on_rbRecv)
             self.connect(self.aiThread, SIGNAL("reRecv"), self.on_reRecv)
+            self.connect(self.aiThread, SIGNAL("mapRecv"), self.on_mapRecv)
             self.connect(self.aiThread, SIGNAL("gameWinner"), self.on_gameWinner)
 #            self.connect(self.aiThread, SIGNAL("finished()"), self.replayWindow.updateUI)
             self.connect(self.aiThread, SIGNAL("finished()"), self.aiThread,
@@ -251,16 +253,27 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
 
     @pyqtSlot()
     def on_returnButton_clicked(self):
-        #强制结束游戏
-        pass
+        if self.started:
+            answer = QMessageBox.question(self, _frUtf("稍等"), _frUtf("你的游戏还没有完全结束，你确定要退出吗?"),
+                                          QMessageBox.Yes, QMessageBox.No)
+            if answer == QMessageBox.No:
+                return
+            #清理工作，停止游戏，关闭线程,强制结束游戏
+            self.aiThread.close()
+
+            self.started = False
+
+        self.emit(SIGNAL("willReturn()"))
+
+
 
     def on_waitforC(self):
-        #提示用户开始进行动作
-        self.roundLabel.setText(_frUtf("开始操作吧!"))
-        self.labelAnimation()
         self.commThread = CommThread(self, self.getComm)
         self.connect(self,commThread, SIGNAL("finished()"), self.commThread, SLOT("deleteLater()"))
         self.commThread.start()
+        #提示用户开始进行动作
+        self.roundLabel.setText(_frUtf("开始操作吧!"))
+        self.labelAnimation()
 
 
     def on_recvC(self, cmd):
@@ -292,23 +305,41 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         self.setRoundEndInfo(rCommand, reInfo)
         self.gameEndInfo.append((rCommand,reInfo))
 
+    def on_mapRecv(self, mapInfo):
+        self.replayWindow.SetInitMap(mapInfo)
+
     def on_gameWinner(self, winner):
         QMessageBox.information(self, "Game Winner", "player %s win the game" %winner)
         #需要其他特效再加
-    
+        answer = QMessageBox.question(self, _frUtf("保存"), _frUtf("是否保存回放文件?"),
+                                      QMessageBox.Yes, QMessageBox.No)
+        if answer == QMessageBox.Yes:
+            #获取回放文件名字,开始把每个回合信息写入(也可以考虑在游戏一开始就设置这个选择)
+            pass
+        #一些清理工作，方便开始下一局游戏
+        self.started = False
+        self.updateUi()
+
+    def on_unitS(self, unit):
+        pass
+
+    def on_mapS(self, mapInfo):
+        pass
+
     def setRoundBegInfo(self, rbInfo):
         pass
     def setRoundEndInfo(self, rCommand, reInfo):
+        #同步分数
         pass
 
     def labelAnimation(self):
         animation_1 = QParallelAnimationGroup(self)
         animation_1_1 = QPropertyAnimation(self.roundLabel, y)
-        animation_1_1.setDuration(1500)
+        animation_1_1.setDuration(2000)
         animation_1_1.setStartValue(self.roundLabel.y())
-        animation_1_1.setEndValue(100)
+        animation_1_1.setEndValue(150)
         animation_1_2 = QPropertyAnimation(self.roundLabel, opacity)
-        animation_1_2.setDuaration(12000)
+        animation_1_2.setDuaration(1200)
         animation_1_2.setStartValue(0)
         animation_1_2.setEndValue(1)
         animation_1_1.setEasingCurve(QEasingCurve.OutCubic)
@@ -321,7 +352,7 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         animation_2_1.setStartValue(self.roundLabel.y())
         animation_2_1.setEndValue(40)
         animation_2_2 = QPropertyAnimation(self.roundLabel, opacity)
-        animation_2_2.setDuaration(12000)
+        animation_2_2.setDuaration(1000)
         animation_2_2.setStartValue(1)
         animation_2_2.setEndValue(0)
         animation_2_1.setEasingCurve(QEasingCurve.OutCubic)

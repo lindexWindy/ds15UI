@@ -16,8 +16,10 @@ class GetHeroTypeDlg(QDialog, ui_herotypedlg.Ui_HeroTypeDlg):
         self.buttons = [self.heroButton1, self.heroButton2, self.heroButton3]
         pal = self.heroButton1.palette()
         for button in self.buttons:
-            pal.setBrush(QPalette.Window, QBrush(QPixmap(":hero_%d.png"%(self.buttons.index(button)+1)).scaled(80,80, Qt.IgnoreAspectRatio,
-                                                                                                               Qt.SmoothTransformation)))
+            pal.setBrush(QPalette.Window,QBrush(QPixmap(":hero_%d.png"\
+                                                            %(self.buttons.index(button)+1))\
+                                                    .scaled(80,80, Qt.IgnoreAspectRatio,
+                                                            Qt.SmoothTransformation)))
             button.setPalette(pal)
             self.connect(button, SIGNAL("toggled(bool)"), self.updateUi,Qt.QueuedConnection)
 
