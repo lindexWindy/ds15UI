@@ -306,19 +306,15 @@ def ConvertBackTo2D(units):
     return iniUnits
 
 class UiD_BeginChanges:
-    def __init__(self, beginInfo, cmd, endInfo, maps):
+    def __init__(self, beginInfo):
         self.templeRenew = None#
 
 class UiD_EndChanges:
     def __init__(self, begInfo, cmd, endInfo, maps):
-        #self.idNum = idNum = begInfo.id[0]*len(begInfo.base[0])+begInfo.id[1]
         self.idNum = idNum = begInfo.id
-#        if (cmd==None and endInfo==None):
-#            return
         self.route = GetRoute(maps, begInfo.base, begInfo.id, cmd.move)
         self.order = cmd.order
         if (cmd.order==1):
-            #target = self.target = cmd.target[0]*len(endInfo.base[0])+cmd.target[1]
             self.target = target = cmd.target
             begUnits = ConvertTo1D(begInfo.base)
             endUnits = ConvertTo1D(endInfo.base)
@@ -340,13 +336,20 @@ class UiD_RoundInfo:
     "info of every round"
     def __init__(self, begInfo, cmd, endInfo, maps):
         #print len(begInfo.base[0])#for test
-        self.begChanges = UiD_BeginChanges(begInfo, cmd, endInfo, maps)
-        self.cmdChanges = UiD_EndChanges(begInfo, cmd, endInfo, maps)
-        self.begUnits = None #if it is none, there's no changes in the unit info
-        self.endUnits = ConvertTo1D(endInfo.base)
-        #self.idNum = begInfo.id[0]*len(endInfo.base[0])+begInfo.id[1]
+        self.begChanges = UiD_BeginChanges(begInfo)
         self.idNum = begInfo.id
-        self.score = endInfo.score
+        if (endInfo==None and cmd==None):
+            self.begUnits = ConvertTo1D(begInfo.base)
+            self.endUnits = None
+            self.cmdChanges = None
+            self.score = None
+            self.isCompleted = False
+        else:
+            self.cmdChanges = UiD_EndChanges(begInfo, cmd, endInfo, maps)
+            self.begUnits = None #if it is none, there's no changes in the unit info
+            self.endUnits = ConvertTo1D(endInfo.base)
+            self.score = endInfo.score
+            self.isCompleted = True
 
 class UiD_BattleData:
     "info of the entire battle(not completed)"
@@ -355,7 +358,31 @@ class UiD_BattleData:
         self.side0SoldierNum = len(iniInfo.base[0])
         self.iniUnits = ConvertTo1D(iniInfo.base)
         self.roundInfo = []
-        self.nextRoundInfo = begInfo #temporary stores the round_begin_info
-        self.result = None #result
+        self.nextRoundInfo = None
+        self.UpdateBeginData(begInfo)
+        self.result = None #result, not complete
+
+    def GetUnitArray(self, roundNum, isEnd):
+        if (isEnd):
+            units = self.roundInfo[roundNum].endUnits
+        else:
+            units = self.roundInfo[roundNum].begUnits
+            if (units==None):
+                if (roundNum>0):
+                    units = self.roundInfo[roundNum-1].endUnits
+                else:
+                    units = self.iniUnits
+        return units
+
+    def UpdateBeginData(self, begInfo):
+        assert(not self.roundInfo or self.roundInfo[-1].isCompleted,
+               "error in update")
+        self.nextRoundInfo = begInfo
+        self.roundInfo.append(UiD_RoundInfo(begInfo, None, None, self.map))
+    def UpdateEndData(self, cmd, endInfo):
+        assert(not self.roundInfo[-1].isCompleted, "error in update")
+        rInfo = UiD_RoundInfo(self.nextRoundInfo, cmd, endInfo, self.map)
+        self.roundInfo[-1] = rInfo
+        self.nextRoundInfo = None
 
 
