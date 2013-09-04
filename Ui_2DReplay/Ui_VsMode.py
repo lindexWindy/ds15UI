@@ -14,10 +14,11 @@ class Ui_OrderSelection(QtGui.QGraphicsItem):
         self.order = order
         self.text = text
     def mousePressEvent(self, event):
-        self.view.mutex.lock()
-        self.view.input = self.order
-        self.view.newInput.wakeAll()
-        self.view.mutex.unlock()
+        if (event.button()==QtCore.Qt.LeftButton):
+            self.view.mutex.lock()
+            self.view.input = self.order
+            self.view.newInput.wakeAll()
+            self.view.mutex.unlock()
     def boundingRect(self):
         return QtCore.QRectF(0-PEN_WIDTH, 0-PEN_WIDTH,
                              MENU_WIDTH+PEN_WIDTH, MENU_HEIGHT+PEN_WIDTH)
@@ -36,7 +37,7 @@ class Ui_OrderMenu(QtGui.QGraphicsItem):
         return QtCore.QRectF(0-PEN_WIDTH, 0-PEN_WIDTH,
                              MENU_WIDTH+PEN_WIDTH, MENU_HEIGHT*4+PEN_WIDTH)
     def paint(self, painter, option, widget):
-        pass
+        raise NotImplementedError
 
 class Ui_TempSoldier(Ui_GridUnit):
     raise NotImplementedError
@@ -53,6 +54,11 @@ class Ui_VSModeWidget(Ui_ReplayWidget):
         self.nowSoldier = None
         raise NotImplementedError
 
+    def SetInitMap(self, maps, units = ((), ())):
+        iniInfo = Begin_Info(maps, units)
+        begInfo = Round_Begin_Info(None, None, units, ())
+        Ui_ReplayWidget.Initialize(iniInfo, begInfo)
+    
     def Initialize(self, iniInfo, begInfo, cmd = None, endInfo = None):
         Ui_ReplayWidget.Initialize(self, iniInfo, begInfo[0])
         for i in range(len(begInfo)-1):
@@ -196,6 +202,14 @@ class Ui_VSModeWidget(Ui_ReplayWidget):
     def CmdState(self):
         return self.cmdState
 
+    INIT_STATE = 0
+    MOVEMENT_STATE = 1
+    SET_ORDER_STATE = 2
+    SELECT_ATK_TARGET_STATE = 3
+    SELECT_SKILL_TARGET_STATE = 4
+    BEGIN_STATE = 5##
+    BREAK_FLAG = -1
+
     cmdStateChange = QtCore.pyqtSignal(int, int)
     pCmdState = QtCore.pyqtProperty(fget = CmdState,
                                     fset = SetCmdState,
@@ -214,3 +228,5 @@ class Ui_VSModeWidget(Ui_ReplayWidget):
         self.menu = Ui_OrderMenu(self)
         self.scene().addItem(self.menu)
         self.menu.setPos(GetPos(x, y)+point)
+
+    

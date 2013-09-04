@@ -183,7 +183,7 @@ class Hero(Base_Unit):
         '''英雄技能'''
         pass
 class Begin_Info:
-    def __init__(self, whole_map, base, hero_type = [6,6]):
+    def __init__(self, whole_map, base, hero_type = [6,6]):##caution bug!
         self.map = whole_map #二维地图列表
         self.base = base #二维士兵列表，第一维表示队伍0/1
         self.hero_type = hero_type #二元数组表示两队英雄类型

@@ -230,7 +230,7 @@ class Ui_ReplayView(Ui_View):
             newSoldierUnit = SoldierUnit(idNum, idNum[0], units[idNum])
             self.AddItem(newSoldierUnit)
             self.soldierItem[idNum] = newSoldierUnit
-            self.soldierAlive[idNum] = (True)
+            self.soldierAlive[idNum] = True
         self.SetSoldiers(units)
         #initialization of soldier units
         self.cursor = Cursor()

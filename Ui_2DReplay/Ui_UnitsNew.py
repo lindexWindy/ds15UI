@@ -14,6 +14,8 @@ import copy
 
 TRAP_TRIGGERED = 8
 
+TEMP_SOLDIER = 100
+
 
 
 UNIT_WIDTH = 100
