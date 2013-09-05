@@ -25,9 +25,7 @@ class AiThread(QThread):
     def __init__(self,parent=None):# lock, parent = None):
         super(AiThread, self).__init__(parent)
 
-#        self.lock = lock
         self.mutex = QMutex()
-#        self.Run = True#连接成功
         self.closed = False#close标识以便强制关闭线程
 
     #每次开始游戏时，用ai路径和地图路径调用initialize以开始一个新的游戏
@@ -37,7 +35,6 @@ class AiThread(QThread):
             self.conn.connect((sio.HOST,sio.UI_PORT))
         except exception:
             self.conn.close()
-#            self.Run = False
             raise exception
         else:
             sio._sends(self.conn,(sio.PLAYER_VS_AI, gameMapPath,gameAIPath))
@@ -55,11 +52,10 @@ class AiThread(QThread):
         finally:
             self.mutex.unlock()
     def run(self):
-#        if self.Run:
         mapInfo,aiInfo,baseInfo = sio._recvs(self.conn)#add base info
         frInfo = sio._recvs(self.conn)
         self.emit(SIGNAL("firstRecv"),mapInfo, frInfo, aiInfo, baseInfo)
-        
+
         rCommand, reInfo = sio._recvs(self.conn)
         self.emit(SIGNAL("reRecv"), rCommand, reInfo)
         while reInfo.over == -1 and not self.isStopped():
@@ -77,13 +73,14 @@ class AiThread(QThread):
         self.conn.close()
 
 class Ui_Player(QThread):
-	def __init__(self,num, parent):
+	def __init__(self,num, func, parent):
             super(Ui_Player, self).__init__(parent)
             self.name = 'Thread-Player'
             self.num = num
             self.command = None
             self.lock = QReadWriteLock()
             self.stopped = False
+            self.func = func
             self.parent = parent
 
         def initialize(self):
@@ -111,14 +108,16 @@ class Ui_Player(QThread):
                 result = (name, result)
             else:
                 result = ("Player", (6, 6))
+            self.emit(SIGNAL("nameGet(QString)"), result[0])
             return result
 
 	def AI(self,rBeginInfo):
-#			cmd=basic.Command()
+            self.command=basic.Command()
 			# time for player to make a command here!!
             self.emit(SIGNAL("waitforC()"))
             global WaitForCommand
             self.lock.lockForRead()
+            self.func()
             WaitForCommand.wait(self.lock)
             return self.command
 
@@ -151,21 +150,22 @@ class Ui_Player(QThread):
             finally:
                 self.lock.unlock()
 
-class CommThread(QThread):
-    def __init__(self, func, parent = None):
-        super(CommTread, self).__init__(parent)
-        self.func = func
+#class CommThread(QThread):
+#    def __init__(self, func, parent = None):
+#        super(CommTread, self).__init__(parent)
+#        self.func = func
 
-    def run(self):
-        self.func()
-    def stop(self):
-        #end GetCommand()
-        pass
+#    def run(self):
+#        self.func()
+#    def stop(self):
+#        #end GetCommand()
+#        pass
 
 class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
     def __init__(self, parent = None):
         super(HumanvsAi, self).__init__(parent)
         self.setupUi(self)
+
 
         self.aiPath = ""
         self.mapPath = ""
@@ -173,6 +173,7 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         self.gameBegInfo = []
         self.gameEndInfo = []
         #widget
+
         self.replayWindow = Ui_VSModeWidget()
         self.getComm = self.replayWindow.GetCommand
         #layout
@@ -184,6 +185,14 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         self.connect(self.replayWindow, SIGNAL("unitSelected"), self.on_unitS)
         self.connect(self.replayWindow, SIGNAL("mapSelected"), self.on_mapS)
         #other
+        pal = self.scoLabel1.palette()
+        br = QBrush()
+        br.setStyle(Qt.Dense3Pattern)
+        br.setColor(QColor(255,51,0,200))
+        pal.setBrush(QPalette.Window, br)
+        self.scoLabel1.setPalette(pal)
+        self.scoLabel2.setPalette(pal)
+
         self.roundLabel.setWindowOpacity(0)
 
     def updateUi(self):
@@ -238,7 +247,7 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
             self.connect(self.aiThread, SIGNAL("finished()"), self.aiThread,
                          SLOT("deleteLater()"))
 
-        self.playThread = Ui_Player(0, self)
+        self.playThread = Ui_Player(0, self.func, self)
         try:
             self.playTread.initialize()
         except:
@@ -246,6 +255,9 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         else:
             #connect work
             self.connect(self.playThread, SIGNAL("waitforC()"), self.on_waitforC)
+            self.connect(self.playThread, SIGNAL("nameGet(QString)"), self.on_nameGet)
+            self.connect(self.playThread, SIGNAL("finished()"), self.playThread,
+                         SLOT("deleteLater()"))
 
         if flag == 0:
             self.started = True
@@ -276,15 +288,17 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
             if answer == QMessageBox.No:
                 return
             #清理工作，停止游戏，关闭线程,强制结束游戏
-            self.aiThread.stop()
-            self.playThread.stop()
-            if self.commandThread.running():
-                self.commandThread.stop()
-                self.commandThread.wait()
+            if self.aiThread.running():
+                self.aiThread.stop()
+                self.aiThread.wait()
             global WaitForCommand
             WaitForCommand.wakeAll()
-            self.aiThread.wait()
-            self.playThread.wait()
+            if self.playTread.running():
+                self.playTread.stop()
+                self.playThread.wait()
+#            if self.commandThread.running():
+#                self.commandThread.stop()
+#                self.commandThread.wait()
 
             self.started = False
         self.emit(SIGNAL("willReturn()"))
@@ -292,9 +306,9 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
 
 
     def on_waitforC(self):
-        self.commThread = CommThread(self, self.getComm)
-        self.connect(self,commThread, SIGNAL("finished()"), self.commThread, SLOT("deleteLater()"))
-        self.commThread.start()
+#        self.commThread = CommThread(self, self.getComm)
+#        self.connect(self,commThread, SIGNAL("finished()"), self.commThread, SLOT("deleteLater()"))
+#        self.commThread.start()
         #提示用户开始进行动作
         self.roundLabel.setText(_frUtf("开始操作吧!"))
         self.labelAnimation()
@@ -344,6 +358,10 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         self.started = False
         self.updateUi()
 
+    def on_nameGet(self, name):
+        self.playerLabel.setText(name)
+        #要展示英雄信息的话也在这里做
+
     def on_unitS(self, unit):
         pass
 
@@ -354,8 +372,11 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         pass
     def setRoundEndInfo(self, rCommand, reInfo):
         #同步分数
-        pass
-
+        sco1 = reInfo.score[0]
+        sco2 = reInfo.score[1]
+        self.scoLabel1.setText(sco1)
+        self.scoLabel2.setText(sco2)
+ 
     def labelAnimation(self):
         animation_1 = QParallelAnimationGroup(self)
         animation_1_1 = QPropertyAnimation(self.roundLabel, y)
