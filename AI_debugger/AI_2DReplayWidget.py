@@ -206,7 +206,7 @@ class AiReplayWidget(QWidget):
         self.setLayout(vlayout)
 
         self.connect(self.ctrlSlider, SIGNAL("nowChanged(int,int)"),
-                     self.setNowRound)
+                     self.setNowRound,Qt.QueuedConnection)
         self.connect(self.ctrlSlider, SIGNAL("totalChanged()"),
                      self.updateUI)
         self.connect(self.nowInfo, SIGNAL("textEdited(QString)"), self.check)
