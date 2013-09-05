@@ -80,7 +80,7 @@ def GetRange(pos, rng, mapSize):
         if (not 0<=i<mapSize[0]):
             continue
         for j in range(pos[1]-rng, pos[1]+rng):
-            if (0<=j<mapSize[1] and HammDist((i, j), pos)<=rng):
+            if (0<=j<mapSize[1] and rng[0]<=HammDist((i, j), pos)<=rng[1]):
                 avalRng.append((i, j))
     return avalRng
 

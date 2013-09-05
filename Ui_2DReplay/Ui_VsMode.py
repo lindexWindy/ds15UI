@@ -5,6 +5,10 @@
 from Ui_ReplayWidgetNew import *
 import copy
 
+CommandComplete = "command complete"
+
+
+
 MENU_WIDTH = 60
 MENU_HEIGHT = 35
 class Ui_OrderSelection(QtGui.QGraphicsItem):
@@ -46,18 +50,28 @@ class Ui_OrderMenu(QtGui.QGraphicsItem):
 
 class Ui_VSModeWidget(Ui_2DReplayWidget):
     def __init__(self, scene, parent = None):
+        Ui_2DReplayWidget.__init__(self, scene, parent)
         self.newInput = QtCore.QWaitConditon()
         self.mutex = QtCore.QMutex()
-
+        #lock for thread
         self.cmdState = self.INIT_STATE
-        self.movPos = None
-        self.nowSoldier = None
-        raise NotImplementedError
+        self.input = None
+        self.__iniPos = None
+        self.__movPos = None
+        self.__nowSoldier = None
+        #input
+        self.__prepOrder = None
+        self.__prepTarget = None
+        #space for storing temp cmd
+        self.__dispItem = []
+        #items for display
 
     def SetInitMap(self, maps, units = ((), ())):
         iniInfo = Begin_Info(maps, units)
         begInfo = Round_Begin_Info(None, None, units, ())
         Ui_ReplayWidget.Initialize(iniInfo, begInfo)
+#        self.cmdState = self.BEGIN_STATE
+        #not completed
     
     def Initialize(self, iniInfo, begInfo, cmd = None, endInfo = None):
         Ui_ReplayWidget.Initialize(self, iniInfo, begInfo[0])
@@ -65,85 +79,98 @@ class Ui_VSModeWidget(Ui_2DReplayWidget):
             self.UpdateEndData(cmd[i], endInfo[i])
             self.UpdateBeginData(begInfo[i+1])
         #update data
-        self.GoToRound(self.latestRound, self.latestStatus)
         self.cmdState = self.INIT_STATE
-        self.movPos = None
-        #
-        raise NotImplementedError
+        self.input = None
+        self.__iniPos = None
+        self.__movPos = None
+        self.__nowSoldier = None
+        #init of input
+        self.cmdStateChange.connect(self.ShowCmdState)
         #connecting....
 
     def UpdateBeginData(self, begInfo):
         self.nowSoldier = copy.deepcopy(begInfo.base[begInfo.id[0]][begInfo.id[1]])
+        self.iniPos = self.movPos = self.nowSoldier.position
         Ui_ReplayWidget.UpdateBeginData(self, begInfo)
-        
-#    def GameContinue(self):
-#        raise NotImplementedError
 
-#    def __PlayerRound(self):
-#        raise NotImplementedError
-
-#    def __AIRound(self):
-#        raise NotImplementedError
-
-#    def GamePause(self):
-
-    def mousePressEvent(self, event):
-        self.mutex.lock()
-        info = Ui_MouseInfo(self, event)
-        if (info.isValid):
-            self.input = info.nowPos
-            self.newInput.wakeAll()
-        Ui_ReplayWidget.mousePressEvent(self, event)
-        self.mutex.unlock()
 
     def GetCommand(self):
         try:
-            #how to exit the novement state?
             while True:
                 self.mutex.lock()
-                self.SetCmdState(self.MOVEMENT_STATE)
-                self.newInput.wait(self.mutex)
-                if (self.input not in GetMovRange(self)):#
-                    continue#
-                self.movPos = self.input
-                raise NotImplementedError
-                #self.nowSoldier
-                #no mov anim
-                #get mov pos
-                self.SetCmdState(self.SET_ORDER_STATE)
-                self.newInput.wait(self.mutex)
-                if (self.input==self.BREAK_FLAG):
-                    continue#
-                order = self.input
-                #get order
-                if (order==0):
-                    target = 0
-                    raise CommandComplete
-                elif (order==1):
-                    while True:
-                        self.SetCmdState(self.SELECT_ATK_TARGET_STATE)
-                        self.newInput.wait(self.mutex)
-                        if (self.input==self.BREAK_FLAG):
-                            break
-                        avaTarget = GetAtkRange(self)
-                        if (self.input in avaTarget.keys()):#
-                            target = avaTarget[self.input]
-                            raise CommandComplete
-                elif (order==2):
-                    while True:
-                        self.SetCmdState(self.SELECT_SKILL_TARGET_STATE)
-                        self.newInput.wait(self.mutex)
-                        if (self.input==self.BREAK_FLAG):
-                            break
-                        avaTarget = GetAtkRange(self)
-                        if (self.input in avaTarget.keys()):#
-                            target = avaTarget[self.input]
-                            raise CommandComplete
+                while True:
+                    if (not self.__getMovement()):
+                        break
+                    if (not self.__getOrder()):
+                        break
+                    if (self.__prepOrder==0):
+                        target = 0
+                        raise CommandComplete
+                    elif (self.__prepOrder==1):
+                        while True:
+                            if (not self.__getAtkTarget()):
+                                break
+                    elif (self.__prepOrder==2):
+                        while True:
+                            if (not self.__getSkillTarget()):
+                                break
+                while True:
+                    if (self.__getCmdAgain()):
+                        break
                 self.mutex.unlock()
         except CommandComplete:
-            cmd = Command(order, self.movPos, target)
+            cmd = Command(self.__prepOrder, self.__movPos, self.__prepTarget)
             self.emit(QtCore.SIGNAL("commandComplete"), cmd)
         self.SetCmdState(self.INIT_STATE)
+    def __getMovement(self):
+        self.SetCmdState(self.MOVEMENT_STATE)
+        self.newInput.wait(self.mutex)
+        if (self.input not in GetMovRange(self)):
+            return False
+#        nowS = self.__nowSoldier
+#        mapUnit = self.data.map[nowS.position[0]][nowS.position[1]]
+#        mapUnit.leave(nowS)
+#        self.data.map[self.input[0]][self.input[1]].effect(nowS,
+#                                                           m,
+#                                                           s) ##? f**k trap!
+        nowS.position = self.movPos = self.input
+        return True
+        #no mov anim
+        #get mov pos
+    def __getOrder(self):
+        self.SetCmdState(self.SET_ORDER_STATE)
+        self.newInput.wait(self.mutex)
+        if (self.input==self.BREAK_FLAG):
+            return False
+        self.__prepOrder = self.input
+        return True
+        #get order
+    def __getSkillTarget(self):
+        self.SetCmdState(self.SELECT_SKILL_TARGET_STATE)
+        self.newInput.wait(self.mutex)
+        if (self.input==self.BREAK_FLAG):
+            break
+        avaTarget = GetAtkRange(self)
+        if (self.input in avaTarget.keys()):#
+            self.__prepTarget = avaTarget[self.input]
+            raise CommandComplete
+    def __getAtkTarget(self):
+        self.SetCmdState(self.SELECT_ATK_TARGET_STATE)
+        self.newInput.wait(self.mutex)
+        if (self.input==self.BREAK_FLAG):
+            return False
+        avaTarget = GetAtkRange(self)
+        if (self.input in avaTarget.keys()):#
+            self.__prepTarget = avaTarget[self.input]
+            raise CommandComplete
+    def __getCmdAgain(self):
+        self.__nowSoldier.position = self.__iniPos
+        self.SetCmdState(INIT_STATE)
+        self.newInput.wait(self.mutex)
+        if (self.input==self.__iniPos):
+            return True
+        else:
+            return False
 
     def GetAtkTarget(self):
         avalUnits = {}
@@ -163,7 +190,7 @@ class Ui_VSModeWidget(Ui_2DReplayWidget):
         if (oldState==self.INIT_STATE):
             pass
         elif (oldState==self.MOVEMENT_STATE):
-            raise NotImplementedError
+            pass
         elif (oldState==self.SET_ORDER_STATE):
             self.scene().removeItem(self.menu)
             del self.menu
@@ -190,7 +217,7 @@ class Ui_VSModeWidget(Ui_2DReplayWidget):
         elif (state==self.SET_ORDER_STATE):
 #            self.tempSoldier = Ui_TempSoldier(self.nowPos[0], self.nowPos[1])
             self.scene().addItem(self.tempSoldier)
-            self.__AddOrderMenu()
+            self.__addOrderMenu()
             self.setEnabled(False)
         elif (state==self.SELECT_ATK_TARGET_STATE):
 #            self.tempSoldier = Ui_TempSoldier(self.nowPos[0], self.nowPos[1])
@@ -209,7 +236,8 @@ class Ui_VSModeWidget(Ui_2DReplayWidget):
     def SetCmdState(self, state):
         oldState = self.cmdState
         self.cmdState = state
-        cmdStateChange.emit(oldState, state)
+        if (oldState!=state):
+            cmdStateChange.emit(oldState, state)
 
     def CmdState(self):
         return self.cmdState
@@ -227,7 +255,7 @@ class Ui_VSModeWidget(Ui_2DReplayWidget):
                                     fset = SetCmdState,
                                     notify = cmdStateChange)
 
-    def __AddOrderMenu(self):
+    def __addOrderMenu(self):
         x, y = self.nowPos
         sizeX, sizeY = self.mapSize
         point = QtCore.QPointF(UNIT_WIDTH/2, UNIT_LENGTH/2)
@@ -240,5 +268,21 @@ class Ui_VSModeWidget(Ui_2DReplayWidget):
         self.menu = Ui_OrderMenu(self)
         self.scene().addItem(self.menu)
         self.menu.setPos(GetPos(x, y)+point)
+
+    
+    def mousePressEvent(self, event):
+        self.mutex.lock()
+        info = Ui_MouseInfo(self, event)
+        if (info.isValid):
+            self.input = info.nowPos
+            self.newInput.wakeAll()
+        Ui_ReplayWidget.mousePressEvent(self, event)
+        self.mutex.unlock()
+
+    def mouseMoveEvent(self, event):
+        if (self.cmdState==self.MOVEMENT_STATE):
+            pass
+            #show route
+        Ui_ReplayWidget.mouseMoveEvent(self, event)
 
     
