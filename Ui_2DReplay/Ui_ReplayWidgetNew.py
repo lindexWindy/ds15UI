@@ -163,7 +163,7 @@ class Ui_2DReplayWidget(Ui_ReplayView):
     def GetMovRange(self):
         idNum = self.data.roundInfo[self.nowRound].idNum
         units = self.__getNowUnitArray()
-        movRng = availabel_spots(self.data.map,
+        movRng = available_spots(self.data.map,
                                  ConvertBackTo2D(units),
                                  idNum)
         for i in units.keys():

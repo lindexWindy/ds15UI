@@ -48,14 +48,12 @@ def available_spots(map_list, unit_list, source_num, prev = None):
                     p_id = a_spots.index(p) # 松弛点在a_spots里的index
                     if move_cost + a_weight[s] < a_weight[p_id]:
                         a_weight[p_id] = move_cost + a_weight[s]
-                        if a_weight[p_id] <= s_unit.move_range:
-                            prev_a[p_id] = d_index
+                        prev_a[p_id] = d_index
                 else: 			#新加入
                     lf = map_list[p[0]][p[1]].kind
                     a_spots.append(p)
                     a_weight.append(a_weight[s] + move_cost)
-                    if a_weight[s] + move_cost <= s_unit.move_range:
-                        prev_a.append(d_index)
+                    prev_a.append(d_index)
         # 松弛结束后，将 s 从a序列删除， 将它加入到d序列中
         d_spots.append(a_spots[s]) 
         if not prev == None:      
@@ -64,6 +62,53 @@ def available_spots(map_list, unit_list, source_num, prev = None):
         a_weight.pop(s)
         prev_a.pop(s)
     return d_spots
+
+def AdjacentGrid(pos, mapSize):
+    point = [(pos[0]+i, pos[1]+j) for (i, j) in ((0, 1), (0, -1), (1, 0), (-1, 0))]
+    return filter(lambda p: 0<=p[0]<mapSize[0] and 0<=p[1]<mapSize[1], point)
+
+def available_spots2(maps, units, idNum):
+    INT_MAX = 10086
+    mapSize = (len(maps), len(maps[0]))
+    comsumption = {}
+    for pos in [(i, j) for i in range(mapSize[0]) for j in range(mapSize[1])]:
+        comsumption[pos] = INT_MAX
+    for unit in units[0]:
+        comsumption[unit.position] = 0
+    for unit in units[1]:
+        comsumption[unit.position] = 0
+    thisUnit = units[idNum[0]][idNum[1]]
+    reach = {thisUnit.position:None}
+    ok = {}
+    
+    while (reach!={}):
+        leastPos = reach.keys()[-1]
+        for pos in reach.keys():
+            if (comsumption[pos]<comsumption[leastPos]):
+                leastPos = pos
+        for pos in AdjacentGrid(leastPos, mapSize):
+            moveCost = basic.FIELD_EFFECT[maps[pos[0]][pos[1]].kind][0]
+            if (comsumption[pos]>comsumption[leastPos]+moveCost):
+                comsumption[pos] = comsumption[leastPos]+moveCost
+                if (comsumption[pos]<=thisUnit.move_range):
+                    reach[pos] = leastPos
+        ok[leastPos] = reach[leastPos]
+        del reach[leastPos]
+    return ok
+
+def available_spots3(maps, units, idNum, last = None):
+    d = available_spots2()
+    rng = d.keys()
+    if (last==[]):
+        for i in range(len(rng)):
+            if (i==0):
+                last.append(0)
+            else:
+                last.append(d[rng[i]])
+    return rng
+        
+    
+    
 
 def HammDist(pos1, pos2):
     dist = 0
@@ -91,7 +136,6 @@ def GetRoute(maps, units, idnum, end):
     #print "soulu"#for test
     try:
         #print idnum#for test
-        print len(units[0]), len(units[1])#for test
         field = available_spots(maps, units, idnum, last)
         ind = field.index(end)
         start = units[idnum[0]][idnum[1]].position
@@ -113,4 +157,7 @@ def GetRoute(maps, units, idnum, end):
 
 if __name__=="__main__":
     import testdata
-    print GetRoute(testdata.maps, testdata.units0, (0, 0), (1, 2))
+#    for pos in (available_spots2(testdata.maps, testdata.units0, (0, 0)).keys()):
+#        print pos in available_spots(testdata.maps, testdata.units0, (0, 0))
+    for i in range(100000):
+        available_spots2(testdata.maps, testdata.units0, (0, 0))

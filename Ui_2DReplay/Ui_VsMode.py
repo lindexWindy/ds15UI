@@ -64,7 +64,7 @@ class Ui_TempSoldier(Ui_SoldierUnit):
 class Ui_VSModeWidget(Ui_2DReplayWidget):
     def __init__(self, scene, parent = None):
         Ui_2DReplayWidget.__init__(self, scene, parent)
-        self.newInput = QtCore.QWaitConditon()
+        self.newInput = QtCore.QWaitCondition()
         self.mutex = QtCore.QMutex()
         #lock for thread
         self.cmdState = self.INIT_STATE
@@ -87,7 +87,7 @@ class Ui_VSModeWidget(Ui_2DReplayWidget):
         #not completed
     
     def Initialize(self, iniInfo, begInfo, cmd = None, endInfo = None):
-        Ui_ReplayWidget.Initialize(self, iniInfo, begInfo[0])
+        Ui_2DReplayWidget.Initialize(self, iniInfo, begInfo[0])
         for i in range(len(begInfo)-1):
             self.UpdateEndData(cmd[i], endInfo[i])
             self.UpdateBeginData(begInfo[i+1])
@@ -99,7 +99,10 @@ class Ui_VSModeWidget(Ui_2DReplayWidget):
         self.__nowSoldier = None
         #init of input
         self.cmdStateChange.connect(self.ShowCmdState)
+        self.connect(self, QtCore.SIGNAL("commandComplete"), self.__dispFunc)#for test
         #connecting....
+    def __dispFunc(self, cmd):#for test
+        print cmd.__dict__#for test
 
     def UpdateBeginData(self, begInfo):
         self.nowSoldier = copy.deepcopy(begInfo.base[begInfo.id[0]][begInfo.id[1]])
@@ -162,7 +165,7 @@ class Ui_VSModeWidget(Ui_2DReplayWidget):
         self.SetCmdState(self.SELECT_SKILL_TARGET_STATE)
         self.newInput.wait(self.mutex)
         if (self.input==self.BREAK_FLAG):
-            break
+            return False
         avaTarget = GetAtkRange(self)
         if (self.input in avaTarget.keys()):#
             self.__prepTarget = avaTarget[self.input]
@@ -250,7 +253,7 @@ class Ui_VSModeWidget(Ui_2DReplayWidget):
         oldState = self.cmdState
         self.cmdState = state
         if (oldState!=state):
-            cmdStateChange.emit(oldState, state)
+            self.cmdStateChange.emit(oldState, state)
 
     def CmdState(self):
         return self.cmdState
@@ -289,13 +292,33 @@ class Ui_VSModeWidget(Ui_2DReplayWidget):
         if (info.isValid):
             self.input = info.nowPos
             self.newInput.wakeAll()
-        Ui_ReplayWidget.mousePressEvent(self, event)
+        Ui_2DReplayWidget.mousePressEvent(self, event)
         self.mutex.unlock()
 
     def mouseMoveEvent(self, event):
         if (self.cmdState==self.MOVEMENT_STATE):
             pass
             #show route
-        Ui_ReplayWidget.mouseMoveEvent(self, event)
+        Ui_2DReplayWidget.mouseMoveEvent(self, event)
 
-    
+
+
+#####################################################################
+
+if __name__=="__main__":
+    app = QtGui.QApplication(sys.argv)
+    scene = QtGui.QGraphicsScene()
+    view = Ui_VSModeWidget(scene)
+    view.Initialize(iniInfo, [begInfo0])
+    class Th(QtCore.QThread):
+        def __init__(self, view):
+            QtCore.QThread.__init__(self)
+            print "adasda"#for test
+            self.view = view
+        def run(self):
+            self.view.GetCommand()
+    view.show()
+    th = Th(view)
+    print th#for test
+    th.start()
+    sys.exit(app.exec_())
