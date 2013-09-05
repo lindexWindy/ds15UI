@@ -27,7 +27,13 @@ class Ui_OrderSelection(QtGui.QGraphicsItem):
         return QtCore.QRectF(0-PEN_WIDTH, 0-PEN_WIDTH,
                              MENU_WIDTH+PEN_WIDTH, MENU_HEIGHT+PEN_WIDTH)
     def paint(self, painter, option, widget):
-        raise NotImplementedError
+        painter.setPen(QtGui.QColor(0, 255, 0))
+        #painter.setFont(QtGui.QFont('',))
+        painter.drawText(QtCore.QRectF(0, 0, MENU_WIDTH, MENU_HEIGHT),
+                         QtCore.Qt.AlignCenter, self.text)
+        if option.state & QtGui.QStyle.State_Sunken:
+            rect1 = boundingRect()
+            painter.setPen(QtGui.QPen(QtCore.Qt.darkGreen))
 class Ui_OrderMenu(QtGui.QGraphicsItem):
     def __init__(self, view, parent = None):
         QtGui.QGraphicsItem.__init__(self, parent)
@@ -41,10 +47,17 @@ class Ui_OrderMenu(QtGui.QGraphicsItem):
         return QtCore.QRectF(0-PEN_WIDTH, 0-PEN_WIDTH,
                              MENU_WIDTH+PEN_WIDTH, MENU_HEIGHT*4+PEN_WIDTH)
     def paint(self, painter, option, widget):
-        raise NotImplementedError
+        painter.setPen(QtGui.QPen(QtGui.QColor(255, 0, 0),
+                            PEN_WIDTH, QtCore.Qt.SolidLine))
+        painter.drawRect(0, 0, MENU_WIDTH, MENU_HEIGHT * 4)
+        for i in range(1, 4):
+            painter.drawLine(0, i * MENU_HEIGHT, MENU_WIDTH, i * MENU_HEIGHT)
 
-#class Ui_TempSoldier(Ui_SoldierUnit):
-#    raise NotImplementedError
+class Ui_TempSoldier(Ui_SoldierUnit):
+    def __init__(self, soldier, parent = None):
+        Ui_SoldierUnit.__init__(self, soldier.idnum, soldier.side,
+                                Base_Unit(soldier.type), parent)
+        self.setOpacity(0.5)
 
 
 
