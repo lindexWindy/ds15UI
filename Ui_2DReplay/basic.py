@@ -44,6 +44,20 @@ WIZARD = 5#法师
 HERO_1 = 6
 HERO_2 = 7
 HERO_3 = 8
+
+AVAILABLE_UNIT_TYPE = (SABER,
+                       LANCER,
+                       ARCHER,
+                       DRAGON_RIDER,
+                       WARRIOR,
+                       WIZARD,
+                       HERO_1,
+                       HERO_2,
+                       HERO_3)
+AVAILABLE_HERO_TYPE = (HERO_1,
+                       HERO_2,
+                       HERO_3)
+
 ABILITY = {SABER:(25,18,95,12,6,[1],5),
            LANCER:(25,17,90,13,7,[1],4),
            ARCHER:(25,17,90,12,6,[2],3),

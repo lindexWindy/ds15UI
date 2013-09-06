@@ -21,12 +21,9 @@ class Ui_NewMapUnit(Ui_MapUnit):
         dragUnit.unsetCursor()
         return True
 
-#class Ui_NewSoldierUnit(Ui_SoldierUnit):
-class Ui_NewSoldierUnit(Ui_GridUnit):
-    def __init__(self, pos, side, order, parent = None):
-        Ui_GridUnit.__init__(self, pos[0], pos[1], parent)
-        self.side = side
-        self.order = order
+class Ui_NewSoldierUnit(Ui_SoldierUnit):
+    def __init__(self, idNum, side, unit, parent = None):
+        Ui_SoldierUnit.__init__(self, idNum, side, unit, parent)
     def paint(self, painter, option, widget):
         painter.drawRect(10, 10, 50, 50)#for test
 
@@ -84,9 +81,9 @@ class Ui_MapEditor(Ui_ReplayView):
                 j += 1
             self.newMap.append(newColumn)
             i += 1
-        Ui_ReplayView.Initialize(self, self.newMap, [], 0,
-                                 Ui_NewMapUnit)
+        Ui_ReplayView.Initialize(self, self.newMap, {}, Ui_NewMapUnit)
         self.iniUnits = [[], []]
+        self.soldierList = [[], []]
 
     def ChangeTerrain(self, terrain):
         "ChangeTerrain(enum TERRAIN terrain) -> void \
@@ -99,7 +96,7 @@ class Ui_MapEditor(Ui_ReplayView):
                     self.mapItem[i][j].selected = False
         self.scene().update()
 
-    def AddUnit(self, side, position = None):
+    def AddUnit(self, side, soldierType = TEMP_SOLDIER, position = None):
         "AddUnit(enum(0, 1) side, Coord. position = None) -> Coord. newPos \
         add a new unit to a certain side returning the position it will placed at. \
         position indicates where the new unit should be set. \
@@ -126,23 +123,24 @@ class Ui_MapEditor(Ui_ReplayView):
                 raise Ui_Error, ("AddUnitError_1",
                                  ("class Ui_MapEditor", "func AddUnit"),
                                  "所选格点不合法，或已有单位存在。")
-        newUnit = Ui_NewSoldierUnit(usableGrid,
-                                    side, len(self.iniUnits[side]))
-        newUnit.setPos(newUnit.GetPos())
+        idNum = (side, len(self.iniUnits[side]))
+        newSoldier = UiD_BaseUnit(soldierType, usableGrid)
+        newUnit = Ui_NewSoldierUnit(idNum, side, newSoldier)
+        #newUnit.setPos(newUnit.GetPos())
+        self.soldierList[side].append(newSoldier)
         self.AddItem(newUnit)
         self.iniUnits[side].append(newUnit)
         #self.scene().update()
-        return usableGrid
+        return newSoldier
     def DelUnit(self, side):
         "DelUnit(enum(0, 1) side) -> Coord. pos \
         delete the last unit of a certain side returning the position it was placed at. \
         error will be raised if no units is in this side."
         if (self.iniUnits[side]):
-            delUnit = self.iniUnits[side].pop(-1)
-            self.RemoveItem(delUnit)
-            pos = (delUnit.mapX, delUnit.mapY)
+            self.RemoveItem(self.iniUnits[side].pop(-1))
+            delUnit = self.soldierList[side].pop(-1)
             #self.scene().update()
-            return pos
+            return delUnit
         else:
             raise Ui_Error, ("DelUnitError",
                              ("class Ui_MapEditor", "func DelUnit"),
@@ -177,13 +175,14 @@ if __name__=="__main__":
     scene = QtGui.QGraphicsScene()
     view = Ui_MapEditor(scene)
     view.Initialize(5, 5)
-    view.AddUnit(1, (1, 3))
-    view.AddUnit(1, (1, 4))
-    view.AddUnit(1, (3, 2))
-    view.AddUnit(0, (2, 2))
-    view.AddUnit(0, (1, 2))#bug
-    view.AddUnit(0, (0, 0))
+    view.AddUnit(1, position = (1, 3))
+    view.AddUnit(1, position = (1, 4))
+    view.AddUnit(1, position = (3, 2))
+    view.AddUnit(0, position = (2, 2))
+    view.AddUnit(0, position = (1, 2))#bug
+    view.AddUnit(0, position = (0, 0))
     view.DelUnit(1)
+    print view.soldierList
 
     view.show()
     sys.exit(app.exec_())

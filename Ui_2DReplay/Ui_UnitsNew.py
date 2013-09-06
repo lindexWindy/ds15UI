@@ -15,7 +15,8 @@ import copy
 TRAP_TRIGGERED = 8
 
 TEMP_SOLDIER = 100
-
+TEMP_HERO = 101
+#types of map grid, unit defined by ui
 
 
 UNIT_WIDTH = 100
@@ -36,7 +37,7 @@ def GetGrid(corX, corY):
     y = int(corY/UNIT_HEIGHT)
     return x, y
 
-
+#################################################################
 
 class Ui_GridUnit(QtGui.QGraphicsObject):
     "the superclass of all grid units"
@@ -44,6 +45,7 @@ class Ui_GridUnit(QtGui.QGraphicsObject):
         QtGui.QGraphicsObject.__init__(self, parent)
         self.mapX = x
         self.mapY = y
+        self.selected = False
         self.setPos(self.GetPos())
 
     def SetMapPos(self, x, y):
@@ -138,7 +140,7 @@ class Ui_SoldierUnit(Ui_GridUnit):
         Ui_GridUnit.__init__(self, unit.position[0], unit.position[1], parent)
         self.type = unit.kind#?
         self.idNum = idNum
-        self.side = side
+        self.side = side #no need
 
     def boundingRect(self):
         return QtCore.QRectF(0-PEN_WIDTH, 0-PEN_WIDTH,
@@ -368,14 +370,53 @@ class UiD_BattleData:
         return units
 
     def UpdateBeginData(self, begInfo):
-        assert(not self.roundInfo or self.roundInfo[-1].isCompleted,
-               "error in update")
+#        assert(not self.roundInfo or self.roundInfo[-1].isCompleted,
+#               "error in update")
         self.nextRoundInfo = begInfo
         self.roundInfo.append(UiD_RoundInfo(begInfo, None, None, self.map))
     def UpdateEndData(self, cmd, endInfo):
-        assert(not self.roundInfo[-1].isCompleted, "error in update")
+#        assert(not self.roundInfo[-1].isCompleted, "error in update")
         rInfo = UiD_RoundInfo(self.nextRoundInfo, cmd, endInfo, self.map)
         self.roundInfo[-1] = rInfo
         self.nextRoundInfo = None
+
+class UiD_BaseUnit:
+    #substitution of Base_Unit, only used for displaying
+    def __init__(self, kind, pos = (0, 0)):
+        self.soldier = None
+        if (kind in AVAILABLE_UNIT_TYPE):
+            self.soldier = Base_Unit(kind, pos)
+            self.baseClass = Base_Unit
+            if (kind==WIZARD):
+                self.baseClass = Wizard
+                self.soldier = Wizard(kind, pos)
+            elif (kind in AVAILABLE_HERO_TYPE):
+                raise NotImplementedError
+        else:
+            self.kind = kind
+            self.position = pos
+
+    def __getattr__(self, name):
+        try:
+            if (name in self.soldier.__dict__.keys()):
+                value = self.soldier.__dict__[name]
+            else:
+                value = self.baseClass.__dict__[name]
+        except KeyError:
+            raise AttributeError, name
+        except AttributeError:
+            raise AttributeError, name
+        if (callable(value)):
+            return METHODWRAPPER(value, self.soldier)
+        return value
+
+class METHODWRAPPER:
+    def __init__(self, func, inst):
+        self.function = func
+        self.instance = inst
+        self.__name__ = self.function.__name__
+    def __call__(self, *args):
+        return apply(self.function, (self.instance,)+args)
+        
 
 
