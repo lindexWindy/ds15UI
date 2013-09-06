@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'part_humanvsai.ui'
 #
-# Created: Thu Sep  5 09:27:07 2013
+# Created: Fri Sep  6 17:27:27 2013
 #      by: PyQt4 UI code generator 4.9.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -19,18 +19,18 @@ class Ui_HumanvsAi(object):
         HumanvsAi.setObjectName(_fromUtf8("HumanvsAi"))
         HumanvsAi.resize(1024, 768)
         self.aiButton = QtGui.QPushButton(HumanvsAi)
-        self.aiButton.setGeometry(QtCore.QRect(10, 660, 130, 29))
+        self.aiButton.setGeometry(QtCore.QRect(10, 650, 130, 29))
         self.aiButton.setObjectName(_fromUtf8("aiButton"))
         self.info_ai = QtGui.QLineEdit(HumanvsAi)
-        self.info_ai.setGeometry(QtCore.QRect(150, 660, 141, 30))
+        self.info_ai.setGeometry(QtCore.QRect(150, 650, 141, 30))
         self.info_ai.setAutoFillBackground(False)
         self.info_ai.setReadOnly(True)
         self.info_ai.setObjectName(_fromUtf8("info_ai"))
         self.mapButton = QtGui.QPushButton(HumanvsAi)
-        self.mapButton.setGeometry(QtCore.QRect(10, 710, 130, 29))
+        self.mapButton.setGeometry(QtCore.QRect(10, 700, 130, 29))
         self.mapButton.setObjectName(_fromUtf8("mapButton"))
         self.info_map = QtGui.QLineEdit(HumanvsAi)
-        self.info_map.setGeometry(QtCore.QRect(150, 710, 141, 30))
+        self.info_map.setGeometry(QtCore.QRect(150, 700, 141, 30))
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -50,10 +50,10 @@ class Ui_HumanvsAi(object):
         self.verticalLayout_2.setMargin(0)
         self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
         self.startButton = QtGui.QPushButton(HumanvsAi)
-        self.startButton.setGeometry(QtCore.QRect(860, 690, 130, 29))
+        self.startButton.setGeometry(QtCore.QRect(860, 670, 130, 29))
         self.startButton.setObjectName(_fromUtf8("startButton"))
         self.returnButton = QtGui.QPushButton(HumanvsAi)
-        self.returnButton.setGeometry(QtCore.QRect(860, 730, 130, 29))
+        self.returnButton.setGeometry(QtCore.QRect(860, 710, 130, 29))
         self.returnButton.setObjectName(_fromUtf8("returnButton"))
         self.verticalLayoutWidget_3 = QtGui.QWidget(HumanvsAi)
         self.verticalLayoutWidget_3.setGeometry(QtCore.QRect(209, 79, 601, 551))
@@ -72,7 +72,7 @@ class Ui_HumanvsAi(object):
         self.title.setAlignment(QtCore.Qt.AlignCenter)
         self.title.setObjectName(_fromUtf8("title"))
         self.helpButton = QtGui.QPushButton(HumanvsAi)
-        self.helpButton.setGeometry(QtCore.QRect(860, 650, 130, 29))
+        self.helpButton.setGeometry(QtCore.QRect(860, 630, 130, 29))
         self.helpButton.setObjectName(_fromUtf8("helpButton"))
         self.roundLabel = QtGui.QLabel(HumanvsAi)
         self.roundLabel.setGeometry(QtCore.QRect(450, 40, 141, 41))

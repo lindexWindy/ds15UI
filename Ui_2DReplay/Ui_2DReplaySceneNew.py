@@ -234,6 +234,7 @@ class Ui_ReplayView(Ui_View):
         self.SetSoldiers(units)
         #initialization of soldier units
         self.cursor = Cursor()
+        print self.cursor, type(Ui_GridUnit(0,0).SetEnabled),type(self.cursor.SetEnabled)
         self.AddItem(self.cursor)
         #initialization of the cursor
 

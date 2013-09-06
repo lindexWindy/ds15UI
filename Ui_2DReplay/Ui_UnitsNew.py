@@ -61,6 +61,7 @@ class Ui_GridUnit(QtGui.QGraphicsObject):
         return GetPos(self.mapX, self.mapY)
 
     def SetEnabled(self, flag):
+        print "define"
         if (flag):
             self.setVisible(True)
             self.setEnabled(True)
@@ -376,12 +377,11 @@ class UiD_BattleData:
         return units
 
     def UpdateBeginData(self, begInfo):
-        assert(not self.roundInfo or self.roundInfo[-1].isCompleted,
-               "error in update")
+        assert not self.roundInfo or self.roundInfo[-1].isCompleted,"error in update"
         self.nextRoundInfo = begInfo
         self.roundInfo.append(UiD_RoundInfo(begInfo, None, None, self.map))
     def UpdateEndData(self, cmd, endInfo):
-        assert(not self.roundInfo[-1].isCompleted, "error in update")
+        assert not self.roundInfo[-1].isCompleted, "error in update"
         rInfo = UiD_RoundInfo(self.nextRoundInfo, cmd, endInfo, self.map)
         self.roundInfo[-1] = rInfo
         self.nextRoundInfo = None

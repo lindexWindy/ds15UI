@@ -6,7 +6,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 import ui_humanvsai
 from Ui_2DReplay.Ui_VsMode import *
-import os,sio,basic
+import os,sio,basic,socket
 from herotypedlg import GetHeroTypeDlg
 
 #from AI_debugger import AiThread
@@ -18,9 +18,17 @@ except AttributeError:
 
 AI_DIR = "." #默认ai目录路径
 MAP_DIR = "."
+Already_Wait = False
 
 WaitForCommand=QWaitCondition()
+WaitForHero=QWaitCondition()
+WaitForAni=QWaitCondition()
 
+mutex = QMutex()
+#tmp
+class ConnectionError(Exception):
+    def __init__(self):
+        super(ConnectionError, self).__init__()
 class AiThread(QThread):
     def __init__(self,parent=None):# lock, parent = None):
         super(AiThread, self).__init__(parent)
@@ -33,11 +41,12 @@ class AiThread(QThread):
         self.conn = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         try:
             self.conn.connect((sio.HOST,sio.UI_PORT))
-        except exception:
+        except:
             self.conn.close()
-            raise exception
+            raise ConnectionError()
         else:
-            sio._sends(self.conn,(sio.PLAYER_VS_AI, gameMapPath,gameAIPath))
+            self.gameAIPath = gameAIPath
+            self.gameMapPath = gameMapPath
 
     def isStopped(self):
         try:
@@ -52,8 +61,12 @@ class AiThread(QThread):
         finally:
             self.mutex.unlock()
     def run(self):
-        mapInfo,aiInfo,baseInfo = sio._recvs(self.conn)#add base info
+        sio._sends(self.conn,(sio.PLAYER_VS_AI, self.gameMapPath,self.gameAIPath))
+        print "1"
+        (mapInfo,aiInfo,baseInfo) = sio._recvs(self.conn)#add base info
+        print "5"
         frInfo = sio._recvs(self.conn)
+        print "6"
         self.emit(SIGNAL("firstRecv"),mapInfo, frInfo, aiInfo, baseInfo)
 
         rCommand, reInfo = sio._recvs(self.conn)
@@ -81,7 +94,8 @@ class Ui_Player(QThread):
             self.lock = QReadWriteLock()
             self.stopped = False
             self.func = func
-            self.parent = parent
+#            self.parent = parent
+            self.result = ("Player", (6,6))
 
         def initialize(self):
             self.conn = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -93,49 +107,51 @@ class Ui_Player(QThread):
 
 
 	def GetHeroType(self,mapInfo):
-            dialog = GetHeroTypeDlg(self.parent)
-            name = ""
-            if dialog.exec_():
-                if len(dialog.choice) == 0:
-                    result = (6, 6)
-                elif len(dialog.choice) == 2:
-                    result = tuple(dialog.choice)
-                elif len(dialog.choice) == 1:
-                    result = tuple(dialog.choice[0], dialog.choice[0])
-                name = dialog.nameEdit.text()
-                if not name:
-                    name = "Player"
-                result = (name, result)
-            else:
-                result = ("Player", (6, 6))
-            self.emit(SIGNAL("nameGet(QString)"), result[0])
-            return result
+            self.emit(SIGNAL("getHeroType()"))
+            print "emit hero"
+            global WaitForHero
+            self.lock.lockForRead()
+            WaitForHero.wait(self.lock)
+            print "rec hero"
+            self.lock.unlock()
+            return self.result
 
 	def AI(self,rBeginInfo):
             self.command=basic.Command()
+            global mutex, AlreadyWait
+            try:
+                mutex.lock()
+                AlreadyWait = True
+            finally:
+                mutex.unlock()
+#            self.emit(SIGNAL("waitforC()"))
 			# time for player to make a command here!!
-            self.emit(SIGNAL("waitforC()"))
-            global WaitForCommand
+            global WaitForCommand,WaitForAni
             self.lock.lockForRead()
+            WaitForAni.wait(self.lock)
+#            self.lock.lockForRead()
             self.func()
             WaitForCommand.wait(self.lock)
+            self.lock.unlock()
             return self.command
 
 	def run(self):
-		mapInfo = sio._recvs(self.conn)
-                self.emit(SIGNAL("mapRecv"), mapInfo)
 
-		sio._sends(self.conn, self.GetHeroType(mapInfo))
-
-		while True and not self.isStopped():
-			rBeginInfo = sio._recvs(self.conn)
-			print 'rbInfo got'
-			if rBeginInfo != '|':
-				sio._sends(self.conn,self.AI(rBeginInfo))
-				print 'cmd sent'
-			else:
-				break
-		self.conn.close()
+            mapInfo = sio._recvs(self.conn)
+            print "2"
+            self.emit(SIGNAL("mapRecv"), mapInfo)
+            print "3"
+            sio._sends(self.conn, self.GetHeroType(mapInfo))
+            print "4"
+            while True and not self.isStopped():
+                rBeginInfo = sio._recvs(self.conn)
+                print 'rbInfo got'
+                if rBeginInfo != '|':
+                    sio._sends(self.conn,self.AI(rBeginInfo))
+                    print 'cmd sent'
+                else:
+                    break
+            self.conn.close()
 
         def stop(self):
             try:
@@ -170,12 +186,14 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         self.aiPath = ""
         self.mapPath = ""
         self.started = False
+        self.nowRound = 0
         self.gameBegInfo = []
         self.gameEndInfo = []
         #widget
-
-        self.replayWindow = Ui_VSModeWidget()
+        self.scene = QGraphicsScene()
+        self.replayWindow = Ui_VSModeWidget(self.scene)
         self.getComm = self.replayWindow.GetCommand
+
         #layout
         self.verticalLayout_2.addWidget(self.replayWindow)
 #        self.
@@ -184,6 +202,8 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         self.connect(self.replayWindow, SIGNAL("commandComplete"), self.on_recvC)
         self.connect(self.replayWindow, SIGNAL("unitSelected"), self.on_unitS)
         self.connect(self.replayWindow, SIGNAL("mapSelected"), self.on_mapS)
+        self.replayWindow.moveAnimEnd.connect(self.on_aniFinished)
+        self.connect(self, SIGNAL("ableToPlay()"), self.on_ablePlay)
         #other
         pal = self.scoLabel1.palette()
         br = QBrush()
@@ -233,47 +253,61 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         #打开与平台UI_PORT连接的线程
         flag = 0
         self.aiThread = AiThread(self)
-        try:
-            self.aiThread.initialize(self.info_ai,self.info_map)
-        except:
-            flag = 1
-        else:
-            self.connect(self.aiThread, SIGNAL("firstRecv"), self.on_firstRecv)
-            self.connect(self.aiThread, SIGNAL("rbRecv"), self.on_rbRecv)
-            self.connect(self.aiThread, SIGNAL("reRecv"), self.on_reRecv)
-            self.connect(self.aiThread, SIGNAL("mapRecv"), self.on_mapRecv)
-            self.connect(self.aiThread, SIGNAL("gameWinner"), self.on_gameWinner)
+ #       try:
+        self.aiThread.initialize(self.info_ai.text(),self.info_map.text())
+#        except:
+#            flag = 1
+#        except:
+
+#        else:
+        self.connect(self.aiThread, SIGNAL("firstRecv"), self.on_firstRecv)
+        self.connect(self.aiThread, SIGNAL("rbRecv"), self.on_rbRecv)
+        self.connect(self.aiThread, SIGNAL("reRecv"), self.on_reRecv)
+        self.connect(self.aiThread, SIGNAL("mapRecv"), self.on_mapRecv)
+        self.connect(self.aiThread, SIGNAL("gameWinner"), self.on_gameWinner)
 #            self.connect(self.aiThread, SIGNAL("finished()"), self.replayWindow.updateUI)
-            self.connect(self.aiThread, SIGNAL("finished()"), self.aiThread,
+        self.connect(self.aiThread, SIGNAL("finished()"), self.aiThread,
                          SLOT("deleteLater()"))
 
-        self.playThread = Ui_Player(0, self.func, self)
-        try:
-            self.playTread.initialize()
-        except:
-            flag = 2
-        else:
+        self.playThread = Ui_Player(0, self.getComm, self)
+#        try:
+        self.playThread.initialize()
+#        except:
+#            if not flag:
+#                flag = 2
+#            else:
+#                flag = 3
+#        else:
             #connect work
-            self.connect(self.playThread, SIGNAL("waitforC()"), self.on_waitforC)
-            self.connect(self.playThread, SIGNAL("nameGet(QString)"), self.on_nameGet)
-            self.connect(self.playThread, SIGNAL("finished()"), self.playThread,
+#            self.connect(self.playThread, SIGNAL("waitforC()"), self.on_waitforC)
+#        self.connect(self.playThread, SIGNAL("nameGet(QString)"), self.on_nameGet)
+        self.connect(self.playThread, SIGNAL("getHeroType()"), self.on_getHero)
+        self.connect(self.playThread, SIGNAL("finished()"), self.playThread,
                          SLOT("deleteLater()"))
 
         if flag == 0:
             self.started = True
             self.updateUi()
-            self.playTread.start()
+            self.playThread.start()
             self.aiThread.start()
         elif flag == 1:
-            QMessageBox.criticaltical(self, "Connection Error",
+            QMessageBox.critical(self, "Connection Error",
                                  "Failed to connect to UI_PORT\n",
                                  QMessageBox.Ok, QMessageBox.NoButton)
             self.aiThread.deleteLater()
+            self.playThread.deleteLater()
         elif flag == 2:
-            QMessageBox.criticaltical(self, "Connection Error",
+            QMessageBox.critical(self, "Connection Error",
                                       "Failed to connect to AI_PORT\n",
                                       QMessageBox.Ok, QMessageBox.NoButton)
-            self.playerThread.deleteLater()
+            self.playThread.deleteLater()
+            self.aiThread.deleteLater()
+        else:
+            QMessageBox.critical(self, "Connection Error",
+                                 "Failed to connect to UI_PORT and the AI_PORT\n",
+                                 QMessageBox.Ok, QMessageBox.NoButton)
+            self.aiThread.deleteLater()
+            self.playThread.deleteLater()
 
     @pyqtSlot()
     def on_helpButton_clicked(self):
@@ -301,18 +335,18 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
 #                self.commandThread.wait()
 
             self.started = False
+            self.nowRound = 0
         self.emit(SIGNAL("willReturn()"))
 
 
 
-    def on_waitforC(self):
+#    def on_waitforC(self):
 #        self.commThread = CommThread(self, self.getComm)
 #        self.connect(self,commThread, SIGNAL("finished()"), self.commThread, SLOT("deleteLater()"))
 #        self.commThread.start()
         #提示用户开始进行动作
-        self.roundLabel.setText(_frUtf("开始操作吧!"))
-        self.labelAnimation()
-
+#        self.roundLabel.setText(_frUtf("开始操作吧!"))
+#        self.labelAnimation()
 
     def on_recvC(self, cmd):
         global WaitForCommand
@@ -323,11 +357,42 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
             self.palyThread.lock.unlock()
             WaitForCommand.wakeAll()
 
-            
+    def on_getHero(self):
+        dialog = GetHeroTypeDlg(self)
+        name = ""
+        if dialog.exec_():
+            if len(dialog.choice) == 0:
+                result = (6, 6)
+            elif len(dialog.choice) == 2:
+                result = tuple(dialog.choice)
+            elif len(dialog.choice) == 1:
+                result = tuple(dialog.choice[0], dialog.choice[0])
+            name = dialog.nameEdit.text()
+            if not name:
+                name = "Player"
+            result = (name, result)
+        else:
+            result = ("Player", (6, 6))
+#        self.emit(SIGNAL("nameGet(QString)"), result[0])
+        #return result
+        self.playerLabel.setText(result[0])
+        global WaitForHero
+        try:
+            self.playThread.lock.lockForWrite()
+            self.playThread.result = result
+        finally:
+            print "abc"
+            self.playThread.lock.unlock()
+            WaitForHero.wakeAll()
+
+
     def on_firstRecv(self, mapInfo, frInfo, aiInfo, baseInfo):
         self.replayWindow.Initialize(basic.Begin_Info(mapInfo, baseInfo), frInfo)
         self.setRoundBegInfo(frInfo)
         self.gameBegInfo.append(frInfo)
+        #展示
+        self.replayWindow.GoToRound(len(self.gameBegInfo), 0)
+
         self.roundLabel.setText("Round %d" %len(self.gameBegInfo))
         self.labelAnimation()
 
@@ -335,13 +400,55 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         self.replayWindow.UpdateBeginData(rbInfo)
         self.setRoundBegInfo(rbInfo)
         self.gameBegInfo.append(rbInfo)
-        self.roundLabel.setText("Round %d" %len(self.gameBegInfo))
-        self.labelAnimation()
+        if self.Ani_Finished:
+            self.nowRound += 1
+            self.replayWindow.GoToRound(self.nowRound, 0)
+            self.roundLabel.setText("Round %d" %self.nowRound)
+            self.labelAnimation()
+            self.Ani_Finished = False
+            self.emit(SIGNAL("ableToPlay()"))#queued connection
+
+#        self.roundLabel.setText("Round %d" %len(self.gameBegInfo))
+#        self.labelAnimation()
+
 
     def on_reRecv(self, rCommand, reInfo):
         self.replayWindow.UpdateEndData(rCommand, reInfo)
         self.setRoundEndInfo(rCommand, reInfo)
         self.gameEndInfo.append((rCommand,reInfo))
+        if self.Able_To_Play:
+            self.Able_To_Play = False
+            self.replayWindow.Play()
+
+    def on_aniFinished(self):
+        if len(self.gameBegInfo) < self.nowRound + 1:
+            self.Ani_Finished = True
+        else:
+            self.nowRound += 1
+            self.replayWindow.GoToRound(self.nowRound, 0)
+            self.roundLabel.setText("Round %d" %self.nowRound)
+            self.labelAnimation()
+            self.emit(SIGNAL("ableToPlay()"))
+
+    def on_ablePlay(self):
+        if len(self.gameEndInfo) < self.nowRound:
+            self.Able_To_Play = True
+            global Already_Wait,WaitForAni,mutex
+            flag = False
+            try:
+                mutex.lock()
+                if Already_Wait:
+            #提示用户开始进行动作
+                    Already_Wait = False
+                    flag = True
+            finally:
+                mutex.unlock()
+            if flag:
+                WaitForAni.wakeAll()
+                self.roundLabel.setText(_frUtf("开始操作吧!"))
+                self.labelAnimation()
+        else:
+            self.replayWindow.Play()
 
     def on_mapRecv(self, mapInfo):
         self.replayWindow.SetInitMap(mapInfo)
