@@ -61,7 +61,6 @@ class Ui_GridUnit(QtGui.QGraphicsObject):
         return GetPos(self.mapX, self.mapY)
 
     def SetEnabled(self, flag):
-        print "define"
         if (flag):
             self.setVisible(True)
             self.setEnabled(True)

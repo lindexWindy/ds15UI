@@ -37,8 +37,11 @@ sio._sends(connUI, (maps,aiInfo, units0))
 print "send init info"
 #Round 1
 sio._sends(connUI, begInfo0)
+print "sent first"
 sio._sends(connAI, begInfo0)
+print "sent Ai first"
 cmd0_ = sio._recvs(connAI)
+print "recv command"
 sio._sends(connUI, (cmd0_, endInfo0))
 print "re1 send"
 time.sleep(3)

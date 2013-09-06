@@ -94,6 +94,7 @@ class Ui_Player(QThread):
             self.lock = QReadWriteLock()
             self.stopped = False
             self.func = func
+            self.cmdNum = 0
 #            self.parent = parent
             self.result = ("Player", (6,6))
 
@@ -119,36 +120,42 @@ class Ui_Player(QThread):
 	def AI(self,rBeginInfo):
             self.command=basic.Command()
             global mutex, AlreadyWait
-            try:
-                mutex.lock()
-                AlreadyWait = True
-            finally:
-                mutex.unlock()
-#            self.emit(SIGNAL("waitforC()"))
-			# time for player to make a command here!!
             global WaitForCommand,WaitForAni
             self.lock.lockForRead()
-            WaitForAni.wait(self.lock)
+            if self.cmdNum:
+                try:
+                    mutex.lock()
+                    AlreadyWait = True
+                finally:
+                    mutex.unlock()
+#            self.emit(SIGNAL("waitforC()"))
+			# time for player to make a command here!!
+                print "waiting"
+                WaitForAni.wait(self.lock)
 #            self.lock.lockForRead()
+            else:
+                self.emit(SIGNAL("firstCmd()"))
             self.func()
+            print "func called"
             WaitForCommand.wait(self.lock)
             self.lock.unlock()
             return self.command
 
 	def run(self):
-
             mapInfo = sio._recvs(self.conn)
             print "2"
             self.emit(SIGNAL("mapRecv"), mapInfo)
             print "3"
             sio._sends(self.conn, self.GetHeroType(mapInfo))
             print "4"
+
             while True and not self.isStopped():
                 rBeginInfo = sio._recvs(self.conn)
                 print 'rbInfo got'
                 if rBeginInfo != '|':
                     sio._sends(self.conn,self.AI(rBeginInfo))
                     print 'cmd sent'
+                    self.cmdNum += 1
                 else:
                     break
             self.conn.close()
@@ -195,7 +202,7 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         self.getComm = self.replayWindow.GetCommand
 
         #layout
-        self.verticalLayout_2.addWidget(self.replayWindow)
+        self.verticalLayout_3.addWidget(self.replayWindow)
 #        self.
 
         #connect
@@ -282,6 +289,7 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
 #            self.connect(self.playThread, SIGNAL("waitforC()"), self.on_waitforC)
 #        self.connect(self.playThread, SIGNAL("nameGet(QString)"), self.on_nameGet)
         self.connect(self.playThread, SIGNAL("getHeroType()"), self.on_getHero)
+        self.connect(self.playThread, SIGNAL("firstCmd()"), self.on_firstCmd)
         self.connect(self.playThread, SIGNAL("finished()"), self.playThread,
                          SLOT("deleteLater()"))
 
@@ -387,13 +395,14 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
 
 
     def on_firstRecv(self, mapInfo, frInfo, aiInfo, baseInfo):
-        self.replayWindow.Initialize(basic.Begin_Info(mapInfo, baseInfo), frInfo)
+        self.replayWindow.Initialize(basic.Begin_Info(mapInfo, baseInfo), [frInfo])
         self.setRoundBegInfo(frInfo)
         self.gameBegInfo.append(frInfo)
         #展示
-        self.replayWindow.GoToRound(len(self.gameBegInfo), 0)
 
-        self.roundLabel.setText("Round %d" %len(self.gameBegInfo))
+        self.replayWindow.GoToRound(len(self.gameBegInfo)-1, 0)
+
+        self.roundLabel.setText("Round %d" %(len(self.gameBegInfo)-1))
         self.labelAnimation()
 
     def on_rbRecv(self, rbInfo):
@@ -450,6 +459,11 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         else:
             self.replayWindow.Play()
 
+    def on_firstCmd(self):
+        time.sleep(1)
+        self.roundLabel.setText(_frUtf("开始操作吧!"))
+        self.labelAnimation()
+
     def on_mapRecv(self, mapInfo):
         self.replayWindow.SetInitMap(mapInfo)
 
@@ -486,12 +500,12 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
  
     def labelAnimation(self):
         animation_1 = QParallelAnimationGroup(self)
-        animation_1_1 = QPropertyAnimation(self.roundLabel, y)
+        animation_1_1 = QPropertyAnimation(self.roundLabel, "geometry")
         animation_1_1.setDuration(2000)
-        animation_1_1.setStartValue(self.roundLabel.y())
-        animation_1_1.setEndValue(150)
-        animation_1_2 = QPropertyAnimation(self.roundLabel, opacity)
-        animation_1_2.setDuaration(1200)
+        animation_1_1.setStartValue(self.roundLabel.geometry())
+        animation_1_1.setEndValue(QRect(450,150,141,41))
+        animation_1_2 = QPropertyAnimation(self.roundLabel, "windowOpacity")
+        animation_1_2.setDuration(1500)
         animation_1_2.setStartValue(0)
         animation_1_2.setEndValue(1)
         animation_1_1.setEasingCurve(QEasingCurve.OutCubic)
@@ -499,12 +513,12 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         animation_1.addAnimation(animation_1_2)
 
         animation_2 = QParallelAnimationGroup(self)
-        animation_2_1 = QPropertyAnimation(self.roundLabel, y)
-        animation_2_1.setDuration(1500)
-        animation_2_1.setStartValue(self.roundLabel.y())
-        animation_2_1.setEndValue(40)
-        animation_2_2 = QPropertyAnimation(self.roundLabel, opacity)
-        animation_2_2.setDuaration(1000)
+        animation_2_1 = QPropertyAnimation(self.roundLabel, "geometry")
+        animation_2_1.setDuration(2000)
+        animation_2_1.setStartValue(self.roundLabel.geometry())
+        animation_2_1.setEndValue(QRect(450, 40, 141, 41))
+        animation_2_2 = QPropertyAnimation(self.roundLabel, "windowOpacity")
+        animation_2_2.setDuration(1000)
         animation_2_2.setStartValue(1)
         animation_2_2.setEndValue(0)
         animation_2_1.setEasingCurve(QEasingCurve.OutCubic)
