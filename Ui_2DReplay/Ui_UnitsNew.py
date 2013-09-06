@@ -125,9 +125,6 @@ class Ui_MapUnit(Ui_GridUnit):
         painter.drawRect(QtCore.QRect(0, 0, UNIT_WIDTH, UNIT_HEIGHT))
         #for test
 
-    def mousePressEvent(self, event):
-        self.mapGridSelected.emit(self.mapX, self.mapY)
-    #old event
     def DragStopEvent(self, args):
         return True
     #my event
@@ -160,9 +157,6 @@ class Ui_SoldierUnit(Ui_GridUnit):
         image = QtGui.QImage(fileRoute+imageRoute[self.type])
         painter.setCompositionMode(painter.CompositionMode_Multiply)
         painter.drawImage(QtCore.QRectF(0, 0, UNIT_WIDTH, UNIT_HEIGHT), image)
-
-    def mousePressEvent(self, event):
-        self.soldierSelected.emit(self.idNum)
 
     soldierSelected = QtCore.pyqtSignal(int)#no need
 
@@ -335,7 +329,6 @@ class UiD_EndChanges:
 class UiD_RoundInfo:
     "info of every round"
     def __init__(self, begInfo, cmd, endInfo, maps):
-        #print len(begInfo.base[0])#for test
         self.begChanges = UiD_BeginChanges(begInfo)
         self.idNum = begInfo.id
         if (endInfo==None and cmd==None):

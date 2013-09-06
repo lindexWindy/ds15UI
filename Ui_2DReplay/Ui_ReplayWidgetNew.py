@@ -33,8 +33,8 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         #for unit in self.soldierItem:
             #unit.soldierSelected.connect(self.__callUnitDisp)
         self.focusGridChange.connect(self.__emitInfo)
-        self.connect(self, QtCore.SIGNAL("unitSelected"), self.__dispFun)#for test
-        self.connect(self, QtCore.SIGNAL("mapGridSelected"), self.__dispFun)#for test
+        #self.connect(self, QtCore.SIGNAL("unitSelected"), self.__dispFun)#for test
+        #self.connect(self, QtCore.SIGNAL("mapGridSelected"), self.__dispFun)#for test
         #maybe the connecting part shouldn't be here.
         self.nowRound = 0
         self.status = self.BEGIN_FLAG
@@ -167,10 +167,8 @@ class Ui_2DReplayWidget(Ui_ReplayView):
                                  ConvertBackTo2D(units),
                                  idNum)
         for i in units.keys():
-            if (units[i].position in movRng):
+            if (units[i].position in movRng and i!=idNum):
                 movRng.remove(units[i].position)
-        if (units[idNum] not in movRng):
-            movRng.append(units[idNum])
         return movRng
     #some Qs
             
