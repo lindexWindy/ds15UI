@@ -1,22 +1,26 @@
-ï»¿'''ä½¿ç”¨shelveæ¨¡å—çš„åœ°å›¾æ–‡ä»¶å­˜å‚¨å’Œå†™å…¥æ¨¡å—ã€‚
-   ç»¼åˆè€ƒè™‘ï¼Œè¿˜æ˜¯ç”¨shelveæœ€æ–¹ä¾¿æ— è„‘ã€‚ã€‚'''
+# -*- coding:UTF-8 -*-
+'''Ê¹ÓÃshelveÄ£¿éµÄµØÍ¼ÎÄ¼ş´æ´¢ºÍĞ´ÈëÄ£¿é¡£
+   ×ÛºÏ¿¼ÂÇ£¬»¹ÊÇÓÃshelve×î·½±ãÎŞÄÔ¡£¡£'''
+
 
 import shelve
 import basic
 
 default = "default_map.db"
-key = ("map", "base") # å®šä¹‰shelveç±»çš„é”®å€¼ä¸º"map"å’Œ"base"
+
+key = ("map", "base") # ¶¨ÒåshelveÀàµÄ¼üÖµÎª"map"ºÍ"base"
 
 
 def change_path(path):
-    '''å¦‚æœæœ‰å¿…è¦çš„è¯ï¼Œå®šä¹‰ä¸€ä¸ªæ”¹å˜è·¯å¾„çš„å‡½æ•°ä¹Ÿæ˜¯æå¥½çš„'''
+    '''Èç¹ûÓĞ±ØÒªµÄ»°£¬¶¨ÒåÒ»¸ö¸Ä±äÂ·¾¶µÄº¯ÊıÒ²ÊÇ¼«ºÃµÄ'''
     pass
 
 def read_from(filename = default, change_path = 0):
-    '''ä»æ–‡ä»¶ä¸­è¯»å–åœ°å›¾ä¿¡æ¯å’Œå•ä½ä¿¡æ¯çš„å‡½æ•°,
-    å‡½æ•°æ¥å—æ–‡ä»¶å(æ‰©å±•åä¸€å®šä¸º.db)å’Œè·¯å¾„æ”¹å˜
-    å‚æ•°ä½œä¸ºå½¢å‚ï¼Œè¿”å›äºŒå…ƒå…ƒç»„(map, base)å³åœ°
-    å›¾å’Œå•ä½åˆ—è¡¨ã€‚'''
+    '''´ÓÎÄ¼şÖĞ¶ÁÈ¡µØÍ¼ĞÅÏ¢ºÍµ¥Î»ĞÅÏ¢µÄº¯Êı,
+    º¯Êı½ÓÊÜÎÄ¼şÃû(À©Õ¹ÃûÒ»¶¨Îª.db)ºÍÂ·¾¶¸Ä±ä
+    ²ÎÊı×÷ÎªĞÎ²Î£¬·µ»Ø¶şÔªÔª×é(map, base)¼´µØ
+    Í¼ºÍµ¥Î»ÁĞ±í¡£'''
+
     if change_path:
         pass # TODO!!!
     try:
@@ -30,9 +34,11 @@ def read_from(filename = default, change_path = 0):
         shelv_in.close();
 
 def write_to(info_tuple, filename = default, change_path = 0):
-    '''å°†åœ°å›¾ä¿¡æ¯å’Œå•ä½ä¿¡æ¯å†™å…¥æ–‡ä»¶, æ¥å—äºŒå…ƒå…ƒç»„(map, base)
-    ä¸ºå‚æ•°ã€‚filenameå’Œchange_pathå®šä¹‰åŒä¸Šã€‚å†™å…¥æˆåŠŸè¿”å›1ï¼Œ
-    å¦åˆ™è¿”å›0.'''
+
+    '''½«µØÍ¼ĞÅÏ¢ºÍµ¥Î»ĞÅÏ¢Ğ´ÈëÎÄ¼ş, ½ÓÊÜ¶şÔªÔª×é(map, base)
+    Îª²ÎÊı¡£filenameºÍchange_path¶¨ÒåÍ¬ÉÏ¡£Ğ´Èë³É¹¦·µ»Ø1£¬
+    ·ñÔò·µ»Ø0.'''
+
     if change_path:
         pass # TODO!!!
     try:
@@ -50,7 +56,9 @@ def write_to(info_tuple, filename = default, change_path = 0):
         shelv_out.close()
 
 def main():
-    '''æµ‹è¯•ç”¨'''
+
+    '''²âÊÔÓÃ'''
+
     (field, base) = read_from()  
     for each in field:
         for eeach in each:

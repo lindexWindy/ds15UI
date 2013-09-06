@@ -11,11 +11,17 @@ from PyQt4 import QtGui, QtCore
 from basic import *
 
 
-#from shortest import *
+
+
 import qrc_resources
-from myGetRoute import GetRoute
+
+from shortest import *
+import copy
+
 
 TRAP_TRIGGERED = 8
+
+TEMP_SOLDIER = 100
 
 
 
@@ -126,9 +132,6 @@ class Ui_MapUnit(Ui_GridUnit):
         painter.drawRect(QtCore.QRect(0, 0, UNIT_WIDTH, UNIT_HEIGHT))
         #for test
 
-    def mousePressEvent(self, event):
-        self.mapGridSelected.emit(self.mapX, self.mapY)
-    #old event
     def DragStopEvent(self, args):
         return True
     #my event
@@ -161,15 +164,7 @@ class Ui_SoldierUnit(Ui_GridUnit):
         painter.setCompositionMode(painter.CompositionMode_Multiply)
         painter.drawImage(QtCore.QRectF(0, 0, UNIT_WIDTH, UNIT_HEIGHT), image)
 
-    def mousePressEvent(self, event):
-        self.soldierSelected.emit(self.idNum)
-
-    soldierSelected = QtCore.pyqtSignal(int)
-
-    #slots for creating animation
-    #def FadeOut(self, time):
-        #self.setOpacity(1-time)
-    #def Flicker(self, frame):
+    soldierSelected = QtCore.pyqtSignal(int)#no need
 
 
 class Ui_GridLabel(Ui_GridUnit):
@@ -296,22 +291,31 @@ class Ui_Animation(QtCore.QPropertyAnimation):
         
 #data of game
 def ConvertTo1D(iniUnits):
-    units = []
-    for row in iniUnits:
-        units.extend(row)
+    units = {}
+    for i in (0, 1):
+        for j in range(len(iniUnits[i])):
+            units[(i, j)] = iniUnits[i][j]
     return units
+def ConvertBackTo2D(units):
+    iniUnits = [[], []]
+    for idNum in units.keys():
+        i, j = idNum
+        while (len(iniUnits[i])<=j):
+            iniUnits[i].append(None)
+        iniUnits[i][j] = units[idNum]
+    return iniUnits
 
 class UiD_BeginChanges:
-    def __init__(self, beginInfo, cmd, endInfo, maps):
+    def __init__(self, beginInfo):
         self.templeRenew = None#
 
 class UiD_EndChanges:
     def __init__(self, begInfo, cmd, endInfo, maps):
-        self.idNum = idNum = begInfo.id[0]*len(begInfo.base[0])+begInfo.id[1]
+        self.idNum = idNum = begInfo.id
         self.route = GetRoute(maps, begInfo.base, begInfo.id, cmd.move)
         self.order = cmd.order
         if (cmd.order==1):
-            target = self.target = cmd.target[0]*len(endInfo.base[0])+cmd.target[1]
+            self.target = target = cmd.target
             begUnits = ConvertTo1D(begInfo.base)
             endUnits = ConvertTo1D(endInfo.base)
             self.damage = (endUnits[idNum].life-begUnits[idNum].life,
@@ -333,13 +337,20 @@ class UiD_EndChanges:
 class UiD_RoundInfo:
     "info of every round"
     def __init__(self, begInfo, cmd, endInfo, maps):
-        #print len(begInfo.base[0])#for test
-        self.begChanges = UiD_BeginChanges(begInfo, cmd, endInfo, maps)
-        self.cmdChanges = UiD_EndChanges(begInfo, cmd, endInfo, maps)
-        self.begUnits = None #if it is none, there's no changes in the unit info
-        self.endUnits = ConvertTo1D(endInfo.base)
-        self.idNum = begInfo.id[0]*len(endInfo.base[0])+begInfo.id[1]
-        self.score = endInfo.score
+        self.begChanges = UiD_BeginChanges(begInfo)
+        self.idNum = begInfo.id
+        if (endInfo==None and cmd==None):
+            self.begUnits = ConvertTo1D(begInfo.base)
+            self.endUnits = None
+            self.cmdChanges = None
+            self.score = None
+            self.isCompleted = False
+        else:
+            self.cmdChanges = UiD_EndChanges(begInfo, cmd, endInfo, maps)
+            self.begUnits = None #if it is none, there's no changes in the unit info
+            self.endUnits = ConvertTo1D(endInfo.base)
+            self.score = endInfo.score
+            self.isCompleted = True
 
 class UiD_BattleData:
     "info of the entire battle(not completed)"
@@ -348,7 +359,31 @@ class UiD_BattleData:
         self.side0SoldierNum = len(iniInfo.base[0])
         self.iniUnits = ConvertTo1D(iniInfo.base)
         self.roundInfo = []
-        self.nextRoundInfo = begInfo #temporary stores the round_begin_info
-        self.result = None #result
+        self.nextRoundInfo = None
+        self.UpdateBeginData(begInfo)
+        self.result = None #result, not complete
+
+    def GetUnitArray(self, roundNum, isEnd):
+        if (isEnd):
+            units = self.roundInfo[roundNum].endUnits
+        else:
+            units = self.roundInfo[roundNum].begUnits
+            if (units==None):
+                if (roundNum>0):
+                    units = self.roundInfo[roundNum-1].endUnits
+                else:
+                    units = self.iniUnits
+        return units
+
+    def UpdateBeginData(self, begInfo):
+        assert(not self.roundInfo or self.roundInfo[-1].isCompleted,
+               "error in update")
+        self.nextRoundInfo = begInfo
+        self.roundInfo.append(UiD_RoundInfo(begInfo, None, None, self.map))
+    def UpdateEndData(self, cmd, endInfo):
+        assert(not self.roundInfo[-1].isCompleted, "error in update")
+        rInfo = UiD_RoundInfo(self.nextRoundInfo, cmd, endInfo, self.map)
+        self.roundInfo[-1] = rInfo
+        self.nextRoundInfo = None
 
 

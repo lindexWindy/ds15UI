@@ -21,6 +21,7 @@ class Ui_NewMapUnit(Ui_MapUnit):
         dragUnit.unsetCursor()
         return True
 
+#class Ui_NewSoldierUnit(Ui_SoldierUnit):
 class Ui_NewSoldierUnit(Ui_GridUnit):
     def __init__(self, pos, side, order, parent = None):
         Ui_GridUnit.__init__(self, pos[0], pos[1], parent)

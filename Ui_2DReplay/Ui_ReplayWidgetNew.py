@@ -21,20 +21,11 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         self.latestStatus = self.BEGIN_FLAG
         self.anim = None
         self.additionItem = []
-        #connecting of animation
+        #animation
         self.animState = 0
-        #self.connect(self.movTimeline, QtCore.SIGNAL("finished()"),
-        #             self.ShowMoveAnimation)
-        #self.connect(self.atkTimeline, QtCore.SIGNAL("finished()"),
-        #             self.ShowMoveAnimation)
-        #self.connect(self.dieTimeline, QtCore.SIGNAL("finished()"),
-        #             self.ShowMoveAnimation)
-        #self.moveAnimEnd.connect(self.Play)
-        #self.begAnimEnd.connect(self.Play)
     def Initialize(self, iniInfo, begInfo):
         self.data = UiD_BattleData(iniInfo, begInfo)
-        Ui_ReplayView.Initialize(self, self.data.map, self.data.iniUnits,
-                                   self.data.side0SoldierNum)
+        Ui_ReplayView.Initialize(self, self.data.map, self.data.iniUnits)
         #connecting disp signals
         #for column in self.mapItem:
             #for grid in column:
@@ -42,8 +33,8 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         #for unit in self.soldierItem:
             #unit.soldierSelected.connect(self.__callUnitDisp)
         self.focusGridChange.connect(self.__emitInfo)
-        self.connect(self, QtCore.SIGNAL("unitSelected"), self.__dispFun)#for test
-        self.connect(self, QtCore.SIGNAL("mapGridSelected"), self.__dispFun)#for test
+        #self.connect(self, QtCore.SIGNAL("unitSelected"), self.__dispFun)#for test
+        #self.connect(self, QtCore.SIGNAL("mapGridSelected"), self.__dispFun)#for test
         #maybe the connecting part shouldn't be here.
         self.nowRound = 0
         self.status = self.BEGIN_FLAG
@@ -54,15 +45,13 @@ class Ui_2DReplayWidget(Ui_ReplayView):
     def UpdateBeginData(self, begInfo):
         if (self.data.nextRoundInfo!=None):
             raise TypeError#raise error
-        self.data.nextRoundInfo = begInfo
+        self.data.UpdateBeginData(begInfo)
         self.latestRound += 1
         self.latestStatus = self.BEGIN_FLAG
     def UpdateEndData(self, cmd, endInfo):
         if (self.data.nextRoundInfo==None):
             raise TypeError#raise error
-        rInfo = UiD_RoundInfo(self.data.nextRoundInfo, cmd, endInfo, self.data.map)
-        self.data.roundInfo.append(rInfo)
-        self.data.nextRoundInfo = None
+        self.data.UpdateEndData(cmd, endInfo)
         self.latestStatus = self.END_FLAG
 
     #def GetGameInfo(self):
@@ -167,20 +156,33 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         self.ShowStatus()
 
     def GetRoute(self, pos):
-        raise NotImplementedError
+        return GetRoute(self.data.map,
+                        ConvertBackTo2D(self.__getNowUnitArray()),
+                        self.data.roundInfo[self.nowRound].idNum,
+                        pos)
     def GetMovRange(self):
-        raise NotImplementedError
-    def GetAtkRange(self, movPos):
+        idNum = self.data.roundInfo[self.nowRound].idNum
+        units = self.__getNowUnitArray()
+        movRng = available_spots(self.data.map,
+                                 ConvertBackTo2D(units),
+                                 idNum)
+        for i in units.keys():
+            if (units[i].position in movRng and i!=idNum):
+                movRng.remove(units[i].position)
+        return movRng
+    #some Qs
+            
+#    def GetAtkTarget(self, movPos):
         #returns a dictionary, with keys targets' pos, contents their id
-        raise NotImplementedError
-    def GetSkillRange(self, movPos):
+#        raise NotImplementedError
+#    def GetSkillTarget(self, movPos):
         #ts
-        raise NotImplementedError
+#        raise NotImplementedError
 
     def __emitInfo(self, grid):
         x, y = grid.x(), grid.y()
         units = self.__getNowUnitArray()
-        for i in range(len(self.soldierItem)):
+        for i in self.soldierItem.keys():
             if ((self.soldierItem[i].mapX, self.soldierItem[i].mapY)==(x, y)):
                 self.emit(QtCore.SIGNAL("unitSelected"), units[i])
                 break
@@ -193,29 +195,11 @@ class Ui_2DReplayWidget(Ui_ReplayView):
 
     def __getNowUnitArray(self):
         if (self.nowRound*2+self.status>self.latestRound*2+self.latestStatus):
-            pass#raise error
-        if (self.status==self.BEGIN_FLAG):
-            if (self.nowRound==self.latestRound and
-                self.latestStatus==self.BEGIN_FLAG):
-                if (self.nowRound==0):
-                    units = self.data.iniUnits
-                else:
-                    units = self.data.roundInfo[self.nowRound-1].endUnits
-            else:
-                units = self.data.roundInfo[self.nowRound].begUnits
-                if (units==None):
-                    if (self.nowRound==0):
-                        units = self.data.iniUnits
-                    else:
-                        units = self.data.roundInfo[self.nowRound-1].endUnits
-        elif (self.status==self.END_FLAG):
-            units = self.data.roundInfo[self.nowRound].endUnits
-        else:
-            raise TypeError#raise error
-        return units
+            raise IndexError, "out of range"#raise error
+        return self.data.GetUnitArray(self.nowRound, self.status)
 
     def __dispFun(self, dic):#for test
-        print dic.__dict__
+        print dic.__dict__#for test
 
     BEGIN_FLAG = 0
     END_FLAG = 1
