@@ -52,7 +52,7 @@ class AiThread(QThread):
             self.mutex.unlock()
     def run(self):
         sio._sends(self.conn,(sio.AI_VS_AI, self.gameMapPath, self.gameAIPath))
-        (mapInfo,aiInfo,baseInfo) = sio._recvs(self.conn)#add base info
+        (mapInfo,baseInfo,aiInfo) = sio._recvs(self.conn)#add base info
         frInfo = sio._recvs(self.conn)
         self.emit(SIGNAL("firstRecv"),mapInfo, frInfo, aiInfo, baseInfo)
 
