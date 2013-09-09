@@ -72,7 +72,8 @@ class Ui_VSModeWidget(Ui_2DReplayWidget):
         self.newInput = QtCore.QWaitCondition()
         self.mutex = QtCore.QMutex()
         #lock for thread
-        self.cmdState = self.INIT_STATE
+        self.cmdState = None
+        self.SetCmdState(self.INIT_STATE)
         self.input = None
         self.__iniPos = None
         self.__movPos = None
@@ -98,7 +99,7 @@ class Ui_VSModeWidget(Ui_2DReplayWidget):
             self.UpdateEndData(cmd[i], endInfo[i])
             self.UpdateBeginData(begInfo[i+1])
         #update data
-        self.cmdState = self.INIT_STATE
+        self.SetCmdState(self.INIT_STATE)
         self.input = None
         self.__nowSoldier = copy.deepcopy(begInfo[-1].base[begInfo[-1].id[0]][begInfo[-1].id[1]])
         self.__nowId = self.data.roundInfo[self.nowRound].idNum
@@ -128,7 +129,7 @@ class Ui_VSModeWidget(Ui_2DReplayWidget):
                     if (not self.__getOrder()):
                         break
                     if (self.__prepOrder==0):
-                        target = 0
+                        self.__prepTarget = 0
                         raise CommandComplete
                     elif (self.__prepOrder==1):
                         while True:
@@ -150,8 +151,9 @@ class Ui_VSModeWidget(Ui_2DReplayWidget):
         self.SetCmdState(self.INIT_STATE)
     def __getMovement(self):
         print "get movement"#for test
-        print "state = ", self.cmdState#for test
+
         self.SetCmdState(self.MOVEMENT_STATE)
+        print "state = ", self.cmdState#for test
         self.newInput.wait(self.mutex)
         if (self.input not in self.GetMovRange()):
             print self.GetMovRange()#for test
@@ -205,7 +207,7 @@ class Ui_VSModeWidget(Ui_2DReplayWidget):
     def __getCmdAgain(self):
         print "get command again"#for test
         self.__nowSoldier.position = self.__iniPos
-        self.SetCmdState(self.INIT_STATE)
+        self.SetCmdState(self.BACK_STATE)
         self.newInput.wait(self.mutex)
         print "input = ", self.input#for test
         print "init pos = ", self.__iniPos#for test
@@ -275,6 +277,7 @@ class Ui_VSModeWidget(Ui_2DReplayWidget):
         self.scene().update()
 
     def SetCmdState(self, state):
+        print "setState", state#for test
         oldState = self.cmdState
         self.cmdState = state
         if (oldState!=state):
@@ -288,7 +291,8 @@ class Ui_VSModeWidget(Ui_2DReplayWidget):
     SET_ORDER_STATE = 2
     SELECT_ATK_TARGET_STATE = 3
     SELECT_SKILL_TARGET_STATE = 4
-    BEGIN_STATE = 5##
+    BACK_STATE = 5
+    BEGIN_STATE = 6##
     BREAK_FLAG = -1
 
     cmdStateChange = QtCore.pyqtSignal(int, int)
@@ -313,17 +317,26 @@ class Ui_VSModeWidget(Ui_2DReplayWidget):
     
     def mousePressEvent(self, event):
         #need to integrate
+        print "mouse press"#for test
         if self.cmdState==self.SET_ORDER_STATE:#for test
             return QtGui.QGraphicsView.mousePressEvent(self, event)#for test
         else:
+            print "go ahead"#for test
+            print "cmdState = ", self.cmdState#for test
             if (self.cmdState!=self.INIT_STATE and self.cmdState!=self.BEGIN_STATE):
+                print "prepare to lock"#for test
                 self.mutex.lock()
+                print "prepare to get info"#for test
                 info = Ui_MouseInfo(self, event)
+                print "prepare to judge"#for test
                 if (info.isValid):
                     self.input = info.nowPos
+                    print "prepare to awake"#for test
                     self.newInput.wakeAll()
-                self.mutex.unlock()
+                    print "awake"#for test
+                    self.mutex.unlock()
             Ui_2DReplayWidget.mousePressEvent(self, event)
+            print "88!"#for test
 
     def mouseMoveEvent(self, event):
         if (self.cmdState==self.MOVEMENT_STATE):

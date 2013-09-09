@@ -23,7 +23,7 @@ Already_Wait = False
 WaitForCommand=QWaitCondition()
 WaitForHero=QWaitCondition()
 WaitForAni=QWaitCondition()
-
+WaitForIni=QWaitCondition()
 mutex = QMutex()
 #tmp
 class ConnectionError(Exception):
@@ -76,7 +76,7 @@ class AiThread(QThread):
             if self.isStopped():
                 break
             self.emit(SIGNAL("rbRecv"),rbInfo)
-            rCommand,reInfo = sio._recvs(self.conn)
+            (rCommand,reInfo) = sio._recvs(self.conn)
             if self.isStopped():
                 break
             self.emit(SIGNAL("reRecv"),rCommand, reInfo)
@@ -120,7 +120,7 @@ class Ui_Player(QThread):
 	def AI(self,rBeginInfo):
             self.command=basic.Command()
             global mutex, AlreadyWait
-            global WaitForCommand,WaitForAni
+            global WaitForCommand,WaitForAni,WaitForIni
             self.lock.lockForRead()
             if self.cmdNum:
                 try:
@@ -135,6 +135,7 @@ class Ui_Player(QThread):
 #            self.lock.lockForRead()
             else:
                 self.emit(SIGNAL("firstCmd()"))
+                WaitForIni.wait(self.lock)
             self.func()
             print "func called"
             WaitForCommand.wait(self.lock)
@@ -196,6 +197,7 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         self.nowRound = 0
         self.gameBegInfo = []
         self.gameEndInfo = []
+#        self.startButton.setEnabled(False)
         #widget
         self.scene = QGraphicsScene()
         self.replayWindow = Ui_VSModeWidget(self.scene)
@@ -223,11 +225,11 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         self.roundLabel.setWindowOpacity(0)
 
     def updateUi(self):
-        if self.mapPath and self.aiPath and not self.started:
-            self.startButton.setEnabled(True)
-        else:
-            self.startButton.setEnabled(False)
-            
+#        if self.mapPath and self.aiPath and not self.started:
+#            self.startButton.setEnabled(True)
+#        else:
+#            self.startButton.setEnabled(False)
+        pass
     @pyqtSlot()
     def on_aiButton_clicked(self):
         filename = QFileDialog.getOpenFileName(self, _frUtf("载入ai文件"), AI_DIR,
@@ -249,14 +251,14 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
     @pyqtSlot()
     def on_startButton_clicked(self):
         #检查工作
-        if not os.path.exists(r"%s" %self.aiPath):
-            QMessageBox.critical(self, _frUtf("错误"), _frUtf("ai文件 %s 不存在。" %self.aiPath),
-                                 QMessageBox.Ok, QMessageBox.NoButton)
-            return
-        if not os.path.exists(r"%s" %self.mapPath):
-            QMessageBox.critical(self, _frUtf("错误"), _frUtf("map文件 %s 不存在。" %self.mapPath),
-                                 QMessageBox.Ok, QMessageBox.NoButton)
-            return
+#        if not os.path.exists(r"%s" %self.aiPath):
+#            QMessageBox.critical(self, _frUtf("错误"), _frUtf("ai文件 %s 不存在。" %self.aiPath),
+#                                 QMessageBox.Ok, QMessageBox.NoButton)
+#            return
+#        if not os.path.exists(r"%s" %self.mapPath):
+#            QMessageBox.critical(self, _frUtf("错误"), _frUtf("map文件 %s 不存在。" %self.mapPath),
+#                                 QMessageBox.Ok, QMessageBox.NoButton)
+#            return
         #打开与平台UI_PORT连接的线程
         flag = 0
         self.aiThread = AiThread(self)
@@ -362,7 +364,7 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
             self.playThread.lock.lockForWrite()
             self.playThread.command = cmd
         finally:
-            self.palyThread.lock.unlock()
+            self.playThread.lock.unlock()
             WaitForCommand.wakeAll()
 
     def on_getHero(self):
@@ -374,7 +376,7 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
             elif len(dialog.choice) == 2:
                 result = tuple(dialog.choice)
             elif len(dialog.choice) == 1:
-                result = tuple(dialog.choice[0], dialog.choice[0])
+                result = tuple([dialog.choice[0], dialog.choice[0]])
             name = dialog.nameEdit.text()
             if not name:
                 name = "Player"
@@ -401,7 +403,8 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         #展示
 
         self.replayWindow.GoToRound(len(self.gameBegInfo)-1, 0)
-
+        global WaitForIni
+        WaitForIni.wakeAll()
         self.roundLabel.setText("Round %d" %(len(self.gameBegInfo)-1))
         self.labelAnimation()
 
@@ -495,8 +498,8 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         #同步分数
         sco1 = reInfo.score[0]
         sco2 = reInfo.score[1]
-        self.scoLabel1.setText(sco1)
-        self.scoLabel2.setText(sco2)
+        self.scoLabel1.setText("%d"%sco1)
+        self.scoLabel2.setText("%d"%sco2)
  
     def labelAnimation(self):
         animation_1 = QParallelAnimationGroup(self)
