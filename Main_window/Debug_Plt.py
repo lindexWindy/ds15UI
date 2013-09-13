@@ -50,12 +50,15 @@ sio._sends(connUI, begInfo0)
 time.sleep(3)
 sio._sends(connUI, (cmd0, endInfo0))
 print "re2 send"
-#time.sleep(10)
+time.sleep(10)
 #Round 3
 sio._sends(connUI, begInfo1)
+sio._sends(connAI, begInfo1)
+cmd1 = sio._recvs(connAI)
 #time.sleep(3)
 endInfo = endInfo1
 endInfo.over = 0
+time.sleep(3)
 sio._sends(connUI, (cmd1,endInfo))
 print "re3 send"
 #time.sleep(10)

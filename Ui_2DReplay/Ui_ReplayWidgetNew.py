@@ -81,7 +81,7 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         self.anim = QtCore.QSequentialAnimationGroup()
         self.additionItem = []
         #move
-        anim, item = self.MovingAnimation(cmd.idNum, self.route)
+        anim, item = self.MovingAnimation(cmd.idNum, cmd.route)
         self.anim.addAnimation(anim)
         self.additionItem.extend(item)
         #terrain changes
@@ -112,8 +112,8 @@ class Ui_2DReplayWidget(Ui_ReplayView):
         for item in self.additionItem:
             self.scene().addItem(item)
             item.SetEnabled(False)#set them invisible
-        self.connect(self.anim, SIGNAL("finished()"), self.ShowStatus)
-        self.connect(self.anim, SIGNAL("finished()"), self.moveAnimEnd)
+        self.connect(self.anim, QtCore.SIGNAL("finished()"), self.ShowStatus)
+        self.connect(self.anim, QtCore.SIGNAL("finished()"), self.moveAnimEnd)
         self.cursor.SetEnabled(False)
         self.setEnabled(False)
 
@@ -122,12 +122,14 @@ class Ui_2DReplayWidget(Ui_ReplayView):
     def __TerminateAnimation(self):
         if (self.anim!=None):
             self.anim.stop()
+            self.anim.deleteLater()
+            self.anim = None
         self.animState = self.ANIM_STOP
         for item in self.additionItem:
             self.scene().removeItem(item)
         
-        self.nowRound += (self.status+1)/2
-        self.status = (self.status+1)/2
+#        self.nowRound += (self.status+1)/2
+#        self.status = (self.status+1)/2
         self.additionItem = []
         self.cursor.SetEnabled(True)
         self.setEnabled(True)
@@ -142,9 +144,9 @@ class Ui_2DReplayWidget(Ui_ReplayView):
             or (self.nowRound==self.latestRound and self.latestStatus==self.BEGIN_FLAG)):
             raise TypeError#raise error
         else:
-            if (self.nowStatus==self.BEGIN_FLAG):
+            if (self.status==self.BEGIN_FLAG):
                 self.ShowMoveAnimation()
-            elif (self.nowStatus==self.END_FLAG):
+            elif (self.status==self.END_FLAG):
                 pass#show begin
 
     def GoToRound(self, r = None, flag = None):

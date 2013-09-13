@@ -8,6 +8,7 @@ from UiSimpleWidgets import *#BeginMenu,SingleMenu,MusicCheck
 from Uibackwindow import BackWidget
 from Uiteamwidget import TeamWidget
 from Uiaivsai import AivsAi
+from myTrySomething import Uihumanvsai
 #from Uihumanvsai import HumanvsAi
 #from Uimapeditor import MapEditor
 #from Uireplaywindow import ReplayWindow
@@ -101,7 +102,7 @@ class MainWindow(QGraphicsView):
 
         #人机对战
         self.humanaiWindow =  QGraphicsProxyWidget(self.pad)
-        self.humanaiWidget =  HumanvsAi()
+        self.humanaiWidget =  Uihumanvsai.HumanvsAi()
         self.humanaiWindow.setX(self.backWindow.x())
         self.humanaiWindow.setY(self.backWindow.y())
         self.humanaiWindow.setWidget(self.humanaiWidget)
@@ -138,13 +139,13 @@ class MainWindow(QGraphicsView):
         self.testWindow.setY(0)
     #    self.testWindow.widget().setDisabled(True)
 
-#          self.beginWindow.close()
+        self.beginWindow.close()
         self.aiWindow.widget().close()
         self.singleWindow.widget().close()
         self.replayWindow.widget().close()
         self.teamWindow.widget().close()
         self.mapEditWindow.widget().close()
-        self.humanaiWindow.widget().close()
+ #       self.humanaiWindow.widget().close()
         self.LogInWindow.widget().close()
         self.testWindow.widget().close()
 
@@ -254,14 +255,14 @@ class MainWindow(QGraphicsView):
  #                                                               self.MapState)
   #      self.trans_SingleToMap.addAnimation(MenuToWindowAnimation(self.singleWindow, self.mapEditWindow))
 #
- #       self.trans_SingleToHumanai = self.SingleState.addTransition(self.singleWidget.playervsai,SIGNAL("clicked()"),
-  #                                                                  self.HumanaiState)
-   #     self.trans_SingleToHumanai.addAnimation(MenuToWindowAnimation(self.singleWindow, self.humanaiWindow))
+        self.trans_SingleToHumanai = self.SingleState.addTransition(self.singleWidget.playervsai,SIGNAL("clicked()"),
+                                                                    self.HumanaiState)
+        self.trans_SingleToHumanai.addAnimation(MenuToWindowAnimation(self.singleWindow, self.humanaiWindow))
 
 
-#        self.trans_HumanaiToSingle = self.HumanaiState(self.humanaiWidget, SIGNAL("willReturn()"),
- #                                                 self.SingleState)
-  #      self.trans_HumanaiToSingle.addAnimation(WindowToMenuAnimation(humanaiWindow, singleWindow))
+        self.trans_HumanaiToSingle = self.HumanaiState.addTransition(self.humanaiWidget, SIGNAL("willReturn()"),
+                                                  self.SingleState)
+        self.trans_HumanaiToSingle.addAnimation(WindowToMenuAnimation(self.humanaiWindow, self.singleWindow))
 #
 
 #        self.trans_SingleToLogin = self.SingleState.addTransition(self.singleWidget.levelmode,SIGNAL("clicked()"),
@@ -278,7 +279,8 @@ class MainWindow(QGraphicsView):
         for state in self.stateDict.keys():
             self.connect(state, SIGNAL("entered()"), self.closeWindow)
         self.transitionList = [self.trans_MainToQuit, self.trans_MainToSingle, self.trans_SingleToMain,
-                               self.trans_SingleToAi, self.trans_AiToSingle, self.trans_MainToTeam, self.trans_TeamToMain]
+                               self.trans_SingleToAi, self.trans_AiToSingle, self.trans_MainToTeam, self.trans_TeamToMain,
+                               self.trans_SingleToHumanai, self.trans_HumanaiToSingle]
         for transition in self.transitionList:
             self.connect(transition, SIGNAL("triggered()"), self.showWindow)
 
@@ -292,7 +294,8 @@ class MainWindow(QGraphicsView):
         self.connect(self.media,SIGNAL("aboutToFinish()"),self.continueMusic)
 
 
-        self.stateMachine.setInitialState(self.MainState)
+#        self.stateMachine.setInitialState(self.MainState)
+        self.stateMachine.setInitialState(self.HumanaiState)
         self.stateMachine.start()
 
 
@@ -301,10 +304,13 @@ class MainWindow(QGraphicsView):
         print sender, "hi"
         if isinstance(sender, QState):
             if sender in self.stateDict:
+                print "in dict"
                 if isinstance(self.preState, QState):
+                    print "prestate",self.preState
                     self.stateDict[self.preState].widget().close()
                     print "close"
             self.preState = sender
+        print "lala"
 
     def showWindow(self):
         sender = self.sender()

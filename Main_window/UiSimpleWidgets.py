@@ -34,8 +34,7 @@ class MusicCheck(QWidget, ui_musicCheck.Ui_musicCheck):
 
 #可不可以加外部应用程序链接
 
-class HumanvsAi(QWidget):
-    pass
+
 class MapEditor(QWidget):
     pass
 class ReplayWindow(QWidget):

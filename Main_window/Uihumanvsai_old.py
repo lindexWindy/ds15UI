@@ -76,7 +76,8 @@ class AiThread(QThread):
             if self.isStopped():
                 break
             self.emit(SIGNAL("rbRecv"),rbInfo)
-            (rCommand,reInfo) = sio._recvs(self.conn)
+            rCommand,reInfo = sio._recvs(self.conn)
+            print rCommand, reInfo
             if self.isStopped():
                 break
             self.emit(SIGNAL("reRecv"),rCommand, reInfo)
@@ -190,7 +191,7 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         super(HumanvsAi, self).__init__(parent)
         self.setupUi(self)
 
-
+        self.Able_To_Play = True
         self.aiPath = ""
         self.mapPath = ""
         self.started = False
@@ -401,13 +402,14 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         self.setRoundBegInfo(frInfo)
         self.gameBegInfo.append(frInfo)
         #展示
-
+        
         self.replayWindow.GoToRound(len(self.gameBegInfo)-1, 0)
         global WaitForIni
         WaitForIni.wakeAll()
         self.roundLabel.setText("Round %d" %(len(self.gameBegInfo)-1))
         self.labelAnimation()
-
+        self.Able_To_Play = True
+        self.Ani_Finished = True
     def on_rbRecv(self, rbInfo):
         self.replayWindow.UpdateBeginData(rbInfo)
         self.setRoundBegInfo(rbInfo)
@@ -430,10 +432,11 @@ class HumanvsAi(QWidget, ui_humanvsai.Ui_HumanvsAi):
         self.gameEndInfo.append((rCommand,reInfo))
         if self.Able_To_Play:
             self.Able_To_Play = False
+            self.Ani_Finished = False
             self.replayWindow.Play()
 
     def on_aniFinished(self):
-        if len(self.gameBegInfo) < self.nowRound + 1:
+        if len(self.gameBegInfo) <= self.nowRound + 1:
             self.Ani_Finished = True
         else:
             self.nowRound += 1

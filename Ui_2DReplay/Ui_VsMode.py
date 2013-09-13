@@ -116,7 +116,7 @@ class Ui_VSModeWidget(Ui_2DReplayWidget):
         self.__nowSoldier = copy.deepcopy(begInfo.base[begInfo.id[0]][begInfo.id[1]])
         self.__iniPos = self.__movPos = self.__nowSoldier.position
         self.__nowId = self.data.roundInfo[self.nowRound].idNum
-        Ui_ReplayWidget.UpdateBeginData(self, begInfo)
+        Ui_2DReplayWidget.UpdateBeginData(self, begInfo)
 
 
     def GetCommand(self):

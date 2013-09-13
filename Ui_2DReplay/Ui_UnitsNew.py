@@ -324,11 +324,11 @@ class UiD_EndChanges:
             for i in (0, 1):
                 if (self.damage[i]==0):
 
-                    if (endInfo.attack_effect[i]==1):
+                    if (endInfo.effect[i]==1):
                         self.note[i] = "Blocked!"
-                    elif (endInfo.attack_effect[i]==0):
+                    elif (endInfo.effect[i]==0):
                         self.note[i] = "Miss"
-            self.fightBack = (endInfo.attack_effect[1]!=-1) and (endUnits[target].life!=0)
+            self.fightBack = (endInfo.effect[1]!=-1) and (endUnits[target].life!=0)
 
             self.isDead = (endUnits[idNum].life==0, endUnits[target].life==0)
         elif (cmd.order==2):

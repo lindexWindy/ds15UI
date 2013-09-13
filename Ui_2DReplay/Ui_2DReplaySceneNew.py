@@ -69,7 +69,7 @@ class Ui_View(QtGui.QGraphicsView):
 
     def GetFocusPoint(self):
         rect = self.geometry()
-        return self.mapToScene(QtCore.QPoint(0, 0))+QtCore.QPoint(rect.width(), rect.height())/2
+        return self.mapToScene(QtCore.QPoint(0, 0))+QtCore.QPointF(rect.width(), rect.height())/2
         #return self.focusPoint
     def SetFocusPoint(self, point):
         #self.focusPoint = point
@@ -274,6 +274,7 @@ class Ui_ReplayView(Ui_View):
         cursAnim.setDuration(FRAMES_BEFORE_MOVE*TIME_PER_FRAME)
         cursAnim.setStartValue(True)
         cursAnim.setKeyValueAt(0.999, False)
+        cursAnim.setKeyValueAt(1, False)
         focusAnim = self.SetFocusAnimation(route[0],
                                            FRAMES_BEFORE_MOVE*TIME_PER_FRAME)
         prepAnim = QtCore.QParallelAnimationGroup()
@@ -315,6 +316,7 @@ class Ui_ReplayView(Ui_View):
         atkCursAnim.setDuration(TIME_FOR_SHOW)
         atkCursAnim.setStartValue(True)
         atkCursAnim.setKeyValueAt(0.999, False)
+        atkCursAnim.setKeyValueAt(1, False)
         showAtkAnim.addAnimation(atkCursAnim)
         
         showTagAnim = QtCore.QParallelAnimationGroup()
@@ -325,6 +327,7 @@ class Ui_ReplayView(Ui_View):
         tagCursAnim.setDuration(TIME_FOR_SHOW)
         tagCursAnim.setStartValue(True)
         tagCursAnim.setKeyValueAt(0.999, False)
+        tagCursAnim.setKeyValueAt(1, False)
         showTagAnim.addAnimation(tagCursAnim)
 
         atkAnim = QtCore.QParallelAnimationGroup()
@@ -399,6 +402,7 @@ class Ui_ReplayView(Ui_View):
         cursAnim.setDuration(TOTAL_TIME)
         cursAnim.setStartValue(True)
         cursAnim.setKeyValueAt(0.999, False)
+        cursAnim.setKeyValueAt(1, False)
 
         anim = QtCore.QParallelAnimationGroup()
         anim.addAnimation(dieAnim)
