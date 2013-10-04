@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'part_beginMenu.ui'
 #
-# Created: Fri Oct 04 11:08:27 2013
+# Created: Fri Oct 04 20:26:44 2013
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -28,7 +28,7 @@ class Ui_beginMenu(object):
         beginMenu.setObjectName(_fromUtf8("beginMenu"))
         beginMenu.resize(1024, 768)
         self.frame = QtGui.QFrame(beginMenu)
-        self.frame.setGeometry(QtCore.QRect(0, -1, 1021, 771))
+        self.frame.setGeometry(QtCore.QRect(0, -1, 1031, 771))
         self.frame.setFrameShape(QtGui.QFrame.StyledPanel)
         self.frame.setFrameShadow(QtGui.QFrame.Raised)
         self.frame.setObjectName(_fromUtf8("frame"))

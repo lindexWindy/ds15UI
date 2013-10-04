@@ -9,9 +9,9 @@ from Uibackwindow import BackWidget
 from Uiteamwidget import TeamWidget
 from Uiaivsai import AivsAi
 import time#for test
-#from Uihumanvsai import HumanvsAi
+from Uihumanvsai import HumanvsAi
 #from Uimapeditor import MapEditor
-#from Uireplaywindow import ReplayWindow
+from replayer import Replayer
 
 #styleSheet = """
 #QPushButton {background-image: url(image/button.jpg);}
@@ -21,6 +21,13 @@ class MainWindow(QGraphicsView):
 	def __init__(self, parent = None):
 		super(MainWindow, self).__init__(parent)
 
+		self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+		self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+		self.scene1 =  QGraphicsScene()
+		self.scene1.setSceneRect(self.scene1.itemsBoundingRect())
+		self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+		self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+		self.setScene(self.scene1)
 		#音乐
 		self.sourceList =[]
 		self.output = Phonon.AudioOutput(Phonon.MusicCategory, self)
@@ -28,21 +35,28 @@ class MainWindow(QGraphicsView):
 		Phonon.createPath(self.media, self.output)
 		self.sourceList.append(Phonon.MediaSource(QString("music/music.mp3")))
 
-		#临时
-		self.pad = QGraphicsEllipseItem()
 
 
+
+		self.backWindow = QGraphicsProxyWidget()
+		self.backWidget = BackWidget()
+		self.backWindow.setWidget(self.backWidget)
+		self.backWindow.setX(0)
+		self.backWindow.setY(0)
+		self.backWindow.setZValue(0)
+		self.scene1.addItem(self.backWindow)
 		#设置开始窗口按钮
-		self.beginWindow =  QGraphicsProxyWidget(self.pad)
+		self.beginWindow =  QGraphicsProxyWidget()
 		self.beginWidget =  BeginMenu()
 		self.beginWindow.setWidget(self.beginWidget)
 		self.beginWindow.setX(0)
 		self.beginWindow.setY(0)
  #	   self.beginWindow.widget().setWindowOpacity(1)
 		self.beginWindow.setZValue(0.5)
+		self.scene1.addItem(self.beginWindow)
 
 		#设置音乐按键
-		self.musicWindow =  QGraphicsProxyWidget(self.pad)
+		self.musicWindow =  QGraphicsProxyWidget()
 		self.musicWidget =  MusicCheck()
 		self.musicWindow.setWidget(self.musicWidget)
 		#写完backwidget这个位置就有意义了
@@ -52,83 +66,79 @@ class MainWindow(QGraphicsView):
 		self.musicWindow.setZValue(0.9)
 #		self.musicWindow.widget()setDisabled(True)
 		#设置AI对战窗口
-		self.aiWindow =  QGraphicsProxyWidget(self.pad)
+		self.aiWindow =  QGraphicsProxyWidget()
 		self.aiWidget =  AivsAi()
 		self.aiWindow.setWidget(self.aiWidget)
 		self.aiWindow.setX(0)
 		self.aiWindow.setY(0)
-	#	self.aiWindow.widget().setWindowOpacity(0)
 		self.aiWindow.setZValue(0.5)
-	  #  self.aiWindow.widget().setDisabled(True)
+		self.scene1.addItem(self.musicWindow)
 
 		#按钮控件
-		self.singleWindow =  QGraphicsProxyWidget(self.pad)
+		self.singleWindow =  QGraphicsProxyWidget()
 		self.singleWidget =  SingleMenu()
 		self.singleWindow.setWidget(self.singleWidget)
 		self.singleWindow.setX(0)
 		self.singleWindow.setY(0)
-	 #   self.singleWindow.widget().setWindowOpacity(1)
 		self.singleWindow.setZValue(0.5)
-	#	self.singleWindow.widget().setDisabled(True)
+		self.scene1.addItem(self.singleWindow)
 
 		#回放器
-		self.replayWindow =  QGraphicsProxyWidget(self.pad)
-		self.replayWidget =  ReplayWindow()
+		self.replayWindow =  QGraphicsProxyWidget()
+		self.replayWidget =  Replayer()
 		self.replayWindow.setWidget(self.replayWidget)
 		self.replayWindow.setX(0)
-		self.replayWindow.setY(0)
-	 #   self.replayWindow.widget().setWindowOpacity(1)
+		self.replayWindow.setY(0)	
 		self.replayWindow.setZValue(0.5)
-	  #  self.replayWindow.widget().setDisabled(True)
+		self.scene1.addItem(self.replayWindow)
 
 		#地图编辑器
-		self.mapEditWindow =  QGraphicsProxyWidget(self.pad)
+		self.mapEditWindow =  QGraphicsProxyWidget()
 		self.mapWidget =  MapEditor()
 		self.mapEditWindow.setWidget(self.mapWidget)
 		self.mapEditWindow.setX(0)
 		self.mapEditWindow.setY(0)
-   #	 self.mapEditWindow.widget().setWindowOpacity(0)
 		self.mapEditWindow.setZValue(0.5)
-	#	self.mapEditWindow.widget().setDisabled(True)
+		self.scene1.addItem(self.mapEditWindow)
 
 		#人机对战
-		self.humanaiWindow =  QGraphicsProxyWidget(self.pad)
+		self.humanaiWindow =  QGraphicsProxyWidget()
 		self.humanaiWidget =  HumanvsAi()
 		self.humanaiWindow.setX(0)
 		self.humanaiWindow.setY(0)
 		self.humanaiWindow.setWidget(self.humanaiWidget)
-#		self.humanaiWindow.widget().setWindowOpacity(1)
 		self.humanaiWindow.setZValue(0.5)
-	#	self.humanaiWindow.widget().setDisabled(True)
+		self.scene1.addItem(self.humanaiWindow)
 
 		#制作团队
-		self.teamWindow =  QGraphicsProxyWidget(self.pad)
+		self.teamWindow =  QGraphicsProxyWidget()
 		self.teamWidget =  TeamWidget()
 		self.teamWindow.setWidget(self.teamWidget)
 		self.teamWindow.setX(0)
 		self.teamWindow.setY(0)
  #	   self.teamWindow.widget().setWindowOpacity(1)
 		self.teamWindow.setZValue(0.5)
+		self.scene1.addItem(self.teamWindow)
 
  
 		#登陆
-		self.LogInWindow =  QGraphicsProxyWidget(self.pad)
+		self.LogInWindow =  QGraphicsProxyWidget()
 		self.logInwidget =  LogInWidget()
 		self.LogInWindow.setWidget(self.logInwidget)
-  #	  self.LogInWindow.widget().setWindowOpacity(1)
 		self.LogInWindow.setZValue(0.5)
 		self.LogInWindow.setX(0)
 		self.LogInWindow.setY(0)
-   #	 self.LogInWindow.widget().setDisabled(True)
+		self.scene1.addItem(self.LogInWindow)
+
 		#测试赛
-		self.testWindow =  QGraphicsProxyWidget(self.pad)
+		self.testWindow =  QGraphicsProxyWidget()
 		self.testwidget =  TestWidget()
 		self.testWindow.setWidget(self.testwidget)
 		self.testWindow.widget().setWindowOpacity(1)
 		self.testWindow.setZValue(0.5)
 		self.testWindow.setX(0)
 		self.testWindow.setY(0)
-	#	self.testWindow.widget().setDisabled(True)
+		self.scene1.addItem(self.testWindow)
 
 #		  self.beginWindow.close()
 		self.aiWindow.widget().close()
@@ -147,15 +157,8 @@ class MainWindow(QGraphicsView):
 #	self.connect(self.singleWidget.ui.replay,SIGNAL("clicked()"),self.replayWidget.GoInto)
 
 		#设置界面背景
-		self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-		self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-		self.scene =  QGraphicsScene()
-		self.scene.addItem(self.pad)
-		self.scene.setBackgroundBrush(QBrush(QColor(10,10,10)))
-		self.scene.setSceneRect(self.scene.itemsBoundingRect())
 
-		self.setScene(self.scene)
-		self.showFullScreen()
+		#self.showFullScreen()
  #	   self.setStyleSheet(styleSheet)
 	 #   file = QFile("mainStyle.qss")
 	  #  file.open(QFile.ReadOnly)
@@ -227,14 +230,15 @@ class MainWindow(QGraphicsView):
 		self.trans_AiToSingle.addAnimation(self.ani_AiToSingle)
 
 
-		#self.trans_SingleToReplay = self.SingleState.addTransition(self.singleWidget.replay, SIGNAL("clicked()"),
-		 #			self.ReplayState)
-	   # self.ani_SingleToReplay = MenuToWindowAnimation(singleWindow, replayWindow)
-	   # self.trans_SingleToReplay.addAnimation(self.ani_SingleToReplay)
+		self.trans_SingleToReplay = self.SingleState.addTransition(self.singleWidget.replay, SIGNAL("clicked()"),
+		 			self.ReplayState)
+		self.ani_SingleToReplay = WindowAnimation(self.singleWindow, self.replayWindow)
+		self.trans_SingleToReplay.addAnimation(self.ani_SingleToReplay)
 
-		#self.trans_ReplayToSingle = self.ReplayState.addTransition(self.replayWidget.pushButton, SIGNAL("clicked()"),
-		#			 self.SingleState)
-#		self.trans_ReplayToSingle.addAnimation(WindowToMenuAnimation(replayWindow, singleWindow))
+		self.trans_ReplayToSingle = self.ReplayState.addTransition(self.replayWidget, SIGNAL("willReturn()"),
+					 self.SingleState)
+		self.ani_ReplayToSingle = WindowAnimation(self.replayWindow, self.singleWindow)
+		self.trans_ReplayToSingle.addAnimation(self.ani_ReplayToSingle)
 
 		self.trans_MainToTeam = self.MainState.addTransition(self.beginWidget.teamButton,SIGNAL("clicked()"),
 															  self.TeamState)
@@ -249,14 +253,16 @@ class MainWindow(QGraphicsView):
  #															   self.MapState)
   #	  self.trans_SingleToMap.addAnimation(MenuToWindowAnimation(self.singleWindow, self.mapEditWindow))
 #
- #	   self.trans_SingleToHumanai = self.SingleState.addTransition(self.singleWidget.playervsai,SIGNAL("clicked()"),
-  #																  self.HumanaiState)
-   #	 self.trans_SingleToHumanai.addAnimation(MenuToWindowAnimation(self.singleWindow, self.humanaiWindow))
+		self.trans_SingleToHumanai = self.SingleState.addTransition(self.singleWidget.playervsai,SIGNAL("clicked()"),
+  																  self.HumanaiState)
+		self.ani_SingleToHumanai = WindowAnimation(self.singleWindow, self.humanaiWindow)
+		self.trans_SingleToHumanai.addAnimation(self.ani_SingleToHumanai)
+	
 
-
-#		self.trans_HumanaiToSingle = self.HumanaiState(self.humanaiWidget.Button_back, SIGNAL("clicked()"),
- #												 self.SingleState)
-  #	  self.trans_HumanaiToSingle.addAnimation(WindowToMenuAnimation(humanaiWindow, singleWindow))
+		self.trans_HumanaiToSingle = self.HumanaiState.addTransition(self.humanaiWidget, SIGNAL("willReturn()"),
+ 											 self.SingleState)
+		self.ani_HumanaiToSingle = WindowAnimation(self.humanaiWindow, self.singleWindow)
+		self.trans_HumanaiToSingle.addAnimation(self.ani_HumanaiToSingle)
 #
 
 #		self.trans_SingleToLogin = self.SingleState.addTransition(self.singleWidget.levelmode,SIGNAL("clicked()"),
@@ -273,7 +279,9 @@ class MainWindow(QGraphicsView):
 		for state in self.stateDict.keys():
 			self.connect(state, SIGNAL("entered()"), self.closeWindow)
 		self.transitionList = [self.trans_MainToQuit, self.trans_MainToSingle, self.trans_SingleToMain,
-							   self.trans_SingleToAi, self.trans_AiToSingle, self.trans_MainToTeam, self.trans_TeamToMain]
+							   self.trans_SingleToAi, self.trans_AiToSingle, self.trans_MainToTeam, self.trans_TeamToMain,
+							   self.trans_SingleToHumanai, self.trans_HumanaiToSingle, self.trans_SingleToReplay,
+							   self.trans_ReplayToSingle]
 		for transition in self.transitionList:
 			self.connect(transition, SIGNAL("triggered()"), self.showWindow)
 
@@ -334,7 +342,8 @@ class MainWindow(QGraphicsView):
 
 	def resizeEvent(self, event):
 		QGraphicsView.resizeEvent(self,event)
-		self.fitInView(self.scene.sceneRect(), Qt.KeepAspectRatio)
+		self.scene1.setSceneRect(self.scene1.itemsBoundingRect())
+		self.fitInView(self.scene1.sceneRect())
 
 	#for test
 	def on_quit(self):

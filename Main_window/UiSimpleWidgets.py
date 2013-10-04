@@ -11,11 +11,11 @@ class BeginMenu(QWidget,ui_beginMenu.Ui_beginMenu):
 		super(BeginMenu,self).__init__(parent)
 #		self.setAutoFillBackground(True)
 		self.setupUi(self)
-#		pal = self.palette()
- #	   pal.setBrush(QPalette.Window, QBrush(Qt.NoBrush))
-  #	  self.setPalette(pal)
+		#pal = self.palette()
+		#pal.setBrush(QPalette.Window, QBrush(QPixmap(":mainWindow.jpg")))
+		#self.setPalette(pal)
 		self.setStyleSheet("#frame{border-image:url(:mainWindow.jpg);}"
-							"QPushButton{border-style:flat;border:0;}")
+						"QPushButton{border-style:flat;border:0;}")
 		self.singleGameButton.setStyleSheet("#singleGameButton{border-image:url(:singleGameButton0.png);}"
 											"#singleGameButton:hover{border-image:url(:singleGameButton1.png);}")
 		self.webGameButton.setStyleSheet("#webGameButton{border-image:url(:webGameButton0.png);}"
@@ -56,11 +56,8 @@ class MusicCheck(QWidget, ui_musicCheck.Ui_musicCheck):
 
 #可不可以加外部应用程序链接
 
-class HumanvsAi(QWidget):
-	pass
+
 class MapEditor(QWidget):
-	pass
-class ReplayWindow(QWidget):
 	pass
 
 class TestWidget(QWidget):
