@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'widgetssingle.ui'
+# Form implementation generated from reading ui file 'part_widgetssingle.ui'
 #
-# Created: Mon Aug 19 16:45:52 2013
-#      by: PyQt4 UI code generator 4.9.3
+# Created: Fri Oct 04 12:39:34 2013
+#      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -12,45 +12,59 @@ from PyQt4 import QtCore, QtGui
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
-    _fromUtf8 = lambda s: s
+    def _fromUtf8(s):
+        return s
+
+try:
+    _encoding = QtGui.QApplication.UnicodeUTF8
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+except AttributeError:
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig)
 
 class Ui_widgetssingle(object):
     def setupUi(self, widgetssingle):
         widgetssingle.setObjectName(_fromUtf8("widgetssingle"))
-        widgetssingle.resize(178, 400)
-        self.playervsai = QtGui.QPushButton(widgetssingle)
-        self.playervsai.setGeometry(QtCore.QRect(30, 110, 141, 31))
-        self.playervsai.setObjectName(_fromUtf8("playervsai"))
-        self.levelmode = QtGui.QPushButton(widgetssingle)
-        self.levelmode.setGeometry(QtCore.QRect(30, 170, 141, 31))
-        self.levelmode.setObjectName(_fromUtf8("levelmode"))
-        self.aivsai = QtGui.QPushButton(widgetssingle)
-        self.aivsai.setGeometry(QtCore.QRect(30, 50, 141, 31))
+        widgetssingle.resize(1024, 768)
+        self.frame = QtGui.QFrame(widgetssingle)
+        self.frame.setGeometry(QtCore.QRect(-1, -1, 1031, 771))
+        self.frame.setFrameShape(QtGui.QFrame.StyledPanel)
+        self.frame.setFrameShadow(QtGui.QFrame.Raised)
+        self.frame.setObjectName(_fromUtf8("frame"))
+        self.aivsai = QtGui.QPushButton(self.frame)
+        self.aivsai.setGeometry(QtCore.QRect(420, 330, 140, 40))
+        self.aivsai.setText(_fromUtf8(""))
         self.aivsai.setObjectName(_fromUtf8("aivsai"))
-        self.replay = QtGui.QPushButton(widgetssingle)
-        self.replay.setGeometry(QtCore.QRect(30, 230, 141, 31))
+        self.playervsai = QtGui.QPushButton(self.frame)
+        self.playervsai.setGeometry(QtCore.QRect(420, 400, 140, 40))
+        self.playervsai.setText(_fromUtf8(""))
+        self.playervsai.setObjectName(_fromUtf8("playervsai"))
+        self.levelmode = QtGui.QPushButton(self.frame)
+        self.levelmode.setGeometry(QtCore.QRect(420, 470, 140, 40))
+        self.levelmode.setText(_fromUtf8(""))
+        self.levelmode.setObjectName(_fromUtf8("levelmode"))
+        self.replay = QtGui.QPushButton(self.frame)
+        self.replay.setGeometry(QtCore.QRect(420, 540, 140, 40))
+        self.replay.setText(_fromUtf8(""))
         self.replay.setObjectName(_fromUtf8("replay"))
-        self.mapedit = QtGui.QPushButton(widgetssingle)
-        self.mapedit.setGeometry(QtCore.QRect(30, 290, 141, 31))
+        self.mapedit = QtGui.QPushButton(self.frame)
+        self.mapedit.setGeometry(QtCore.QRect(420, 610, 140, 40))
+        self.mapedit.setText(_fromUtf8(""))
         self.mapedit.setObjectName(_fromUtf8("mapedit"))
-        self.returnpre = QtGui.QPushButton(widgetssingle)
-        self.returnpre.setGeometry(QtCore.QRect(30, 350, 141, 31))
+        self.returnpre = QtGui.QPushButton(self.frame)
+        self.returnpre.setGeometry(QtCore.QRect(40, 50, 40, 40))
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.returnpre.sizePolicy().hasHeightForWidth())
         self.returnpre.setSizePolicy(sizePolicy)
+        self.returnpre.setText(_fromUtf8(""))
         self.returnpre.setObjectName(_fromUtf8("returnpre"))
 
         self.retranslateUi(widgetssingle)
         QtCore.QMetaObject.connectSlotsByName(widgetssingle)
 
     def retranslateUi(self, widgetssingle):
-        widgetssingle.setWindowTitle(QtGui.QApplication.translate("widgetssingle", "Form", None, QtGui.QApplication.UnicodeUTF8))
-        self.playervsai.setText(QtGui.QApplication.translate("widgetssingle", "人机对战", None, QtGui.QApplication.UnicodeUTF8))
-        self.levelmode.setText(QtGui.QApplication.translate("widgetssingle", "闯关模式", None, QtGui.QApplication.UnicodeUTF8))
-        self.aivsai.setText(QtGui.QApplication.translate("widgetssingle", "AI对战", None, QtGui.QApplication.UnicodeUTF8))
-        self.replay.setText(QtGui.QApplication.translate("widgetssingle", "战争回放", None, QtGui.QApplication.UnicodeUTF8))
-        self.mapedit.setText(QtGui.QApplication.translate("widgetssingle", "编辑地图", None, QtGui.QApplication.UnicodeUTF8))
-        self.returnpre.setText(QtGui.QApplication.translate("widgetssingle", "返回上级", None, QtGui.QApplication.UnicodeUTF8))
+        widgetssingle.setWindowTitle(_translate("widgetssingle", "Form", None))
 
