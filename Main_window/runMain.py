@@ -46,4 +46,4 @@ main_window.showFullScreen()
 splash.finish(main_window)
 del splash
 
-app.exec_()
+sys.exit(app.exec_())

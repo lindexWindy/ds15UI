@@ -5,13 +5,14 @@
 from lib.human.ui_replayer import Ui_Replayer
 from lib.human.ui_replaymap import Ui_Replaymap
 from lib.human.Humanai_Replay_event import *
+from lib.human import info_widget
 
 import sio,basic
 #import testdata#for test
 REPLAY_FILE_DIR = "."
 
-BUTTONPIC = ["noSound", "playSound", "open", "pause", "endPlay", "rePlay",
-			 "playForward0", "playBackward0", "preStep", "nextStep","return0"]
+BUTTONPIC = ["return0", "noSound0", "playSound0", "open0", "pause0", "endPlay0", "rePlay0",
+			 "playForward0", "playBackward0", "preStep0", "nextStep0"]
 
 class ReplayMap(QWidget, Ui_Replaymap):
 	def __init__(self, scene, parent = None):
@@ -19,7 +20,6 @@ class ReplayMap(QWidget, Ui_Replaymap):
 		self.setupUi(self)
 		self.setAutoFillBackground(True)
 		palette = QPalette()
-		#print "size..............:",self.size().width(),self.size().height()#for test
 		palette.setBrush(QPalette.Window,
                                  QBrush(QPixmap(":replay_mapback.png").scaled(self.size(),
                                                                               Qt.IgnoreAspectRatio,
@@ -37,6 +37,7 @@ class Replayer(QWidget, Ui_Replayer):
 		self.setAutoFillBackground(True)
 		palette = QPalette()
 
+		self.setFixedSize(self.size())
 		palette.setBrush(QPalette.Window,
 						 QBrush(QPixmap(":replay_back.png").scaled(self.size(),
 																	  Qt.IgnoreAspectRatio,
@@ -45,31 +46,58 @@ class Replayer(QWidget, Ui_Replayer):
 		self.buttons = [self.noSoundButton, self.soundButton,self.loadFileButton,
 						self.pauseButton, self.endPlayButton,
 						self.rePlayButton, self.playForwardButton, self.playBackwardButton,
-						self.preStepButton, self.nextStepButton,self.returnButton]
-		for i in range(len(self.buttons)):
-			pixmap = QPixmap(":" + BUTTONPIC[i] + ".png")
-			self.buttons[i].setIcon(QIcon(pixmap))
-			self.buttons[i].setIconSize(self.buttons[i].size())
-			self.buttons[i].setStyleSheet("border-radius: 20px")
-
+						self.preStepButton, self.nextStepButton]
+		#for i in range(len(self.buttons)):
+		#	pixmap = QPixmap(":" + BUTTONPIC[i] + ".png")
+		#	self.buttons[i].setIcon(QIcon(pixmap))
+		#	self.buttons[i].setIconSize(self.buttons[i].size())
+		#	self.buttons[i].setStyleSheet("QPushButton{border-radius: 20px;}"
+		#									"QPushButton:pressed{border-style:inset;}"
+		#									"QPushButton:checked{border-style:inset;}")
+		self.returnButton.setStyleSheet("*{border-image: url(:return0.png);}"
+										"*:hover{border-image: url(:return1.png);}")
+		self.noSoundButton.setStyleSheet("*{border-image: url(:noSound0.png);border:0;}")
+		self.soundButton.setStyleSheet("*{border-image: url(:playSound0.png);border:0;}")
+										#"*:checked
+		self.loadFileButton.setStyleSheet("*{border-image: url(:open0.png);border:0;}"
+											"*:hover{border-image:url(:open1.png);border:0;}")
+		self.pauseButton.setStyleSheet("*{border-image: url(:pause0.png);border:0;}"
+											"*:checked{border-image:url(:start1.png);border:0;}")
+		self.endPlayButton.setStyleSheet("*{border-image: url(:endPlay0.png);border:0;}"
+										"*:hover{border-image: url(:endPlay1.png);border:0;}")
+		self.rePlayButton.setStyleSheet("*{border-image:url(:rePlay0.png);border:0;}"
+										"*:hover{border-image:url(:rePlay1.png);border:0;}")
+		self.playForwardButton.setStyleSheet("*{border-image:url(:playForward0.png);border:0;}"
+										"*:checked{border-image:url(:playForward1.png);border:0;}")
+		self.playBackwardButton.setStyleSheet("*{border-image:url(:playBackward0.png);border:0;}"
+										"*:checked{border-image:url(:playBackward1.png);border:0;}")
+		self.preStepButton.setStyleSheet("*{border-image:url(:preStep0.png);border:0;}"
+										"*:hover{border-image:url(:preStep1.png);border:0;}")
+		self.nextStepButton.setStyleSheet("*{border-image:url(:nextStep0.png); border:0;}"
+										"*:hover{border-image:url(:nextStep1.png);border:0;}")
 		#信息变量
 		self.isPaused = False
 		self.started = False
 		self.fileInfo = None
 		self.repFileName = ""
 		self.timer = None
+		self.forback_flag = False
 		self.scene = QGraphicsScene()
 		self.replayWindow = ReplayMap(self.scene)
 		self.replayLayout.addWidget(self.replayWindow)
 		self.replayWidget = self.replayWindow.replayWidget
-
+		self.infoWidget = info_widget.InfoWidget()
+		self.infoLayout.addWidget(self.infoWidget)
 		#connect signals
+		self.connect(self.replayWidget, SIGNAL("unitSelected"), self.infoWidget.newUnitInfo)
+		self.connect(self.replayWidget, SIGNAL("mapSelected"), self.infoWidget.newMapInfo)
 		self.connect(self, SIGNAL("toPause()"),  partial(self.pauseButton.setChecked, True), Qt.QueuedConnection)
 		self.connect(self.pauseButton, SIGNAL("toggled(bool)"), self.on_pauseButton_toggled)#for test
 		self.connect(self.playBackwardButton, SIGNAL("toggled(bool)"), self.on_playBackwardButton_toggled)#for test
 		self.connect(self.playForwardButton, SIGNAL("toggled(bool)"), self.on_playForwardButton_toggled)#for test
 		#self.connect(se
 		self.replayWidget.moveAnimEnd.connect(self.on_animEnd)
+		self.replayWidget.HUMAN_REPLAY = 0
 		self.updateUi()
 
 	def updateUi(self):
@@ -84,6 +112,11 @@ class Replayer(QWidget, Ui_Replayer):
 		self.preStepButton.setEnabled(self.started)
 		self.playForwardButton.setEnabled(self.started)
 		self.playBackwardButton.setEnabled(self.started)
+
+	@pyqtSlot()
+	def on_returnButton_clicked(self):
+		self.on_endPlayButton_clicked()
+		self.willReturn.emit()
 
 	@pyqtSlot()
 	def on_loadFileButton_clicked(self):
@@ -105,6 +138,7 @@ class Replayer(QWidget, Ui_Replayer):
 		self.checkTimer()
 		if self.started:
 			self.replayWidget.GoToRound(0, 0)
+			self.roundLabel.setText("Round 0")
 			if not self.isPaused:
 				self.replayWidget.Play()
 		else:
@@ -114,9 +148,12 @@ class Replayer(QWidget, Ui_Replayer):
 			for roundInfo in self.fileInfo[2:]:
 				self.replayWidget.UpdateBeginData(roundInfo[0])
 				self.replayWidget.UpdateEndData(*roundInfo[1:])
+				lifes = [x.life for x in roundInfo[2].base[1]]
+
 			#开始播放
 			self.pauseButton.setChecked(False)
 			self.replayWidget.GoToRound(0, 0)
+			self.roundLabel.setText("Round 0")
 			self.replayWidget.Play()
 			self.updateUi()
 
@@ -142,6 +179,7 @@ class Replayer(QWidget, Ui_Replayer):
 			if self.replayWidget.nowStatus:
 				try:
 					self.replayWidget.GoToRound(self.replayWidget.nowRound + 1, 0)
+					self.roundLabel.setText("Round %d" %self.replayWidget.nowRound)
 				except:
 					self.emit(SIGNAL("toPause()"))
 					print "emit to pause"
@@ -154,28 +192,33 @@ class Replayer(QWidget, Ui_Replayer):
 		self.checkTimer()
 		try:
 			self.replayWidget.GoToRound(self.replayWidget.nowRound + 1, 0)
+			self.roundLabel.setText("Round %d" %self.replayWidget.nowRound)
 		except:
 			return
 		print self.isPaused
 		if not self.isPaused:
-			#self.replayWidget.Play()
-			self.pauseButton.setChecked(False)
+			self.replayWidget.Play()
+			#self.pauseButton.setChecked(False)
 
 	@pyqtSlot()
 	def on_preStepButton_clicked(self):
 		self.checkTimer()
 		try:
 			self.replayWidget.GoToRound(self.replayWidget.nowRound -1 , 0)
+			self.roundLabel.setText("Round %d" %self.replayWidget.nowRound)
 		except:
 			return
 		if not self.isPaused:
-			self.pauseButton.setChecked(False)
+			self.replayWidget.Play()
+			#self.pauseButton.setChecked(False)
 
 	@pyqtSlot()
 	def on_playForwardButton_toggled(self, trigger):
 		print "playForwardbutton clicked triger:", trigger#for test
-		if self.playBackwardButton.isChecked():
+		if self.playBackwardButton.isChecked() and not self.forback_flag:
+			self.forback_flag = True
 			self.playBackwardButton.setChecked(False)
+			self.forback_flag = False
 		if trigger:
 			self.BorF = 'f'
 			self.timer = self.startTimer(500)
@@ -188,8 +231,10 @@ class Replayer(QWidget, Ui_Replayer):
 	@pyqtSlot()
 	def on_playBackwardButton_toggled(self, trigger):
 		print "playBackwardButton trigger:", trigger#for test
-		if self.playForwardButton.isChecked():
+		if self.playForwardButton.isChecked() and not self.forback_flag:
+			self.forback_flag = True
 			self.playForwardButton.setChecked(False)
+			self.forback_flag = False
 		if trigger:
 			self.BorF = 'b'
 			self.timer = self.startTimer(200)
@@ -200,10 +245,6 @@ class Replayer(QWidget, Ui_Replayer):
 			self.timer = None
 			if not self.isPaused:
 				self.pauseButton.setChecked(False)
-	@pyqtSlot()
-	def on_returnButton_clicked(self):
-		self.on_endPlayButton_clicked()
-		self.willReturn.emit()
 
 	def timerEvent(self, event):
 		if event.timerId() == self.timer:
@@ -211,6 +252,7 @@ class Replayer(QWidget, Ui_Replayer):
 			 change = 1 if self.BorF == 'f' else -1
 			 try:
 				 self.replayWidget.GoToRound(self.replayWidget.nowRound + change, 0)
+				 self.roundLabel.setText("Round %d" %self.replayWidget.nowRound)
 			 except:
 				 if self.BorF == 'f':
 					 self.playForwardButton.setChecked(False)
@@ -224,6 +266,7 @@ class Replayer(QWidget, Ui_Replayer):
 		try:
 			#print "call go to round on animEnd::",self.replayWidget.nowRound#for test
 			self.replayWidget.GoToRound(self.replayWidget.nowRound + 1, 0)
+			self.roundLabel.setText("Round %d" %self.replayWidget.nowRound)
 		except:
 			self.pauseButton.setChecked(True)
 		else:
@@ -231,6 +274,7 @@ class Replayer(QWidget, Ui_Replayer):
 
 	def checkTimer(self):
 		if self.timer:
+			print "check timer!!!"
 			if self.BorF == 'b':
 				self.playBackwardButton.setChecked(False)
 			else:

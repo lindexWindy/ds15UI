@@ -7,7 +7,7 @@ from PyQt4.QtCore import *
 import lib.human.ui_humanvsai
 from lib.human.Humanai_Replay_event import HumanReplay
 from lib.human.info_widget import *
-import basic, sio, select, os, socket, time
+import basic, sio, select, os, socket, time, subprocess
 from lib.human.herotypedlg import GetHeroTypeDlg
 from lib.human.helpDlg import HelpDlg
 from functools import partial
@@ -33,7 +33,8 @@ mutex = QMutex()
 DEFAULT_MAP = os.getcwd() + "//new_map.map"
 DEFAULT_AI = os.getcwd() + "//sclientai.py"
 
-
+#for test
+#file_log = subprocess.Popen("python blabla.py", stdin = subprocess.PIPE)
 class ConnectionError(Exception):
 	def __init__(self, value = ""):
 		super(ConnectionError, self).__init__()
@@ -48,7 +49,7 @@ class AiThread(QThread):
 	#每次开始游戏时，用ai路径和地图路径调用initialize以开始一个新的游戏
 	def initialize(self, gameAIPath, gameMapPath):
 		if not sio.DEBUG_MODE:
-			serverProg = sio.Prog_Run(os.getcwd() + sio.SERV_FILE_NAME)
+			self.serverProg = sio.Prog_Run(os.getcwd() + sio.SERV_FILE_NAME)
 		self.conn = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 		try:
 			self.conn.connect((sio.HOST,sio.UI_PORT))
@@ -72,6 +73,8 @@ class AiThread(QThread):
 	@pyqtSlot()
 	def on_shut(self):
 		self.conn.shutdown(socket.SHUT_RDWR)
+		self.conn.close()
+		self.serverProg.kill()
 		self.exit(0)
 		
 	def run(self):
@@ -81,16 +84,20 @@ class AiThread(QThread):
 		mapInfo,baseInfo,aiInfo = sio._recvs(self.conn)#add base info
 		frInfo = sio._recvs(self.conn)
 		self.emit(SIGNAL("firstRecv"),mapInfo, frInfo, aiInfo, baseInfo)
-
-		rCommand, reInfo = sio._recvs(self.conn)
+		try:
+			rCommand, reInfo = sio._recvs(self.conn)
+		except sio.ConnException:
+			self.stop()
+			pass
 		self.emit(SIGNAL("reRecv"), rCommand, reInfo)
 		while not reInfo.over and not self.isStopped():
 			try:
 				rbInfo = sio._recvs(self.conn)
 			except sio.ConnException:
 				#self.quit()
-				#pass
-				raise sio.ConnException
+				self.stop()
+				pass
+				#raise sio.ConnException
 			if self.isStopped():
 				break
 			self.emit(SIGNAL("rbRecv"),rbInfo)
@@ -98,8 +105,9 @@ class AiThread(QThread):
 				rCommand,reInfo = sio._recvs(self.conn)
 			except sio.ConnException:
 				#self.quit()
-				#pass
-				raise sio.ConnException
+				self.stop()
+				pass
+				#raise sio.ConnException
 			
 			if self.isStopped():
 				break
@@ -135,9 +143,12 @@ class Ui_Player(QThread):
 	@pyqtSlot()
 	def on_shut(self):
 		self.conn.shutdown(socket.SHUT_RDWR)
+		self.conn.close()
+		#self.conn.closesocket()
 		self.exit(0)
 	def initialize(self):
 		self.conn = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+		self.conn.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)#debugging
 		for i in range(5):
 			try:
 				self.conn.connect((sio.HOST,sio.AI_PORT))
@@ -198,21 +209,29 @@ class Ui_Player(QThread):
 	def run(self):
 		mapInfo,base = sio._recvs(self.conn)
 	#	mapInfo = mapReverse(mapInfo)#debugging
-		self.emit(SIGNAL("mapRecv"), mapInfo)
+		self.emit(SIGNAL("mapRecv"), mapInfo, base)
 		result = self.GetHeroType(mapInfo)
 		sio._sends(self.conn, (result[0],result[1][0]))
+		#time.sleep(5)
 		while True and not self.isStopped():
 			try:
 				rBeginInfo = sio._recvs(self.conn)
+				#time.sleep(4)
 			except sio.ConnException:
 				#self.quit()
-				#pass
-				raise sio.ConnException
+				self.stop()
+				pass
+				#raise sio.ConnException
 			if self.isStopped():
 				break
+			self.AI(rBeginInfo)
 			if rBeginInfo != '|':
-				sio._sends(self.conn,self.AI(rBeginInfo))
+			#	try:	
+				sio._sends(self.conn,self.command)
 				self.cmdNum += 1
+		#		except sio.ConnException:
+		#			self.stop()
+		#			pass
 			else:
 				break
 		self.conn.close()
@@ -237,7 +256,7 @@ class HumanvsAi(QWidget, lib.human.ui_humanvsai.Ui_HumanvsAi):
 		super(HumanvsAi, self).__init__(parent)
 		self.setupUi(self)
 
-		#self.setFixedSize(self.size())
+		self.setFixedSize(self.size())
 		palette = self.palette()
 		palette.setBrush(QPalette.Window,
 						QBrush(QPixmap(":humanai_back.png").scaled(self.size(),
@@ -249,10 +268,21 @@ class HumanvsAi(QWidget, lib.human.ui_humanvsai.Ui_HumanvsAi):
 		#画button图片
 		buttons = [self.startButton, self.returnButton, self.mapButton,
 				self.aiButton, self.helpButton]
-		for i in range(len(buttons)):
-			buttons[i].setIcon(QIcon(QPixmap(":" + ButtonPics[i] + ".png")))
-			buttons[i].setIconSize(buttons[i].size())
-			buttons[i].setStyleSheet("border-radius: 30px;")
+		#for i in range(len(buttons)):
+		#	buttons[i].setIcon(QIcon(QPixmap(":" + ButtonPics[i] + ".png")))
+		#	buttons[i].setIconSize(buttons[i].size())
+		#	buttons[i].setStyleSheet("border-radius: 30px;")
+		self.startButton.setIcon(QIcon(QPixmap(":start0.png")))
+		self.startButton.setIconSize(self.startButton.size())
+		self.startButton.setStyleSheet("border:0;")
+		self.returnButton.setStyleSheet("*{border-image: url(:return0.png);border:0;}"
+										"*:hover{border-image: url(:return1.png);border:0;}")
+		self.mapButton.setStyleSheet("*{border-image: url(:openMap0.png);border:0;}"
+									"*:hover{border-image: url(:openMap1.png);border:0;}")
+		self.aiButton.setStyleSheet("*{border-image: url(:openAI0.png);border:0;}"
+									"*:hover{border-image: url(:openAI1.png);border:0;}")
+		self.helpButton.setStyleSheet("*{border-image: url(:help0.png);border:0;}"
+									"*:hover {border-image: url(:help1.png);border:0;}")
 		self.setCursor(QCursor(QPixmap(":normal_cursor.png").scaled(30,30),0,0))
 		self.aiPath = ""
 		self.mapPath = ""
@@ -280,6 +310,7 @@ class HumanvsAi(QWidget, lib.human.ui_humanvsai.Ui_HumanvsAi):
 		self.connect(self.replayWindow, SIGNAL("unitSelected"), self.infoWidget.newUnitInfo)
 		self.connect(self.replayWindow, SIGNAL("mapSelected"), self.infoWidget.newMapInfo)
 		self.replayWindow.moveAnimEnd.connect(self.on_aniFinished)
+		self.connect(self.replayWindow, SIGNAL("errorOperation"), self.on_errOpr)
 		self.connect(self, SIGNAL("ableToPlay()"), self.on_ablePlay, Qt.QueuedConnection)
 
 		self.setWindowTitle("Human_Vs_Ai")
@@ -338,16 +369,15 @@ class HumanvsAi(QWidget, lib.human.ui_humanvsai.Ui_HumanvsAi):
 			self.connect(self.aiThread, SIGNAL("firstRecv"), self.on_firstRecv)
 			self.connect(self.aiThread, SIGNAL("rbRecv"), self.on_rbRecv)
 			self.connect(self.aiThread, SIGNAL("reRecv"), self.on_reRecv)
-			self.connect(self.aiThread, SIGNAL("mapRecv"), self.on_mapRecv)
 			self.connect(self.aiThread, SIGNAL("gameWinner"), self.on_gameWinner)
-			self.connect(self.aiThread, SIGNAL("finished()"), self.aiThread,
-							 SLOT("deleteLater()"))
+			#self.connect(self.aiThread, SIGNAL("finished()"), self.aiThread,
+			#				 SLOT("deleteLater()"))
 			self.connect(self.aiThread, SIGNAL("finished()"), partial(self.on_threadF,0))
 			self.connect(self.aiThread, SIGNAL("tmpRecv()"), self.on_tmpRecv)
 			#self.connect(self, SIGNAL("aiShut()"), self.aiThread, SLOT("quit()"))
 			self.connect(self, SIGNAL("aiShut()"), self.aiThread, SLOT("on_shut()"))
 			self.aiThread.start()
-		
+			
 		self.updateUi()
 	#打开player线程
 	def on_tmpRecv(self):
@@ -367,8 +397,9 @@ class HumanvsAi(QWidget, lib.human.ui_humanvsai.Ui_HumanvsAi):
 		else:
 			self.connect(self.playThread, SIGNAL("getHeroType()"), self.on_getHero)
 			self.connect(self.playThread, SIGNAL("firstCmd()"), self.on_firstCmd)
-			self.connect(self.playThread, SIGNAL("finished()"), self.playThread,
-							 SLOT("deleteLater()"))
+			self.connect(self.playThread, SIGNAL("mapRecv"), self.on_mapRecv)
+			#self.connect(self.playThread, SIGNAL("finished()"), self.playThread,
+			#				 SLOT("deleteLater()"))
 			self.connect(self.playThread, SIGNAL("finished()"), partial(self.on_threadF,1))
 			#self.connect(self, SIGNAL("playShut()"), self.playThread, SLOT("quit()"))
 			self.connect(self, SIGNAL("playShut()"), self.playThread, SLOT("on_shut()"))
@@ -389,6 +420,7 @@ class HumanvsAi(QWidget, lib.human.ui_humanvsai.Ui_HumanvsAi):
 			if answer == QMessageBox.No:
 				return
 			#清理工作，停止游戏，关闭线程,强制结束游戏
+			self.replayWindow.reset()
 			if self.aiThread and self.aiThread.isRunning():
 				#self.aiThread.terminate()
 				#self.aiThread.conn.shutdown(socket.SHUT_RDWR)
@@ -407,15 +439,17 @@ class HumanvsAi(QWidget, lib.human.ui_humanvsai.Ui_HumanvsAi):
 				self.emit(SIGNAL("playShut()"))
 				#self.playThread.stop()
 				#self.playThread.wait()
-			self.replayWindow.reset()
 			self.reset()
 		self.updateUi()
 		self.willReturn.emit()
 
 	def on_threadF(self, arg):
 		if arg:
+			print "thread finished???????????"
+			self.playThread.deleteLater()
 			self.playThread = None
 		else:
+			self.aiThread.deleteLater()
 			self.aiThread = None
 
 	def on_recvC(self, cmd):
@@ -426,6 +460,13 @@ class HumanvsAi(QWidget, lib.human.ui_humanvsai.Ui_HumanvsAi):
 			WaitForCommand.wakeAll()
 		finally:
 			self.playThread.lock.unlock()
+
+	def on_errOpr(self, err_ind):
+		self.errorLabel.setText(err_ind)
+		QTimer.singleShot(4000, self.resetError)
+	
+	def resetError(self):
+		self.errorLabel.setText("")
 
 	def on_getHero(self):
 		dialog = GetHeroTypeDlg(self)
@@ -557,8 +598,9 @@ class HumanvsAi(QWidget, lib.human.ui_humanvsai.Ui_HumanvsAi):
 	def on_firstCmd(self):
 		pass
 
-	def on_mapRecv(self, mapInfo):
-		self.replayWindow.SetInitMap(mapInfo)
+	def on_mapRecv(self, mapInfo, baseInfo):
+		print "hi map recv"#for test
+		self.replayWindow.SetInitMap(mapInfo,baseInfo)
 
 	def on_gameWinner(self, winner):
 		if not (self.nowRound == self.replayWindow.latestRound and self.Ani_Finished):
@@ -566,8 +608,15 @@ class HumanvsAi(QWidget, lib.human.ui_humanvsai.Ui_HumanvsAi):
 			self.winner = winner
 
 	def on_gameEnd(self, winner):
-		info = "Player %d win the game" %winner if winner != -1 else "DRAW!"
-		QMessageBox.information(self, "Game Winner", info)
+		if winner == 0:
+			Winner = QString.fromUtf8("电脑")
+		elif winner == 1:
+			Winner = QString.fromUtf8("%s"%self.playerLabel.text())
+		text_a = QString.fromUtf8("赢得胜利。")
+		text_b = QString.fromUtf8("平局!")
+		info = QString.fromUtf8("%s  %s\n%d : %d" %(Winner,text_a,self.replayWindow.gameEndInfo[-1][1].score[0], self.replayWindow.gameEndInfo[-1][1].score[1]))\
+			if winner != -1 else QString.fromUtf8("%s\n%d : %d"%(text_b,self.replayWindow.gameEndInfo[-1][1].score[0], self.replayWindow.gameEndInfo[-1][1].score[1]))
+		QMessageBox.information(self, QString.fromUtf8("游戏结果"), info)
 		#需要其他特效再加
 		answer = QMessageBox.question(self, _frUtf("保存"), _frUtf("是否保存回放文件?"),
 											  QMessageBox.Yes, QMessageBox.No)

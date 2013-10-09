@@ -25,8 +25,6 @@ class MainWindow(QGraphicsView):
 		self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 		self.scene1 =  QGraphicsScene()
 		self.scene1.setSceneRect(self.scene1.itemsBoundingRect())
-		self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-		self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 		self.setScene(self.scene1)
 		#音乐
 		self.sourceList =[]
@@ -34,8 +32,6 @@ class MainWindow(QGraphicsView):
 		self.media = Phonon.MediaObject()
 		Phonon.createPath(self.media, self.output)
 		self.sourceList.append(Phonon.MediaSource(QString("music/music.mp3")))
-
-
 
 
 		self.backWindow = QGraphicsProxyWidget()
@@ -49,8 +45,8 @@ class MainWindow(QGraphicsView):
 		self.beginWindow =  QGraphicsProxyWidget()
 		self.beginWidget =  BeginMenu()
 		self.beginWindow.setWidget(self.beginWidget)
-		self.beginWindow.setX(0)
-		self.beginWindow.setY(0)
+		self.beginWindow.setX(self.backWindow.x() + 360)
+		self.beginWindow.setY(self.backWindow.y() + 300)
  #	   self.beginWindow.widget().setWindowOpacity(1)
 		self.beginWindow.setZValue(0.5)
 		self.scene1.addItem(self.beginWindow)
@@ -60,10 +56,11 @@ class MainWindow(QGraphicsView):
 		self.musicWidget =  MusicCheck()
 		self.musicWindow.setWidget(self.musicWidget)
 		#写完backwidget这个位置就有意义了
-		self.musicWindow.setX(self.beginWindow.widget().width()-120)
-		self.musicWindow.setY(self.beginWindow.y()+20)
+		self.musicWindow.setX(self.backWindow.widget().width()-120)
+		self.musicWindow.setY(self.backWindow.y()+20)
 	#	self.musicWindow.widget().setWindowOpacity(1)
 		self.musicWindow.setZValue(0.9)
+		self.scene1.addItem(self.musicWindow)
 #		self.musicWindow.widget()setDisabled(True)
 		#设置AI对战窗口
 		self.aiWindow =  QGraphicsProxyWidget()
@@ -72,14 +69,15 @@ class MainWindow(QGraphicsView):
 		self.aiWindow.setX(0)
 		self.aiWindow.setY(0)
 		self.aiWindow.setZValue(0.5)
-		self.scene1.addItem(self.musicWindow)
+		self.scene1.addItem(self.aiWindow)
 
 		#按钮控件
 		self.singleWindow =  QGraphicsProxyWidget()
 		self.singleWidget =  SingleMenu()
+		self.singleWidget.setWindowOpacity(0)
 		self.singleWindow.setWidget(self.singleWidget)
-		self.singleWindow.setX(0)
-		self.singleWindow.setY(0)
+		self.singleWindow.setX(360)
+		self.singleWindow.setY(300)
 		self.singleWindow.setZValue(0.5)
 		self.scene1.addItem(self.singleWindow)
 
@@ -163,7 +161,7 @@ class MainWindow(QGraphicsView):
 	 #   file = QFile("mainStyle.qss")
 	  #  file.open(QFile.ReadOnly)
 	  #  styleSheet = QLatin1String(file.readAll())
-
+		self.setBackgroundBrush(QBrush(QColor(0,0,0)))
 	 #   self.beginWindow.widget().setStyleSheet(styleSheet)
 	 #   self.singleWindow.widget().setStyleSheet(styleSheet)
 	 #   for window in self.windowList:
@@ -211,33 +209,33 @@ class MainWindow(QGraphicsView):
 		self.trans_MainToSingle = self.MainState.addTransition(self.beginWindow.widget().singleGameButton,
 															   SIGNAL("clicked()"),
 															   self.SingleState)
-		self.ani_MainToSingle = WindowAnimation(self.beginWindow, self.singleWindow)
+		self.ani_MainToSingle =	MenuAnimation(self.beginWindow, self.singleWindow)
 		self.trans_MainToSingle.addAnimation(self.ani_MainToSingle)
 
 		self.trans_SingleToMain = self.SingleState.addTransition(self.singleWidget.returnpre,
 																 SIGNAL("clicked()"), self.MainState)
-		self.ani_SingleToMain = WindowAnimation(self.singleWindow, self.beginWindow)
+		self.ani_SingleToMain = MenuAnimation(self.singleWindow, self.beginWindow)
 		self.trans_SingleToMain.addAnimation(self.ani_SingleToMain)
 
 		self.trans_SingleToAi = self.SingleState.addTransition(self.singleWidget.aivsai,
 															   SIGNAL("clicked()"), self.AiState)
-		self.ani_SingleToAi = WindowAnimation(self.singleWindow, self.aiWindow)
+		self.ani_SingleToAi = MenuToWindowAnimation(self.singleWindow, self.aiWindow)
 		self.trans_SingleToAi.addAnimation(self.ani_SingleToAi)
 
 		self.trans_AiToSingle = self.AiState.addTransition(self.aiWidget.returnButton, SIGNAL("clicked()"),
 											 self.SingleState)
-		self.ani_AiToSingle = WindowAnimation(self.aiWindow, self.singleWindow)
+		self.ani_AiToSingle = WindowToMenuAnimation(self.aiWindow, self.singleWindow)
 		self.trans_AiToSingle.addAnimation(self.ani_AiToSingle)
 
 
 		self.trans_SingleToReplay = self.SingleState.addTransition(self.singleWidget.replay, SIGNAL("clicked()"),
 		 			self.ReplayState)
-		self.ani_SingleToReplay = WindowAnimation(self.singleWindow, self.replayWindow)
+		self.ani_SingleToReplay = MenuToWindowAnimation(self.singleWindow, self.replayWindow)
 		self.trans_SingleToReplay.addAnimation(self.ani_SingleToReplay)
 
 		self.trans_ReplayToSingle = self.ReplayState.addTransition(self.replayWidget, SIGNAL("willReturn()"),
 					 self.SingleState)
-		self.ani_ReplayToSingle = WindowAnimation(self.replayWindow, self.singleWindow)
+		self.ani_ReplayToSingle = WindowToMenuAnimation(self.replayWindow, self.singleWindow)
 		self.trans_ReplayToSingle.addAnimation(self.ani_ReplayToSingle)
 
 		self.trans_MainToTeam = self.MainState.addTransition(self.beginWidget.teamButton,SIGNAL("clicked()"),
@@ -255,13 +253,13 @@ class MainWindow(QGraphicsView):
 #
 		self.trans_SingleToHumanai = self.SingleState.addTransition(self.singleWidget.playervsai,SIGNAL("clicked()"),
   																  self.HumanaiState)
-		self.ani_SingleToHumanai = WindowAnimation(self.singleWindow, self.humanaiWindow)
+		self.ani_SingleToHumanai = MenuToWindowAnimation(self.singleWindow, self.humanaiWindow)
 		self.trans_SingleToHumanai.addAnimation(self.ani_SingleToHumanai)
 	
 
 		self.trans_HumanaiToSingle = self.HumanaiState.addTransition(self.humanaiWidget, SIGNAL("willReturn()"),
  											 self.SingleState)
-		self.ani_HumanaiToSingle = WindowAnimation(self.humanaiWindow, self.singleWindow)
+		self.ani_HumanaiToSingle = WindowToMenuAnimation(self.humanaiWindow, self.singleWindow)
 		self.trans_HumanaiToSingle.addAnimation(self.ani_HumanaiToSingle)
 #
 
@@ -339,15 +337,18 @@ class MainWindow(QGraphicsView):
 			self.musicWidget.checkBox.setTristate(False)
 			self.media.pause()
 		self.media.stop()
+		event.accept()
 
 	def resizeEvent(self, event):
 		QGraphicsView.resizeEvent(self,event)
 		self.scene1.setSceneRect(self.scene1.itemsBoundingRect())
-		self.fitInView(self.scene1.sceneRect())
+		#self.fitInView(self.scene1.sceneRect())
 
 	#for test
 	def on_quit(self):
 		for ani in [self.ani_SingleToMain, self.ani_MainToSingle, self.ani_AiToSingle, self.ani_SingleToAi]:
 			print ":once"
 			ani.deleteLater()
-		self.close()
+		#self.close()
+		QApplication.instance().quit()
+		

@@ -52,16 +52,26 @@ class AivsAi(QWidget, ui_aivsai.Ui_AIvsAI):
 		#self.roundLCD.display(0)
 		self.setStyleSheet("#frame{border-image: url(:singleWindow.jpg);}"
 							"QPushButton{border-style:flat;border:0;}")
-		self.returnButton.setIcon(QIcon(QPixmap(":return0.png")))
-		self.returnButton.setIconSize(self.returnButton.size())
-		self.startButton.setIcon(QIcon(QPixmap(":start0.png")))
-		self.startButton.setIconSize(self.startButton.size())
-		self.mapButton.setIcon(QIcon(QPixmap(":openMap0.png")))
-		self.mapButton.setIconSize(self.mapButton.size())
-		self.AiButton1.setIcon(QIcon(QPixmap(":openAI0.png")))
-		self.AiButton1.setIconSize(self.AiButton1.size())
-		self.AiButton2.setIcon(QIcon(QPixmap(":openAI1.png")))
-		self.AiButton2.setIconSize(self.AiButton2.size())
+		#self.returnButton.setIcon(QIcon(QPixmap(":return0.png")))
+		#self.returnButton.setIconSize(self.returnButton.size())
+		#self.startButton.setIcon(QIcon(QPixmap(":start0.png")))
+		#self.startButton.setIconSize(self.startButton.size())
+		#self.mapButton.setIcon(QIcon(QPixmap(":openMap0.png")))
+		#self.mapButton.setIconSize(self.mapButton.size())
+		#self.AiButton1.setIcon(QIcon(QPixmap(":openAI0.png")))
+		#self.AiButton1.setIconSize(self.AiButton1.size())
+		#self.AiButton2.setIcon(QIcon(QPixmap(":openAI1.png")))
+		#self.AiButton2.setIconSize(self.AiButton2.size())
+		self.returnButton.setStyleSheet("*{border-image: url(:return0.png);}"
+										"*:hover{border-image: url(:return1.png);}")
+		self.startButton.setStyleSheet("*{border-image: url(:start0.png);}"
+										"*:hover{border-image: url(:start1.png);}")
+		self.mapButton.setStyleSheet("*{border-image: url(:openMap0.png);}"
+										"*:hover{border-image: url(:openMap1.png);}")
+		self.AiButton1.setStyleSheet("*{border-image: url(:openAI0.png);}"
+										"*:hover{border-image: url(:openAI0.png);}")
+		self.AiButton2.setStyleSheet("*{border-image: url(:openAI1.png);}"
+										"*:hover{border-image: url(:openAI1.png);}")								
 	@pyqtSlot()
 	def on_startButton_clicked(self):
 		self.round = 0
@@ -72,7 +82,7 @@ class AivsAi(QWidget, ui_aivsai.Ui_AIvsAI):
 		if self.ai1 and self.ai2 and self.map:
 			self.startGame()
 		else:
-			QMessageBox.critical(self, QString.fromUtf8("错误"),QString.fromUtf8("请载入ai与地图"),QMessageBox.Ok, QMessageBox.NoButton)
+			QMessageBox.warning(self, QString.fromUtf8("错误"),QString.fromUtf8("请载入ai与地图"),QMessageBox.Ok, QMessageBox.NoButton)
 	@pyqtSlot()					
 	def on_AiButton1_clicked(self):
 		dir = AI_FILE_DIR if AI_FILE_DIR else "."

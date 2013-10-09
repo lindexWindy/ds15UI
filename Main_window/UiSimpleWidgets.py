@@ -14,8 +14,11 @@ class BeginMenu(QWidget,ui_beginMenu.Ui_beginMenu):
 		#pal = self.palette()
 		#pal.setBrush(QPalette.Window, QBrush(QPixmap(":mainWindow.jpg")))
 		#self.setPalette(pal)
-		self.setStyleSheet("#frame{border-image:url(:mainWindow.jpg);}"
-						"QPushButton{border-style:flat;border:0;}")
+	#	self.setStyleSheet("#frame{background-image:url(:mainWindow.jpg);}"
+	#					"QPushButton{border-style:flat;border:0;}")
+		pal = self.palette()
+		pal.setBrush(QPalette.Window, QBrush(Qt.NoBrush))
+		self.setPalette(pal)
 		self.singleGameButton.setStyleSheet("#singleGameButton{border-image:url(:singleGameButton0.png);}"
 											"#singleGameButton:hover{border-image:url(:singleGameButton1.png);}")
 		self.webGameButton.setStyleSheet("#webGameButton{border-image:url(:webGameButton0.png);}"
@@ -31,8 +34,11 @@ class SingleMenu(QWidget,ui_widgetssingle.Ui_widgetssingle):
 		super(SingleMenu, self).__init__(parent)
 		self.setupUi(self)
 
-		self.setStyleSheet("#frame{border-image:url(:singleWindow.jpg);}"
-							"QPushButton{border-style:flat;border:0;}")
+		#self.setStyleSheet("#frame{border-image:url(:singleWindow.jpg);}"
+		#					"QPushButton{border-style:flat;border:0;}")
+		pal = self.palette()
+		pal.setBrush(QPalette.Window, QBrush(Qt.NoBrush))
+		self.setPalette(pal)
 		self.aivsai.setStyleSheet("#aivsai{border-image:url(:aivsaiButton0.png);}"
 											"#aivsai:hover{border-image:url(:aivsaiButton1.png);}")
 		self.playervsai.setStyleSheet("#playervsai{border-image:url(:playervsaiButton0.png);}"

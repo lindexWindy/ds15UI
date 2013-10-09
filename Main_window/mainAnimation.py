@@ -7,8 +7,6 @@ from PyQt4.QtCore import *
 def MenuAnimation(formerWidget, aimWidget):
 	if formerWidget:
 		 y = formerWidget.widget().y()
-	else:
-		 y = aimWidget.widget().y()
 
 	if formerWidget:
 		DisWidget = QPropertyAnimation(formerWidget.widget(), "windowOpacity")
@@ -32,7 +30,7 @@ def MenuAnimation(formerWidget, aimWidget):
 	if aimWidget:
 		aPingWidget = QPropertyAnimation(aimWidget, "y")
 		aPingWidget.setDuration(1000)
-		aPingWidget.setKeyValueAt(0.00001,y-900)
+		aPingWidget.setKeyValueAt(0.001, y - 900)
 		aPingWidget.setKeyValueAt(0.5,y)
 		for i in range(5):
 			aPingWidget.setKeyValueAt(0.5 + 0.05 * (2 * i + 1 )  , y - 200 / (i + 1 ))

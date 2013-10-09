@@ -24,10 +24,13 @@
 	<file alias="levelmodeButton0.png">image/levelmodeButton0.png</file>
 	<file alias="levelmodeButton1.png">image/levelmodeButton1.png</file>
 	<file alias="return0.png">image/return0.png</file>
+	<file alias="return1.png">image/return1.png</file>
 	<file alias="replayButton0.png">image/replayButton0.png</file>
 	<file alias="replayButton1.png">image/replayButton1.png</file>
 	<file alias="start0.png">image/start0.png</file>
+	<file alias="start1.png">image/start1.png</file>
 	<file alias="openMap0.png">image/openMap0.png</file>
+	<file alias="openMap1.png">image/openMap1.png</file>
 	<file alias="openAI0.png">image/openAI0.png</file>
 	<file alias="openAI1.png">image/openAI1.png</file>
    
