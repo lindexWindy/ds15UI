@@ -130,6 +130,7 @@ class Replayer(QWidget, Ui_Replayer):
 			else:
 				self.fileInfo = fileInfo
 				self.repFileName = fname
+				self.infoWidget.setAiInfo(fileInfo[0][2])
 				#self.reloaded = True
 				self.updateUi()
 
@@ -139,6 +140,7 @@ class Replayer(QWidget, Ui_Replayer):
 		if self.started:
 			self.replayWidget.GoToRound(0, 0)
 			self.roundLabel.setText("Round 0")
+			self.infoWidget.setRoundInfo(0)
 			if not self.isPaused:
 				self.replayWidget.Play()
 		else:
@@ -154,6 +156,7 @@ class Replayer(QWidget, Ui_Replayer):
 			self.pauseButton.setChecked(False)
 			self.replayWidget.GoToRound(0, 0)
 			self.roundLabel.setText("Round 0")
+			self.infoWidget.setRoundInfo(0)
 			self.replayWidget.Play()
 			self.updateUi()
 
@@ -180,6 +183,7 @@ class Replayer(QWidget, Ui_Replayer):
 				try:
 					self.replayWidget.GoToRound(self.replayWidget.nowRound + 1, 0)
 					self.roundLabel.setText("Round %d" %self.replayWidget.nowRound)
+					self.infoWidget.setRoundInfo(self.replayWidget.nowRound)
 				except:
 					self.emit(SIGNAL("toPause()"))
 					print "emit to pause"
@@ -193,6 +197,7 @@ class Replayer(QWidget, Ui_Replayer):
 		try:
 			self.replayWidget.GoToRound(self.replayWidget.nowRound + 1, 0)
 			self.roundLabel.setText("Round %d" %self.replayWidget.nowRound)
+			self.infoWidget.setRoundInfo(self.replayWidget.nowRound)
 		except:
 			return
 		print self.isPaused
@@ -206,6 +211,7 @@ class Replayer(QWidget, Ui_Replayer):
 		try:
 			self.replayWidget.GoToRound(self.replayWidget.nowRound -1 , 0)
 			self.roundLabel.setText("Round %d" %self.replayWidget.nowRound)
+			self.infoWidget.setRoundInfo(self.replayWidget.nowRound)
 		except:
 			return
 		if not self.isPaused:
@@ -253,6 +259,7 @@ class Replayer(QWidget, Ui_Replayer):
 			 try:
 				 self.replayWidget.GoToRound(self.replayWidget.nowRound + change, 0)
 				 self.roundLabel.setText("Round %d" %self.replayWidget.nowRound)
+				 self.infoWidget.setRoundInfo(self.replayWidget.nowRound)
 			 except:
 				 if self.BorF == 'f':
 					 self.playForwardButton.setChecked(False)
@@ -267,6 +274,7 @@ class Replayer(QWidget, Ui_Replayer):
 			#print "call go to round on animEnd::",self.replayWidget.nowRound#for test
 			self.replayWidget.GoToRound(self.replayWidget.nowRound + 1, 0)
 			self.roundLabel.setText("Round %d" %self.replayWidget.nowRound)
+			self.infoWidget.setRoundInfo(self.replayWidget.nowRound)
 		except:
 			self.pauseButton.setChecked(True)
 		else:

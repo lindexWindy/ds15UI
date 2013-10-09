@@ -20,12 +20,14 @@ from replayer import Replayer
 class MainWindow(QGraphicsView):
 	def __init__(self, parent = None):
 		super(MainWindow, self).__init__(parent)
+		
 
 		self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 		self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-		self.scene1 =  QGraphicsScene()
+		self.scene1 =  QGraphicsScene(self)
 		self.scene1.setSceneRect(self.scene1.itemsBoundingRect())
 		self.setScene(self.scene1)
+		self.setAttribute(Qt.WA_DeleteOnClose, True)
 		#音乐
 		self.sourceList =[]
 		self.output = Phonon.AudioOutput(Phonon.MusicCategory, self)
@@ -150,6 +152,7 @@ class MainWindow(QGraphicsView):
 
 		self.windowList = [self.aiWindow, self.replayWindow, self.mapEditWindow,
 							self.humanaiWindow, self.LogInWindow, self.testWindow]
+		self.link = "http://duishi.eekexie.org/"
 #		self.menuList = [beginWindow, singleWindow]
 
 #	self.connect(self.singleWidget.ui.replay,SIGNAL("clicked()"),self.replayWidget.GoInto)
@@ -274,6 +277,7 @@ class MainWindow(QGraphicsView):
 	 #				self.LogInToTest(QString))
 	 #   self.connect(self.testwidget.pushButton,SIGNAL("clicked()"),
 	  #			   self.TestToLogIn)
+		self.connect(self.beginWidget.websiteButton, SIGNAL("clicked()"), self.goToWebsite)
 		for state in self.stateDict.keys():
 			self.connect(state, SIGNAL("entered()"), self.closeWindow)
 		self.transitionList = [self.trans_MainToQuit, self.trans_MainToSingle, self.trans_SingleToMain,
@@ -284,13 +288,9 @@ class MainWindow(QGraphicsView):
 			self.connect(transition, SIGNAL("triggered()"), self.showWindow)
 
 		self.setAttribute(Qt.WA_DeleteOnClose)
-		self.connect(self.stateMachine, SIGNAL("finished()"), self.on_quit)
+		self.connect(self.stateMachine, SIGNAL("finished()"), self, SLOT("close()"))
 		self.connect(self.musicWidget.checkBox,SIGNAL("clicked()"),
 					 self.Music)
-  #	  self.connect(self.replayWidget.pushButton,SIGNAL("clicked()"),
-   #				  self.replayWidget.GoInto)
-	#	self.connect(self.singleWidget.playervsai, SIGNAL("clicked()"),
-	 #				self.humanaiWidget.initEmpty)
 		self.connect(self.media,SIGNAL("aboutToFinish()"),self.continueMusic)
 
 
@@ -332,6 +332,9 @@ class MainWindow(QGraphicsView):
 		self.media.enqueue(self.sourceList)
 		self.media.play()
 		pass
+	
+	def goToWebsite(self):
+		QDesktopServices.openUrl(QUrl(self.link))
 	def closeEvent(self, event):
 		if self.media.state() == Phonon.PlayingState:
 			self.musicWidget.checkBox.setTristate(False)
@@ -342,13 +345,12 @@ class MainWindow(QGraphicsView):
 	def resizeEvent(self, event):
 		QGraphicsView.resizeEvent(self,event)
 		self.scene1.setSceneRect(self.scene1.itemsBoundingRect())
-		#self.fitInView(self.scene1.sceneRect())
 
 	#for test
-	def on_quit(self):
-		for ani in [self.ani_SingleToMain, self.ani_MainToSingle, self.ani_AiToSingle, self.ani_SingleToAi]:
-			print ":once"
-			ani.deleteLater()
+	#def on_quit(self):
+		#for ani in [self.ani_SingleToMain, self.ani_MainToSingle, self.ani_AiToSingle, self.ani_SingleToAi, self.ani_ReplayToSingle,
+		#			self.ani_SingleToReplay, self.ani_SingleToHumanai, self.ani_HumanaiToSingle]:
+		#	ani.deleteLater()
 		#self.close()
-		QApplication.instance().quit()
+	#	QApplication.instance().quit()
 		

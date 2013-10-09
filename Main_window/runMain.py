@@ -45,5 +45,5 @@ time.sleep(2)
 main_window.showFullScreen()
 splash.finish(main_window)
 del splash
-
+#app.setQuitOnLastWindowClosed(False)
 sys.exit(app.exec_())

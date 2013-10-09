@@ -508,8 +508,10 @@ class HumanvsAi(QWidget, lib.human.ui_humanvsai.Ui_HumanvsAi):
 		#展示
 		global WaitForIni
 		self.nowRound = 0
+		self.infoWidget.setAiInfo(aiInfo)
 		self.replayWindow.GoToRound(self.nowRound, 0)
 		self.roundLabel.setText("Round 0")
+		self.infoWidget.setRoundInfo(0)
 		WaitForIni.wakeAll()
 		try:
 			self.playThread.lock.lockForWrite()
@@ -526,6 +528,7 @@ class HumanvsAi(QWidget, lib.human.ui_humanvsai.Ui_HumanvsAi):
 			self.nowRound += 1
 			self.replayWindow.GoToRound(self.nowRound, 0)
 			self.roundLabel.setText("Round %d" %self.nowRound)
+			self.infoWidget.setRoundInfo(self.nowRound)
 			#并且发出ablePlay要么play动画,要么开始等待作出命令
 			self.emit(SIGNAL("ableToPlay()"))#queued connection
 
@@ -552,6 +555,7 @@ class HumanvsAi(QWidget, lib.human.ui_humanvsai.Ui_HumanvsAi):
 			self.nowRound += 1
 			self.replayWindow.GoToRound(self.nowRound, 0)
 			self.roundLabel.setText("Round %d" %self.nowRound)
+			self.infoWidget.setRoundInfo(self.nowRound)
 			self.emit(SIGNAL("ableToPlay()"))
 
 	#判断有没有回合结束信息相关的更新

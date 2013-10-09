@@ -82,8 +82,8 @@ class TeamWidget(QWidget, ui_teamWidget.Ui_TeamWidget):
 #"            泽	     翔  程  倩	    发     辑   镜  帅     台   步  益     站   雨  浩     示   志         面   栋  雪		  \n"
 #"       导	 雷  瞳  宇  旭  聿	    组	   组   谭  祎     组   宇  铭     组   泽  贤     组   勋  康     组   林  妃  根	  \n"
 		self.scrollWidget.setText("																														   \n"
-"       指   孙  牟  俞  庄  武	    开     逻   朴  刘     平   李  胡     网   池  陈     展   谈  王     界   李  宁  李	  \n"
-"            泽      翔  程  倩	    发     辑   镜  帅     台   步  益     站   雨  浩     示   志         面   栋  雪		  \n"
+"       指   孙  牟  余  庄  武	    开     逻   朴  刘     平   李  胡     网   池  陈     展   谈  王     界   李  宁  李	  \n"
+"            泽      翔  程  倩     发     辑   镜  帅     台   步  益     站   雨  浩     示   志         面   栋  雪		  \n"
 "       导   雷  瞳  宇  旭  聿	    组     组   谭  祎     组   宇  铭     组   泽  贤     组   勋  康     组   林  妃  根	  \n")
 		self.horizontalLayout.addWidget(self.scrollWidget)
 if __name__ == "__main__":
