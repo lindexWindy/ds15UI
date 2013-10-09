@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'part_aivsai.ui'
 #
-# Created: Fri Oct 04 13:36:06 2013
+# Created: Wed Oct 09 18:29:34 2013
 #      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -28,7 +28,7 @@ class Ui_AIvsAI(object):
         AIvsAI.setObjectName(_fromUtf8("AIvsAI"))
         AIvsAI.resize(1024, 768)
         self.frame = QtGui.QFrame(AIvsAI)
-        self.frame.setGeometry(QtCore.QRect(0, 0, 1031, 761))
+        self.frame.setGeometry(QtCore.QRect(0, 0, 1031, 771))
         self.frame.setFrameShape(QtGui.QFrame.StyledPanel)
         self.frame.setFrameShadow(QtGui.QFrame.Raised)
         self.frame.setObjectName(_fromUtf8("frame"))
@@ -68,13 +68,17 @@ class Ui_AIvsAI(object):
         self.roundLCD.setGeometry(QtCore.QRect(180, 650, 91, 41))
         self.roundLCD.setObjectName(_fromUtf8("roundLCD"))
         self.startButton = QtGui.QPushButton(self.frame)
-        self.startButton.setGeometry(QtCore.QRect(120, 30, 40, 40))
+        self.startButton.setGeometry(QtCore.QRect(180, 30, 40, 40))
         self.startButton.setText(_fromUtf8(""))
         self.startButton.setObjectName(_fromUtf8("startButton"))
         self.returnButton = QtGui.QPushButton(self.frame)
         self.returnButton.setGeometry(QtCore.QRect(40, 30, 40, 40))
         self.returnButton.setText(_fromUtf8(""))
         self.returnButton.setObjectName(_fromUtf8("returnButton"))
+        self.exitButton = QtGui.QPushButton(self.frame)
+        self.exitButton.setGeometry(QtCore.QRect(110, 30, 40, 40))
+        self.exitButton.setText(_fromUtf8(""))
+        self.exitButton.setObjectName(_fromUtf8("exitButton"))
 
         self.retranslateUi(AIvsAI)
         QtCore.QMetaObject.connectSlotsByName(AIvsAI)

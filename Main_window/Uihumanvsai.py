@@ -283,6 +283,9 @@ class HumanvsAi(QWidget, lib.human.ui_humanvsai.Ui_HumanvsAi):
 									"*:hover{border-image: url(:openAI1.png);border:0;}")
 		self.helpButton.setStyleSheet("*{border-image: url(:help0.png);border:0;}"
 									"*:hover {border-image: url(:help1.png);border:0;}")
+		self.exitButton.setStyleSheet("*{border-image: url(:exit0.png);border:0;}"
+										"*:hover{border-image: url(:exit1.png); border:0;}")
+		self.errorLabel.setStyleSheet("#errorLabel{background-color: rgba(64, 224, 208, 180);color: rgb(255,97,0);border-radius:5;}")
 		self.setCursor(QCursor(QPixmap(":normal_cursor.png").scaled(30,30),0,0))
 		self.aiPath = ""
 		self.mapPath = ""
@@ -414,6 +417,11 @@ class HumanvsAi(QWidget, lib.human.ui_humanvsai.Ui_HumanvsAi):
 
 	@pyqtSlot()
 	def on_returnButton_clicked(self):
+		self.on_exitButton_clicked()
+		self.willReturn.emit()
+
+	@pyqtSlot()
+	def on_exitButton_clicked(self):
 		if self.started:
 			answer = QMessageBox.question(self, _frUtf("稍等"), _frUtf("你的游戏还没有完全结束，你确定要退出吗?"),
 										  QMessageBox.Yes, QMessageBox.No)
@@ -441,7 +449,6 @@ class HumanvsAi(QWidget, lib.human.ui_humanvsai.Ui_HumanvsAi):
 				#self.playThread.wait()
 			self.reset()
 		self.updateUi()
-		self.willReturn.emit()
 
 	def on_threadF(self, arg):
 		if arg:

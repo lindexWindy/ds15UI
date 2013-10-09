@@ -49,8 +49,10 @@ class SingleMenu(QWidget,ui_widgetssingle.Ui_widgetssingle):
 									  "#replay:hover{border-image:url(:replayButton1.png);}")
 		self.mapedit.setStyleSheet("#mapedit{border-image:url(:mapeditButton0.png);}"
 									  "#mapedit:hover{border-image:url(:mapeditButton1.png);}")
-		self.returnpre.setIcon(QIcon(QPixmap(":return0.png")))
-		self.returnpre.setIconSize(self.returnpre.size())
+		#self.returnpre.setIcon(QIcon(QPixmap(":return0.png")))
+		#self.returnpre.setIconSize(self.returnpre.size())
+		self.returnpre.setStyleSheet("*{border-image:url(:returnPre0.png);}"
+								  "*:hover{border-image:url(:returnPre1.png);}")
 class MusicCheck(QWidget, ui_musicCheck.Ui_musicCheck):
 	def __init__(self, parent = None):
 		super(MusicCheck, self).__init__(parent)

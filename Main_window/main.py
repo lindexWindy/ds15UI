@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+﻿# -*- coding: UTF-8 -*-
 import basic
 
 def distance(i,j):
@@ -13,18 +13,19 @@ def available_spots(map_list, unit_list, source_num, move_target = (-1,-1)):
 	s_unit = unit_list[source_num[0]][source_num[1]] # 目标单位
 	s_position = s_unit.position # 源点坐标
 	k = 1 - source_num[0]
-	u_block = []
-	if s_unit.kind != basic.DRAGON_RIDER:
-		for j in range(len(unit_list[k])):
-			if unit_list[k][j].life > 0:
+	u_block = []; s_block = []
+	for j in range(len(unit_list[k])):
+		if unit_list[k][j].life > 0:
+			if s_unit.kind == basic.DRAGON_RIDER:
+				s_block += [unit_list[k][j].position]
+			else:
 				u_block += [unit_list[k][j].position]
+	if s_unit.kind != basic.DRAGON_RIDER:
 		for i in range(len(map_list)):
 			for j in range(len(map_list[i])):
-				if map_list[i][j].kind == basic.BARRIER and not (i, j) in u_block:
+				if map_list[i][j].kind == basic.BARRIER:
 					u_block += [(i, j)]
-
 	#计算单位阻挡的位置
-	s_block = []
 	for j in range(len(unit_list[1 - k])):
 		if unit_list[1 - k][j].life > 0 and j != source_num[1]:
 			s_block += [unit_list[1 - k][j].position]
@@ -54,7 +55,7 @@ def available_spots(map_list, unit_list, source_num, move_target = (-1,-1)):
 		i = len(a_spots) - 1
 		while i > 1:
 			i -= 1
-			if [move_target, 1] in a_spots[i] and not [move_target, 1] in a_spots[i + 1]:
+			if [move_target, 1] in a_spots[i]:
 				d_spots += [move_target]
 				for j in direction:
 					i_1 = move_target[0] + j[0]
@@ -98,19 +99,18 @@ def calculation(command, base, whole_map, move_range, map_temple, score, unit_id
 	attack_1 = -1; attack_2 = -1
 	route = [base[j][i].position]
 	if move_position in move_range:
-		print "moverangeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee::::",move_range,"movepos:",move_position
-		print "position:::::::::::::::::::::::", base[1][1].position, base[1][2].position
 		sc = whole_map[base[j][i].position[0]][base[j][i].position[1]].kind == basic.TURRET and base[j][i].position == move_position
+		route += available_spots(whole_map, base, unit_id, move_position)
 		if not sc:
-			whole_map[base[j][i].position[0]][base[j][i].position[1]].leave(base, (j, i))
-		route += available_spots(whole_map, base, unit_id, move_position)		
+			whole_map[base[j][i].position[0]][base[j][i].position[1]].leave(base, (j, i))		
 		base[j][i].move(move_position)
 		if not sc:
 			whole_map[move_position[0]][move_position[1]].effect(base, whole_map, (j, i), score)
-		for i in map_temple:
-			if i[0] == move_position:
-				i[1] = 0
+		for tp in map_temple:
+			if tp[0] == move_position:
+				tp[1] = 0
 	if order == 1 and w[0] == 1 - j:
+		print "dfdsafasf",i,j,w[1]
 		if distance(base[j][i].position, base[1 - j][w[1]].position) in base[j][i].attack_range:
 			attack_1 = base[j][i].attack(base, (1 - j, w[1]))
 		if base[1 - j][w[1]].life > 0 and distance(base[j][i].position, base[1 - j][w[1]].position) in base[1 - j][w[1]].attack_range:

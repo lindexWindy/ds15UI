@@ -222,7 +222,7 @@ class MainWindow(QGraphicsView):
 		self.ani_SingleToAi = MenuToWindowAnimation(self.singleWindow, self.aiWindow)
 		self.trans_SingleToAi.addAnimation(self.ani_SingleToAi)
 
-		self.trans_AiToSingle = self.AiState.addTransition(self.aiWidget.returnButton, SIGNAL("clicked()"),
+		self.trans_AiToSingle = self.AiState.addTransition(self.aiWidget, SIGNAL("willReturn()"),
 											 self.SingleState)
 		self.ani_AiToSingle = WindowToMenuAnimation(self.aiWindow, self.singleWindow)
 		self.trans_AiToSingle.addAnimation(self.ani_AiToSingle)

@@ -4,52 +4,90 @@
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
-import socket,sio
+import socket, sio, os
 import ui_aivsai
 import qrc_resource
 AI_FILE_DIR = ""#ai目录路径
 MAP_FILE_DIR = ""#map目录路径
+Score = (0, 0)
 class AiThread(QThread):
 	def __init__(self, map, ai1, ai2, parent = None):
 		super(AiThread, self).__init__(parent)
 		self.map = map
 		self.ai1 = ai1
 		self.ai2 = ai2
+		self.Stopped = False
+		self.lock = QMutex()
+
 	def run(self):
 		#先用QProcess打开平台程序
-		conn = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+		self.platProcess = sio.Prog_Run(os.getcwd() + sio.SERV_FILE_NAME)
+		self.conn = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 		try:
-			conn.connect((sio.HOST,sio.UI_PORT))
+			self.conn.connect((sio.HOST,sio.UI_PORT))
 		except:
 			self.emit(SIGNAL("connectError()"))
 		else:
-			sio._sends(conn,(sio.AI_VS_AI, self.map ,[self.ai1, self.ai2]))
+			sio._sends(self.conn,(sio.AI_VS_AI, self.map ,[self.ai1, self.ai2]))
 
-			mapInfo,aiInfo = sio._recvs(conn)
+			mapInfo,baseInfo,aiInfo = sio._recvs(self.conn)
+			try:
+				rbInfo = sio._recvs(self.conn)
+			except:
+				self.stop()
+			try:
+				rCommand,reInfo = sio._recvs(self.conn)
+			except:
+				self.stop()
+			self.emit(SIGNAL("round()"))
 
-			rbInfo = sio._recvs(conn)
-			rCommand,reInfo = sio._recvs(conn)
-			self.emit(SIGNAL("round"))
-
-			while reInfo.over == -1:
-				rbInfo = sio._recvs(conn)
-				rCommand,reInfo = sio._recvs(conn)
+			while not reInfo.over and not self.isStopped():
+				try:
+					rbInfo = sio._recvs(self.conn)
+				except:
+					self.stop()
+				try:
+					rCommand,reInfo = sio._recvs(self.conn)
+				except:
+					self.stop()
+					pass
 				self.emit(SIGNAL("round()"))
-
-			winner = sio._recvs(conn)
-			self.emit(SIGNAL("gameEnd"),winner)
+			if not self.isStopped():
+				global Score
+				Score = reInfo.score
+				winner = sio._recvs(self.conn)
+				self.emit(SIGNAL("gameEnd"),winner)
 
 		finally:
-			conn.close()
+			self.platProcess.kill()
+			self.conn.close()
+
+	@pyqtSlot()
+	def on_shut(self):
+		self.conn.shutdown(socket.SHUT_RDWR)
+		self.conn.close()
+		self.platProcess.kill()
+		self.exit(0)
+	def stop(self):
+		try:
+			self.lock.lock()
+			self.Stopped = True
+		finally:
+			self.lock.unlock()
+	def isStopped(self):
+		try:
+			self.lock.lock()
+			return self.Stopped
+		finally:
+			self.lock.unlock()
 
 class AivsAi(QWidget, ui_aivsai.Ui_AIvsAI):
+	willReturn = pyqtSignal()
 	def __init__(self, parent = None):
 		super(AivsAi, self).__init__(parent)
 		self.setupUi(self)
-	   # pal = self.palette()
-		#pal.setBrush(QPalette.Window, QBrush(QPixmap(":singleWindow.png")))
-		#self.setPalette(pal)
-		#self.roundLCD.display(0)
+		
+		self.roundLCD.display(0)
 		self.setStyleSheet("#frame{border-image: url(:singleWindow.jpg);}"
 							"QPushButton{border-style:flat;border:0;}")
 		#self.returnButton.setIcon(QIcon(QPixmap(":return0.png")))
@@ -71,7 +109,10 @@ class AivsAi(QWidget, ui_aivsai.Ui_AIvsAI):
 		self.AiButton1.setStyleSheet("*{border-image: url(:openAI0.png);}"
 										"*:hover{border-image: url(:openAI0.png);}")
 		self.AiButton2.setStyleSheet("*{border-image: url(:openAI1.png);}"
-										"*:hover{border-image: url(:openAI1.png);}")								
+										"*:hover{border-image: url(:openAI1.png);}")	
+		self.exitButton.setStyleSheet("*{border-image: url(:exit0.png);}"
+										"*:hover{border-image: url(:exit1.png);}")
+
 	@pyqtSlot()
 	def on_startButton_clicked(self):
 		self.round = 0
@@ -120,13 +161,24 @@ class AivsAi(QWidget, ui_aivsai.Ui_AIvsAI):
 			self.mapCombo.addItem(newMapName)
 			self.mapCombo.setCurrentIndex(self.mapCombo.count() - 1)
 
+	@pyqtSlot()
+	def on_returnButton_clicked(self):
+		self.emit(SIGNAL("toShut()"))
+		self.willReturn.emit()
+		self.startButton.setEnabled(True)
+
+	@pyqtSlot()
+	def on_exitButton_clicked(self):
+		self.emit(SIGNAL("toShut()"))
+		self.startButton.setEnabled(True)
+
 	def roundDisplay(self):
 		self.round += 1
 		self.roundLCD.display(self.round)
 
 
 	def endGame(self, winner):
-		QMessageBox.information(self, QString.fromUtf8("游戏结束"), QString.fromUtf8("ai %s 胜利" %winner))
+		QMessageBox.information(self, QString.fromUtf8("游戏结束"), QString.fromUtf8("ai %s 胜利\n 分数:%d : %d " %(winner, Score[0], Score[1] )))
 		self.startButton.setEnabled(True)
 
 
@@ -137,7 +189,8 @@ class AivsAi(QWidget, ui_aivsai.Ui_AIvsAI):
 
 	def startGame(self):
 		self.startButton.setEnabled(False)
-		self.thread = AiThread(self.map, self.ai1, self.ai2, self)
+		self.thread = AiThread(unicode(self.map), unicode(self.ai1), unicode(self.ai2), self)
+		self.connect(self, SIGNAL("toShut()"), self.thread, SLOT("on_shut()"))
 		self.connect(self.thread, SIGNAL("finished()"), self.thread, SLOT("deleteLater()"))
 		self.connect(self.thread, SIGNAL("gameEnd"), self.endGame)
 		self.connect(self.thread, SIGNAL("connectError()"), self.connectError)
